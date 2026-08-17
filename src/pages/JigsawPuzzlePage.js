@@ -147,10 +147,26 @@ const splitExtrudeGroups = (geometry) => {
   const indexAttr = geometry.getIndex();
   const positionAttr = geometry.getAttribute('position');
   
-  if (!indexAttr || !positionAttr) return;
+  if (!positionAttr) return;
   
-  const indices = indexAttr.array;
+  let indices;
+  if (!indexAttr) {
+    // Generate sequential index buffer if geometry is non-indexed
+    const count = positionAttr.count;
+    indices = new Uint32Array(count);
+    for (let i = 0; i < count; i++) {
+      indices[i] = i;
+    }
+  } else {
+    indices = indexAttr.array;
+  }
+  
   const positions = positionAttr.array;
+  
+  // Compute bounding box of the geometry to find the exact min and max Z coordinates
+  geometry.computeBoundingBox();
+  const minZ = geometry.boundingBox.min.z;
+  const maxZ = geometry.boundingBox.max.z;
   
   const frontIndices = [];
   const sideIndices = [];
@@ -159,8 +175,6 @@ const splitExtrudeGroups = (geometry) => {
   const vA = new THREE.Vector3();
   const vB = new THREE.Vector3();
   const vC = new THREE.Vector3();
-  const cb = new THREE.Vector3();
-  const ab = new THREE.Vector3();
   
   for (let i = 0; i < indices.length; i += 3) {
     const a = indices[i];
@@ -171,14 +185,15 @@ const splitExtrudeGroups = (geometry) => {
     vB.fromArray(positions, b * 3);
     vC.fromArray(positions, c * 3);
     
-    cb.subVectors(vC, vB);
-    ab.subVectors(vA, vB);
-    cb.cross(ab);
-    cb.normalize();
+    // Classify faces by checking if all three vertices align with the min Z (back cap) or max Z (front cap)
+    // We use a small tolerance of 0.05 units to account for float inaccuracy and bevels
+    const tolerance = 0.05;
+    const isFront = Math.abs(vA.z - maxZ) < tolerance && Math.abs(vB.z - maxZ) < tolerance && Math.abs(vC.z - maxZ) < tolerance;
+    const isBack = Math.abs(vA.z - minZ) < tolerance && Math.abs(vB.z - minZ) < tolerance && Math.abs(vC.z - minZ) < tolerance;
     
-    if (cb.z > 0.0001) {
+    if (isFront) {
       frontIndices.push(a, b, c);
-    } else if (cb.z < -0.0001) {
+    } else if (isBack) {
       backIndices.push(a, b, c);
     } else {
       sideIndices.push(a, b, c);
