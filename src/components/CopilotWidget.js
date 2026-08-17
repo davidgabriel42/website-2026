@@ -10,24 +10,21 @@ const PRE_CACHED_QUESTIONS = [
     pill: "📚 Read his MS Thesis",
     question: "Tell me about David's Master's Thesis topic and findings.",
     answer: "David's MS thesis from UNR is titled 'Throughput Prediction on Parallel File Systems using Machine Learning'. By processing Darshan I/O logs on the BlueWaters supercomputer, he developed a Deep Neural Network (DNN) model that predicted applications' I/O throughput within a 16 MB/s range. This accurate throughput prediction allows system administrators to detect file system performance anomalies (like metadata server overloads or resource interference) and minimize interruptions.",
-    actions: [{ action: "NAVIGATE", payload: "/demos/jigsaw-puzzle" }] // Let's take them to his interactive thesis board!
+    actions: []
   },
   {
     id: 'experience',
     pill: "💼 Review his experience",
     question: "What is David's professional software engineering experience?",
     answer: "David is a Senior Software Engineer and Architect with over 13 years of engineering depth spanning Fintech (Ridgeline Apps), Enterprise MLOps (Cloudera), and Safety-Critical embedded hardware (Bruel & Kjaer Vibro, Maxton, Luxtech). At Cloudera, he was the AI Security Champion and developed an open-source Agentic Security CVE scanner using Claude 3.7. At Ridgeline Apps, he tuned report-generation database queries to reduce processing times from 2.5 hours to 30 minutes.",
-    actions: [{ action: "NAVIGATE", payload: "/demos" }] // Let's navigate to showcase his demos!
+    actions: []
   },
   {
     id: 'cve_scanner',
     pill: "🛡️ Check Agentic CVE Scanner",
     question: "Explain David's open-source Agentic Security tool.",
     answer: "At Cloudera, David developed 'CAI_AMP_Agentic_Security_Scanning'—an Applied Machine Learning Prototype that deploys collaborative multi-agent teams. It uses a directed acyclic graph (DAG) workflow (CVE Detection, Business Context, CVE Grading, Attack Generation, and Fix Generation) to scan codebases for OWASP Top 10 vulnerabilities, outline real exploit vectors, and suggest remediating code. It integrates directly with AWS Bedrock (Claude) and Cloudera AI.",
-    actions: [
-      { action: "NAVIGATE", payload: "/demos" },
-      { action: "HIGHLIGHT", payload: "a:contains('View Code')" } // Highlight his code repositories!
-    ]
+    actions: []
   }
 ];
 
