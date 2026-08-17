@@ -623,14 +623,6 @@ const JigsawPuzzlePage = () => {
             Dynamically slices uploaded or generated images into interlocking jigsaw pieces. Fully simulated in 3D!
           </p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={handleScramble} className="btn btn-warning btn-sm">
-            Scramble Board
-          </button>
-          <button onClick={handleAutoSolve} className="btn btn-success btn-sm">
-            Solve Puzzle
-          </button>
-        </div>
       </div>
 
       {/* Control Actions Panel */}
@@ -720,6 +712,16 @@ const JigsawPuzzlePage = () => {
                 <p className="mt-2 text-sm font-medium">Slicing puzzle image...</p>
               </div>
             )}
+          </div>
+          
+          {/* Controls Below the Puzzle View */}
+          <div className="flex justify-center gap-4 mt-4">
+            <button onClick={handleScramble} className="btn btn-warning shadow-lg px-6 font-bold">
+              Scramble Board
+            </button>
+            <button onClick={handleAutoSolve} className="btn btn-success shadow-lg px-6 font-bold">
+              Solve Puzzle
+            </button>
           </div>
         </div>
 
