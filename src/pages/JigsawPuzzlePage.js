@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, Suspense, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { Stage, Layer, Rect } from 'react-konva';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -676,66 +675,51 @@ const JigsawPuzzlePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col font-sans">
-      {/* Standalone Navigation Header */}
-      <header className="navbar bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-lg">
-        <div className="flex items-center gap-2">
-          <span className="text-3xl">🧩</span>
-          <span className="text-xl font-black tracking-tight text-white uppercase">3D Jigsaw Studio</span>
-        </div>
-        <div>
-          <Link to="/" className="btn btn-outline btn-sm hover:bg-white hover:text-black transition-colors gap-2">
-            &larr; Back to Portfolio
-          </Link>
-        </div>
-      </header>
-
-      {/* Main Workspace Container */}
-      <div className="flex-1 p-6 flex flex-col gap-6 max-w-7xl w-full mx-auto">
+    <div className="flex flex-col gap-6 w-full h-full max-w-7xl mx-auto py-4 text-base-content font-sans transition-colors duration-300">
       {/* Title Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-white">3D Jigsaw Puzzle</h1>
-          <p className="text-gray-400 mt-1 text-sm">
+          <h1 className="text-3xl font-black tracking-tight">3D Jigsaw Puzzle</h1>
+          <p className="text-base-content/60 mt-1 text-sm">
             Dynamically slices uploaded or generated images into interlocking jigsaw pieces. Fully simulated in 3D!
           </p>
         </div>
       </div>
 
       {/* Control Actions Panel */}
-      <div className="card bg-slate-850 border border-slate-800 p-4 rounded-xl flex flex-wrap md:flex-nowrap gap-4 items-center justify-between">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
-            <span className="text-xs font-bold text-gray-500 uppercase">Image:</span>
+      <div className="card bg-base-200 border border-base-300 p-4 rounded-xl flex flex-wrap md:flex-nowrap gap-4 items-center justify-between shadow-md">
+        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+          <div className="flex items-center gap-1.5 bg-base-100 px-3 py-1.5 rounded-lg border border-base-300">
+            <span className="text-xs font-bold text-base-content/40 uppercase">Image:</span>
             <button
               onClick={() => setImageSizeSource('landscape')}
               disabled={isSolving}
-              className={`btn btn-xs ${imageType === 'landscape' ? 'btn-primary' : 'btn-ghost'}`}
+              className={`btn btn-xs ${imageType === 'landscape' ? 'btn-primary text-white font-bold' : 'btn-ghost text-base-content/70 hover:text-base-content'}`}
             >
               Scenic Landscape
             </button>
             <button
               onClick={() => setImageSizeSource('gradient')}
               disabled={isSolving}
-              className={`btn btn-xs ${imageType === 'gradient' ? 'btn-primary' : 'btn-ghost'}`}
+              className={`btn btn-xs ${imageType === 'gradient' ? 'btn-primary text-white font-bold' : 'btn-ghost text-base-content/70 hover:text-base-content'}`}
             >
-              Gradient fallbacks
+              Gradient fallback
             </button>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-gray-500 uppercase">Upload custom:</span>
+            <span className="text-xs font-bold text-base-content/50 uppercase">Upload custom:</span>
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleImageUpload}
               accept="image/*"
               disabled={isSolving}
-              className="file-input file-input-bordered file-input-xs max-w-xs text-xs"
+              className="file-input file-input-bordered file-input-xs max-w-xs text-xs bg-base-100 border-base-300"
             />
           </div>
         </div>
-        <span className="text-xs text-slate-500 hidden lg:inline">
+        <span className="text-xs text-base-content/50 hidden lg:inline">
           Tip: Select a piece to rotate and inspect in 3D depth!
         </span>
       </div>
@@ -745,9 +729,9 @@ const JigsawPuzzlePage = () => {
         {/* Left Column: 2D Board Canvas */}
         <div className="lg:col-span-2 flex flex-col gap-2">
           <div className="flex items-center justify-between px-2">
-            <span className="text-sm font-semibold text-gray-300">2D Assemble Board</span>
+            <span className="text-sm font-semibold text-base-content/80">2D Assemble Board</span>
             {pieces.length > 0 && (
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-base-content/60">
                 Total group connections: {new Set(pieces.map(p => p.groupId).filter(Boolean)).size} / 16
               </span>
             )}
@@ -755,7 +739,7 @@ const JigsawPuzzlePage = () => {
           
           <div
             ref={boardRef}
-            className="w-full h-[520px] bg-slate-900 border-2 border-slate-800 rounded-2xl shadow-2xl relative overflow-hidden"
+            className="w-full h-[520px] bg-base-100 border-2 border-base-300 rounded-2xl shadow-2xl relative overflow-hidden"
           >
             {pieces.length > 0 ? (
               <Stage width={boardSize.width} height={boardSize.height}>
@@ -766,11 +750,11 @@ const JigsawPuzzlePage = () => {
                     y={(boardSize.height - imageSize.height) / 2}
                     width={imageSize.width}
                     height={imageSize.height}
-                    stroke="#334155"
-                    strokeWidth={2}
+                    stroke="currentColor"
+                    strokeWidth={1.5}
                     dash={[8, 4]}
-                    fill="#0f172a"
-                    opacity={0.5}
+                    fill="currentColor"
+                    opacity={0.03}
                   />
 
                   {/* Render interlocking jigsaw components */}
@@ -788,7 +772,7 @@ const JigsawPuzzlePage = () => {
                 </Layer>
               </Stage>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-slate-500">
+              <div className="flex flex-col items-center justify-center h-full text-base-content/40">
                 <div className="loading loading-spinner loading-lg"></div>
                 <p className="mt-2 text-sm font-medium">Slicing puzzle image...</p>
               </div>
@@ -816,9 +800,9 @@ const JigsawPuzzlePage = () => {
 
         {/* Right Column: 3D Inspector Frame */}
         <div className="lg:col-span-1 flex flex-col gap-4">
-          <div className="card bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-            <div className="bg-slate-800 border-b border-slate-700 px-4 py-3.5 flex justify-between items-center">
-              <h2 className="text-md font-extrabold text-white uppercase tracking-wider">3D Piece Inspector</h2>
+          <div className="card bg-base-100 border border-base-300 rounded-2xl shadow-xl overflow-hidden">
+            <div className="bg-base-200 border-b border-base-300 px-4 py-3.5 flex justify-between items-center">
+              <h2 className="text-sm font-extrabold text-base-content uppercase tracking-wider">3D Piece Inspector</h2>
               <div className="flex items-center gap-2">
                 {isGridCollapsed && (
                   <button
@@ -838,8 +822,8 @@ const JigsawPuzzlePage = () => {
 
             {/* Selection Grid for Pieces (collapsible) */}
             {!isGridCollapsed && pieces.length > 0 && (
-              <div className="p-4 border-b border-slate-800 bg-slate-950 transition-all duration-300">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
+              <div className="p-4 border-b border-base-300 bg-base-300/30 transition-all duration-300">
+                <span className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider block mb-2">
                   Quick Select Piece from Grid:
                 </span>
                 <div className="grid grid-cols-4 gap-2">
@@ -847,10 +831,10 @@ const JigsawPuzzlePage = () => {
                     <button
                       key={piece.id}
                       onClick={() => selectPiece(piece)}
-                      className={`aspect-square p-1 rounded border overflow-hidden flex items-center justify-center transition-all bg-slate-900 hover:bg-slate-800 ${
+                      className={`aspect-square p-1 rounded border overflow-hidden flex items-center justify-center transition-all bg-base-250 hover:bg-base-300 ${
                         selectedPiece?.id === piece.id
-                          ? 'border-primary ring-2 ring-primary/30 ring-offset-2 ring-offset-slate-900 scale-105'
-                          : 'border-slate-800'
+                          ? 'border-primary ring-2 ring-primary/30 ring-offset-2 ring-offset-base-100 scale-105'
+                          : 'border-base-300'
                       }`}
                     >
                       <img
@@ -865,7 +849,7 @@ const JigsawPuzzlePage = () => {
             )}
 
             {/* R3F 3D Viewport container (dynamic height) */}
-            <div className={`bg-slate-950 relative flex items-center justify-center transition-all duration-300 ${isGridCollapsed ? 'h-[500px]' : 'h-[320px]'}`}>
+            <div className={`bg-base-300/50 relative flex items-center justify-center transition-all duration-300 ${isGridCollapsed ? 'h-[500px]' : 'h-[320px]'}`}>
               {selectedPiece ? (
                 <div className="w-full h-full">
                   <Canvas shadows camera={{ position: [0, 0, 5], fov: 50 }}>
@@ -888,15 +872,15 @@ const JigsawPuzzlePage = () => {
                       <OrbitControls enablePan={true} enableZoom={true} />
                     </Suspense>
                   </Canvas>
-                  <div className="absolute bottom-2 right-2 text-[10px] text-gray-500 bg-black/40 px-2 py-0.5 rounded backdrop-blur">
+                  <div className="absolute bottom-2 right-2 text-[10px] text-base-content/50 bg-base-200/60 px-2 py-0.5 rounded backdrop-blur">
                     Left-click + Drag to rotate. Scroll to zoom.
                   </div>
                 </div>
               ) : (
                 <div className="text-center p-6 max-w-[250px]">
-                  <div className="text-slate-600 text-5xl mb-3">🧩</div>
-                  <p className="text-xs font-semibold text-slate-400">No Piece Selected</p>
-                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                  <div className="text-base-content/30 text-5xl mb-3">🧩</div>
+                  <p className="text-xs font-semibold text-base-content/60">No Piece Selected</p>
+                  <p className="text-[11px] text-base-content/40 mt-1.5 leading-relaxed">
                     Click any jigsaw piece on the 2D assemble board or select one from the grid above to inspect its complete 3D extrusion structure here.
                   </p>
                 </div>
@@ -905,10 +889,10 @@ const JigsawPuzzlePage = () => {
 
             {/* Selected piece settings controls */}
             {selectedPiece && (
-              <div className="p-4 bg-slate-900 border-t border-slate-800 flex flex-col gap-4 text-xs">
+              <div className="p-4 bg-base-100 border-t border-base-300 flex flex-col gap-4 text-xs">
                 {/* Auto Rotate Control */}
-                <div className="flex justify-between items-center bg-slate-950 px-3 py-2 rounded-lg border border-slate-800">
-                  <span className="font-semibold text-gray-300">Auto Rotate</span>
+                <div className="flex justify-between items-center bg-base-200 px-3 py-2 rounded-lg border border-base-300">
+                  <span className="font-semibold text-base-content/70">Auto Rotate</span>
                   <input
                     type="checkbox"
                     checked={autoRotate}
@@ -919,7 +903,7 @@ const JigsawPuzzlePage = () => {
 
                 {/* Thickness Depth Slider */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between text-gray-400 font-semibold">
+                  <div className="flex justify-between text-base-content/60 font-semibold">
                     <span>Cardboard Thickness:</span>
                     <span className="text-primary font-bold">{thickness} units</span>
                   </div>
@@ -935,7 +919,7 @@ const JigsawPuzzlePage = () => {
 
                 {/* Side Solid Wood Color selection */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-gray-400 font-semibold">Edge Side Color:</span>
+                  <span className="text-base-content/60 font-semibold">Edge Side Color:</span>
                   <div className="grid grid-cols-4 gap-2">
                     {[
                       { hex: '#d2b48c', name: 'Tan Wood' },
@@ -948,7 +932,7 @@ const JigsawPuzzlePage = () => {
                         onClick={() => setSideColor(color.hex)}
                         style={{ backgroundColor: color.hex }}
                         title={color.name}
-                        className={`h-6 rounded-lg transition-transform border border-black/20 ${
+                        className={`h-6 rounded-lg transition-transform border border-black/10 ${
                           sideColor === color.hex ? 'ring-2 ring-primary ring-offset-2 scale-105' : 'hover:scale-102'
                         }`}
                       />
@@ -957,31 +941,31 @@ const JigsawPuzzlePage = () => {
                 </div>
 
                 {/* Edge contours properties details */}
-                <div className="flex flex-col gap-2 bg-slate-950 p-3 rounded-lg border border-slate-800 mt-1">
-                  <span className="font-bold text-gray-400 text-[10px] uppercase tracking-wider">
+                <div className="flex flex-col gap-2 bg-base-200 p-3 rounded-lg border border-base-300 mt-1">
+                  <span className="font-bold text-base-content/50 text-[10px] uppercase tracking-wider">
                     Contour Edge Topologies:
                   </span>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] text-gray-400">
-                    <div className="flex justify-between border-b border-slate-900 pb-1">
-                      <span className="text-slate-500 font-semibold">Top:</span>
-                      <span className="font-bold text-gray-300">{getEdgeLabel(selectedPiece.edges.top)}</span>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] text-base-content/60">
+                    <div className="flex justify-between border-b border-base-300 pb-1">
+                      <span className="text-base-content/40 font-semibold">Top:</span>
+                      <span className="font-bold text-base-content/70">{getEdgeLabel(selectedPiece.edges.top)}</span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-900 pb-1">
-                      <span className="text-slate-500 font-semibold">Right:</span>
-                      <span className="font-bold text-gray-300">{getEdgeLabel(selectedPiece.edges.right)}</span>
+                    <div className="flex justify-between border-b border-base-300 pb-1">
+                      <span className="text-base-content/40 font-semibold">Right:</span>
+                      <span className="font-bold text-base-content/70">{getEdgeLabel(selectedPiece.edges.right)}</span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-900 pb-1">
-                      <span className="text-slate-500 font-semibold">Bottom:</span>
-                      <span className="font-bold text-gray-300">{getEdgeLabel(selectedPiece.edges.bottom)}</span>
+                    <div className="flex justify-between border-b border-base-300 pb-1">
+                      <span className="text-base-content/40 font-semibold">Bottom:</span>
+                      <span className="font-bold text-base-content/70">{getEdgeLabel(selectedPiece.edges.bottom)}</span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-900 pb-1">
-                      <span className="text-slate-500 font-semibold">Left:</span>
-                      <span className="font-bold text-gray-300">{getEdgeLabel(selectedPiece.edges.left)}</span>
+                    <div className="flex justify-between border-b border-slate-300 pb-1">
+                      <span className="text-base-content/40 font-semibold">Left:</span>
+                      <span className="font-bold text-base-content/70">{getEdgeLabel(selectedPiece.edges.left)}</span>
                     </div>
                   </div>
-                  <div className="flex justify-between text-[11px] text-slate-500 pt-1">
+                  <div className="flex justify-between text-[11px] text-base-content/40 pt-1">
                     <span>Snapping Group:</span>
-                    <span className="font-mono text-gray-400">
+                    <span className="font-mono text-base-content/60">
                       {selectedPiece.groupId ? selectedPiece.groupId.substring(0, 10) : 'None (Independent)'}
                     </span>
                   </div>
@@ -990,7 +974,6 @@ const JigsawPuzzlePage = () => {
             )}
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

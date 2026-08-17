@@ -17,8 +17,8 @@ function App() {
           <Route path="/demos" element={<DemosPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/hire-me" element={<HireMePage />} />
+          <Route path="/demos/jigsaw-puzzle" element={<JigsawPuzzlePage />} />
         </Route>
-        <Route path="/demos/jigsaw-puzzle" element={<JigsawPuzzlePage />} />
       </Routes>
       <CopilotWidget />
     </>
