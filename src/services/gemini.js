@@ -1,4 +1,5 @@
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+const OLLAMA_API_URL = "http://localhost:11434/v1/chat/completions";
 
 let cachedContext = null;
 
@@ -16,7 +17,7 @@ async function fetchContext() {
   }
 }
 
-// Low-level helper to trigger Gemini API with raw system/user content forcing JSON output
+// Helper to trigger remote Gemini API with structured JSON output
 async function callGemini(apiKey, systemInstruction, userPrompt) {
   const url = `${GEMINI_API_URL}?key=${apiKey}`;
   const response = await fetch(url, {
@@ -54,22 +55,65 @@ async function callGemini(apiKey, systemInstruction, userPrompt) {
   }
 }
 
+// Helper to trigger local Ollama API (OpenAI-compatible) with structured JSON output
+async function callLocalModel(modelName, systemInstruction, userPrompt) {
+  const response = await fetch(OLLAMA_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: modelName || "llama3",
+      messages: [
+        { role: "system", content: systemInstruction },
+        { role: "user", content: userPrompt }
+      ],
+      response_format: { type: "json_object" }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Local Ollama error (Status ${response.status}). Ensure Ollama is running on your machine.`);
+  }
+
+  const result = await response.json();
+  const rawText = result.choices?.[0]?.message?.content;
+  if (!rawText) throw new Error("Invalid local model response structure");
+
+  try {
+    return JSON.parse(rawText.trim());
+  } catch (err) {
+    console.error("[Copilot Service] Failed to parse local JSON response:", rawText);
+    throw new Error("Failed to parse local model JSON response");
+  }
+}
+
 /**
  * Executes the 3-Stage Agentic Pipeline
- * @param {string} apiKey - Visitor's provided Gemini API Key
+ * @param {string} apiKey - Visitor's provided API Key (or "local_model:model_name" for local LLM routing)
  * @param {string} query - Visitor's raw text input
  * @param {function} onStepUpdate - Callback to stream executing stages back to the Agent Terminal UI
  */
 export async function executeAgentPipeline(apiKey, query, onStepUpdate) {
   if (!apiKey) throw new Error("API_KEY_REQUIRED");
   
+  const isLocal = apiKey.startsWith("local_model:");
+  const modelName = isLocal ? apiKey.split(":")[1] : null;
+
   const context = await fetchContext();
   if (!context) throw new Error("CONTEXT_LOAD_FAILED");
 
   const contextStr = JSON.stringify(context);
 
+  // Unified LLM caller to seamlessly route to either cloud Gemini or local Ollama
+  const callLLM = async (system, prompt) => {
+    if (isLocal) {
+      return await callLocalModel(modelName, system, prompt);
+    } else {
+      return await callGemini(apiKey, system, prompt);
+    }
+  };
+
   // --- STAGE 1: GATEKEEPER (Intent & Safety) ---
-  onStepUpdate({ stage: 1, status: "RUNNING", message: "Stage 1: Analysing query topic & safety..." });
+  onStepUpdate({ stage: 1, status: "RUNNING", message: isLocal ? `Stage 1: Analysing query topic using ${modelName}...` : "Stage 1: Analysing query topic & safety..." });
   
   const gatekeeperSystem = `You are a strict routing node and safety gatekeeper for David-Gabriel's portfolio website.
 Analyze the user's query.
@@ -84,7 +128,7 @@ You must return a JSON object with this EXACT structure:
 }
 * rejection_message should be a friendly, professional, dry rejection text (1-2 sentences) if is_relevant is false, otherwise null. Only discuss David's professional background. Avoid subjective or superlative adjectives.`;
 
-  const gateResult = await callGemini(apiKey, gatekeeperSystem, `Query: "${query}"`);
+  const gateResult = await callLLM(gatekeeperSystem, `Query: "${query}"`);
   
   if (!gateResult.is_relevant) {
     onStepUpdate({ stage: 1, status: "REJECTED", message: gateResult.rejection_message || "Relevance check failed." });
@@ -124,7 +168,7 @@ You must return a JSON object with this EXACT structure:
 }
 Note: ui_actions should be an empty array if no action is requested or implied. Keep your answer highly concise, strictly dry, objective, and professional. Do not use hyperbolic or subjective adjectives.`;
 
-  const responseResult = await callGemini(apiKey, responderSystem, `Visitor Query: "${query}"`);
+  const responseResult = await callLLM(responderSystem, `Visitor Query: "${query}"`);
   onStepUpdate({ stage: 2, status: "COMPLETED", message: "Stage 2: Response drafted & UI tools extracted." });
 
   // --- STAGE 3: THE EVALUATOR (Anti-Hallucination Guardrail) ---
@@ -147,7 +191,7 @@ You must return a JSON object with this EXACT structure:
 }
 Set passed_eval: true if the draft was 100% factual and did not require any modification, otherwise set passed_eval: false.`;
 
-  const evalResult = await callGemini(apiKey, evaluatorSystem, `Draft Answer to evaluate: "${responseResult.draft_answer}"`);
+  const evalResult = await callLLM(evaluatorSystem, `Draft Answer to evaluate: "${responseResult.draft_answer}"`);
   onStepUpdate({ stage: 3, status: "COMPLETED", message: evalResult.passed_eval ? "Stage 3: Verified. Fact check passed." : "Stage 3: Verified. Polished and corrected." });
 
   return {

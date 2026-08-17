@@ -38,8 +38,19 @@ const CopilotWidget = () => {
     return saved !== null ? JSON.parse(saved) : true;
   });
   
-  const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
-  const [inputKey, setInputKey] = useState(apiKey);
+  const [llmType, setLlmType] = useState(localStorage.getItem('copilot_llm_type') || 'gemini'); // 'gemini' or 'local'
+  const [localModelName, setLocalModelName] = useState(localStorage.getItem('copilot_local_model') || 'llama3');
+
+  const [apiKey, setApiKey] = useState(() => {
+    const savedType = localStorage.getItem('copilot_llm_type') || 'gemini';
+    if (savedType === 'local') {
+      const savedModel = localStorage.getItem('copilot_local_model') || 'llama3';
+      return `local_model:${savedModel}`;
+    }
+    return localStorage.getItem('gemini_api_key') || '';
+  });
+  const [inputKey, setInputKey] = useState(localStorage.getItem('gemini_api_key') || '');
+  const [inputModelName, setInputModelName] = useState(localModelName);
   const [showKeyInput, setShowKeyInput] = useState(false); // Only show when triggered or settings clicked
   
   const [messages, setMessages] = useState(() => {
@@ -56,7 +67,7 @@ const CopilotWidget = () => {
   const [isProcessing, setIsSolving] = useState(false);
   const [activeSteps, setActiveSteps] = useState([]); // Real-time executing terminal logs
 
-  const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
   const { executeActions } = useAgentActions();
 
   // Sync state back to sessionStorage
@@ -68,26 +79,41 @@ const CopilotWidget = () => {
     sessionStorage.setItem('copilot_messages', JSON.stringify(messages));
   }, [messages]);
 
-  // Auto scroll to bottom of chat
+  // Auto scroll to bottom of chat container only (completely prevents window scrolling jumps!)
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages, activeSteps, isProcessing]);
 
-  // Persist API Key in LocalStorage
-  const handleSaveApiKey = (e) => {
+  // Persist API Key & Model Configuration in LocalStorage
+  const handleSaveSettings = (e) => {
     e.preventDefault();
-    if (!inputKey.trim()) return;
-    localStorage.setItem('gemini_api_key', inputKey.trim());
-    setApiKey(inputKey.trim());
+    localStorage.setItem('copilot_llm_type', llmType);
+    
+    if (llmType === 'local') {
+      const model = inputModelName.trim() || 'llama3';
+      localStorage.setItem('copilot_local_model', model);
+      setLocalModelName(model);
+      setApiKey(`local_model:${model}`);
+    } else {
+      const key = inputKey.trim();
+      localStorage.setItem('gemini_api_key', key);
+      setApiKey(key);
+    }
+    
     setShowKeyInput(false);
   };
 
-  const handleClearApiKey = () => {
+  const handleClearSettings = () => {
     localStorage.removeItem('gemini_api_key');
+    localStorage.removeItem('copilot_llm_type');
+    localStorage.removeItem('copilot_local_model');
     setApiKey('');
     setInputKey('');
+    setLlmType('gemini');
+    setLocalModelName('llama3');
+    setInputModelName('llama3');
     setShowKeyInput(true);
   };
 
@@ -205,7 +231,7 @@ const CopilotWidget = () => {
         errMsg = "Gemini API rate limit exceeded (429). Please wait a minute and try again.";
       } else if (err.message.includes("API key")) {
         errMsg = "Invalid API Key. Please verify your key and update it in settings.";
-        handleClearApiKey();
+        handleClearSettings();
       }
 
       setMessages((prev) => [
@@ -268,29 +294,71 @@ const CopilotWidget = () => {
           {showKeyInput && (
             <div className="bg-slate-950 p-4 border-b border-slate-800 flex flex-col gap-3 transition-all">
               <div className="text-xs">
-                <span className="font-extrabold text-white block mb-1">🔐 Bring Your Own Key (BYOK)</span>
+                <span className="font-extrabold text-white block mb-1">⚙️ Copilot Architecture Settings</span>
                 <p className="text-slate-400 leading-normal">
-                  To answer custom questions, this copilot communicates directly with Google Gemini. Input your Gemini API key securely (saved locally only).
+                  To evaluate custom queries, select either Cloud Gemini or a Local LLM running on your machine.
                 </p>
               </div>
-              <form onSubmit={handleSaveApiKey} className="flex gap-2 w-full">
-                <input
-                  type="password"
-                  placeholder="Paste Gemini API Key..."
-                  value={inputKey}
-                  onChange={(e) => setInputKey(e.target.value)}
-                  className="input input-bordered input-sm flex-1 bg-slate-900 border-slate-800 text-xs text-white"
-                  required
-                />
-                <button type="submit" className="btn btn-primary btn-sm font-bold text-xs">
-                  Save
+              
+              {/* Architecture Selector Toggle */}
+              <div className="flex justify-center bg-slate-900 rounded-lg p-1 border border-slate-800 text-[10px]">
+                <button
+                  type="button"
+                  onClick={() => setLlmType('gemini')}
+                  className={`flex-1 py-1 text-center font-bold rounded ${llmType === 'gemini' ? 'bg-primary text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Cloud Gemini
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setLlmType('local')}
+                  className={`flex-1 py-1 text-center font-bold rounded ${llmType === 'local' ? 'bg-primary text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Local Model
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveSettings} className="flex flex-col gap-2 w-full">
+                {llmType === 'gemini' ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      placeholder="Paste Gemini API Key..."
+                      value={inputKey}
+                      onChange={(e) => setInputKey(e.target.value)}
+                      className="input input-bordered input-sm flex-1 bg-slate-900 border-slate-800 text-xs text-white"
+                      required={llmType === 'gemini'}
+                    />
+                    <button type="submit" className="btn btn-primary btn-sm font-bold text-xs">
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Ollama Model Name (e.g. llama3)..."
+                      value={inputModelName}
+                      onChange={(e) => setInputModelName(e.target.value)}
+                      className="input input-bordered input-sm flex-1 bg-slate-900 border-slate-800 text-xs text-white"
+                      required={llmType === 'local'}
+                    />
+                    <button type="submit" className="btn btn-primary btn-sm font-bold text-xs">
+                      Save
+                    </button>
+                  </div>
+                )}
               </form>
+
               <div className="flex justify-between items-center text-[10px] text-slate-500">
-                <span>Acquire one for free at <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google AI Studio</a>.</span>
+                {llmType === 'gemini' ? (
+                  <span>Acquire key for free at <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google AI Studio</a>.</span>
+                ) : (
+                  <span>Requires <a href="https://ollama.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Ollama</a> running locally.</span>
+                )}
                 {apiKey && (
-                  <button type="button" onClick={handleClearApiKey} className="text-error hover:underline font-bold">
-                    Purge Key
+                  <button type="button" onClick={handleClearSettings} className="text-error hover:underline font-bold">
+                    Purge Config
                   </button>
                 )}
               </div>
@@ -298,7 +366,7 @@ const CopilotWidget = () => {
           )}
 
           {/* Conversation Log Area */}
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-slate-950">
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-slate-950">
             {messages.map((msg, index) => (
               <div key={index} className={`chat ${msg.sender === 'user' ? 'chat-end' : 'chat-start'} transition-opacity duration-300`}>
                 <div className="chat-image avatar">
@@ -337,9 +405,7 @@ const CopilotWidget = () => {
                 </div>
               </div>
             )}
-            
-            <div ref={messagesEndRef} />
-          </div>
+            </div>
 
           {/* Suggested Common Q&A Pills (Frictionless Interaction Layer) */}
           {!isProcessing && (
