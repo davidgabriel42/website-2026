@@ -27,7 +27,8 @@
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
-    "tailwind:init": "tailwindcss init -p"
+    "tailwind:init": "tailwindcss init -p",
+    "compile-docs": "node scripts/compile-docs.js"
   },
   "eslintConfig": {
     "extends": [
@@ -51,6 +52,7 @@
     "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/postcss": "^4.3.3",
     "autoprefixer": "^10.5.4",
+    "pdf-parse": "^2.4.5",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3"
   }
