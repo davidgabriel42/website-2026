@@ -349,6 +349,7 @@ const JigsawPuzzlePage = () => {
   const [sideColor, setSideColor] = useState('#d2b48c'); // standard wood
   const [autoRotate, setAutoRotate] = useState(true);
   const [isGridCollapsed, setIsGridCollapsed] = useState(false);
+  const [isSolving, setIsSolving] = useState(false);
 
   const fileInputRef = useRef(null);
   const boardRef = useRef(null);
@@ -560,21 +561,97 @@ const JigsawPuzzlePage = () => {
     reader.readAsDataURL(file);
   };
 
-  // Solve the puzzle automatically by aligning pieces correctly
+  // Solve the puzzle automatically by aligning pieces correctly with a raster-order slide animation
   const handleAutoSolve = () => {
-    if (pieces.length === 0) return;
-    const solvedPieces = pieces.map((p) => ({
-      ...p,
-      currentX: p.correctX,
-      currentY: p.correctY,
-      groupId: 'solved-group',
-    }));
-    initPuzzle(solvedPieces);
+    if (pieces.length === 0 || isSolving) return;
+    setIsSolving(true);
+
+    // Sort pieces in standard raster order (row-by-row, left-to-right)
+    const sortedPieces = [...pieces].sort((a, b) => {
+      if (a.row !== b.row) return a.row - b.row;
+      return a.col - b.col;
+    });
+
+    let currentIdx = 0;
+    const duration = 150; // ms for each piece's slide
+
+    const animateNextPiece = () => {
+      if (currentIdx >= sortedPieces.length) {
+        // Animation completed successfully!
+        setIsSolving(false);
+        return;
+      }
+
+      const targetPiece = sortedPieces[currentIdx];
+      // If the piece is already in place, skip directly to the next
+      const isAlreadyInPlace = Math.abs(targetPiece.currentX - targetPiece.correctX) < 1 &&
+                              Math.abs(targetPiece.currentY - targetPiece.correctY) < 1;
+      
+      if (isAlreadyInPlace) {
+        // Formally mark as solved group even if already in place
+        usePuzzleStore.setState((state) => {
+          const updated = state.pieces.map((p) => {
+            if (p.id === targetPiece.id) {
+              return { ...p, currentX: p.correctX, currentY: p.correctY, groupId: 'solved-group' };
+            }
+            return p;
+          });
+          return { pieces: updated };
+        });
+
+        currentIdx++;
+        animateNextPiece();
+        return;
+      }
+
+      const startX = targetPiece.currentX;
+      const startY = targetPiece.currentY;
+      const endX = targetPiece.correctX;
+      const endY = targetPiece.correctY;
+      const startTime = performance.now();
+
+      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+      const step = (now) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeOutCubic(progress);
+
+        const curX = startX + (endX - startX) * eased;
+        const curY = startY + (endY - startY) * eased;
+
+        // Force-update the piece position inside the store to trigger render
+        usePuzzleStore.getState().updatePiecePosition(targetPiece.id, curX, curY);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          // Snap perfectly and assign to solved connection group
+          usePuzzleStore.setState((state) => {
+            const updated = state.pieces.map((p) => {
+              if (p.id === targetPiece.id) {
+                return { ...p, currentX: endX, currentY: endY, groupId: 'solved-group' };
+              }
+              return p;
+            });
+            return { pieces: updated };
+          });
+
+          // Animate next piece in sequence
+          currentIdx++;
+          animateNextPiece();
+        }
+      };
+
+      requestAnimationFrame(step);
+    };
+
+    animateNextPiece();
   };
 
   // Scramble the current board pieces
   const handleScramble = () => {
-    if (pieces.length === 0) return;
+    if (pieces.length === 0 || isSolving) return;
     const boardW = boardSize.width;
     const boardH = boardSize.height;
     
@@ -632,12 +709,14 @@ const JigsawPuzzlePage = () => {
             <span className="text-xs font-bold text-gray-500 uppercase">Image:</span>
             <button
               onClick={() => setImageSizeSource('landscape')}
+              disabled={isSolving}
               className={`btn btn-xs ${imageType === 'landscape' ? 'btn-primary' : 'btn-ghost'}`}
             >
               Scenic Landscape
             </button>
             <button
               onClick={() => setImageSizeSource('gradient')}
+              disabled={isSolving}
               className={`btn btn-xs ${imageType === 'gradient' ? 'btn-primary' : 'btn-ghost'}`}
             >
               Gradient fallbacks
@@ -651,6 +730,7 @@ const JigsawPuzzlePage = () => {
               ref={fileInputRef}
               onChange={handleImageUpload}
               accept="image/*"
+              disabled={isSolving}
               className="file-input file-input-bordered file-input-xs max-w-xs text-xs"
             />
           </div>
@@ -702,6 +782,7 @@ const JigsawPuzzlePage = () => {
                       onDragMove={(x, y) => updatePiecePosition(piece.id, x, y)}
                       onDragEnd={() => checkSnapping(piece.id)}
                       onClick={() => selectPiece(piece)}
+                      draggable={!isSolving}
                     />
                   ))}
                 </Layer>
@@ -716,10 +797,18 @@ const JigsawPuzzlePage = () => {
           
           {/* Controls Below the Puzzle View */}
           <div className="flex justify-center gap-4 mt-4">
-            <button onClick={handleScramble} className="btn btn-warning shadow-lg px-6 font-bold">
+            <button
+              onClick={handleScramble}
+              disabled={isSolving}
+              className="btn btn-warning shadow-lg px-6 font-bold"
+            >
               Scramble Board
             </button>
-            <button onClick={handleAutoSolve} className="btn btn-success shadow-lg px-6 font-bold">
+            <button
+              onClick={handleAutoSolve}
+              disabled={isSolving}
+              className="btn btn-success shadow-lg px-6 font-bold"
+            >
               Solve Puzzle
             </button>
           </div>

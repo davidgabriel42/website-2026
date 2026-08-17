@@ -8,6 +8,7 @@ const PuzzlePiece = ({
   onDragMove,
   onDragEnd,
   onClick,
+  draggable = true,
 }) => {
   const [image] = useImage(piece.dataUrl);
 
@@ -18,7 +19,7 @@ const PuzzlePiece = ({
       y={piece.currentY + piece.minY}
       width={piece.canvasW}
       height={piece.canvasH}
-      draggable
+      draggable={draggable}
       shadowColor="#000000"
       shadowBlur={isSelected ? 10 : 3}
       shadowOffset={isSelected ? { x: 4, y: 4 } : { x: 1, y: 1 }}
