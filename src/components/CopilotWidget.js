@@ -32,18 +32,25 @@ const PRE_CACHED_QUESTIONS = [
 ];
 
 const CopilotWidget = () => {
-  // Chat starts OPEN by default for immediate recruiter engagement!
-  const [isOpen, setIsOpen] = useState(true);
+  // Chat starts OPEN by default on the very first visit, then reads from sessionStorage to persist state
+  const [isOpen, setIsOpen] = useState(() => {
+    const saved = sessionStorage.getItem('copilot_is_open');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  
   const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
   const [inputKey, setInputKey] = useState(apiKey);
   const [showKeyInput, setShowKeyInput] = useState(false); // Only show when triggered or settings clicked
   
-  const [messages, setMessages] = useState([
-    {
-      sender: 'bot',
-      text: "Hello! I'm David's Agentic Portfolio Copilot. I'm trained strictly on his resume, publications, and MS thesis. I can answer your questions, navigate this website on your behalf, or highlight elements. How can I assist you today?",
-    }
-  ]);
+  const [messages, setMessages] = useState(() => {
+    const saved = sessionStorage.getItem('copilot_messages');
+    return saved !== null ? JSON.parse(saved) : [
+      {
+        sender: 'bot',
+        text: "Hello! I'm David's Agentic Portfolio Copilot. I'm trained strictly on his resume, publications, and MS thesis. I can answer your questions, navigate this website on your behalf, or highlight elements. How can I assist you today?",
+      }
+    ];
+  });
   
   const [inputMessage, setInputMessage] = useState('');
   const [isProcessing, setIsSolving] = useState(false);
@@ -51,6 +58,15 @@ const CopilotWidget = () => {
 
   const messagesEndRef = useRef(null);
   const { executeActions } = useAgentActions();
+
+  // Sync state back to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('copilot_is_open', JSON.stringify(isOpen));
+  }, [isOpen]);
+
+  useEffect(() => {
+    sessionStorage.setItem('copilot_messages', JSON.stringify(messages));
+  }, [messages]);
 
   // Auto scroll to bottom of chat
   useEffect(() => {
