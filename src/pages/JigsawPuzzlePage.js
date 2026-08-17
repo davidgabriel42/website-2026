@@ -252,6 +252,32 @@ const ThreeDPiece = ({ piece, thickness, sideColor, autoRotate }) => {
     return tex;
   }, [piece]);
 
+  // Compile materials directly as a flat array to bypass any dynamic attachment bugs in R3F
+  const materials = useMemo(() => {
+    const capMaterial = new THREE.MeshStandardMaterial({
+      map: texture,
+      roughness: 0.3,
+      metalness: 0.1,
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+
+    const sideMaterial = new THREE.MeshStandardMaterial({
+      color: sideColor,
+      roughness: 0.7,
+      metalness: 0.1,
+    });
+
+    const backMaterial = new THREE.MeshStandardMaterial({
+      color: '#8c7355', // cardboard brown
+      roughness: 0.9,
+      metalness: 0.0,
+      side: THREE.DoubleSide,
+    });
+
+    return [capMaterial, sideMaterial, backMaterial];
+  }, [texture, sideColor]);
+
   // Calculate dynamic scale factor so piece fits beautifully in 3D frame
   const scale = useMemo(() => {
     const maxDim = Math.max(piece.width, piece.height);
@@ -267,32 +293,14 @@ const ThreeDPiece = ({ piece, thickness, sideColor, autoRotate }) => {
   });
 
   return (
-    <mesh ref={meshRef} geometry={geometry} scale={scale} castShadow receiveShadow>
-      {/* Front flat face (Cap) gets the piece segment texture map (Material Index 0) */}
-      <meshStandardMaterial
-        attach="material-0"
-        map={texture}
-        roughness={0.3}
-        metalness={0.1}
-        transparent={true}
-        side={THREE.DoubleSide}
-      />
-      {/* Extruded side walls and bevels get solid cardboard/wood color (Material Index 1) */}
-      <meshStandardMaterial
-        attach="material-1"
-        color={sideColor}
-        roughness={0.7}
-        metalness={0.1}
-      />
-      {/* Back flat face (Cap) gets solid cardboard brown color (Material Index 2) */}
-      <meshStandardMaterial
-        attach="material-2"
-        color="#8c7355"
-        roughness={0.9}
-        metalness={0.0}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <mesh
+      ref={meshRef}
+      geometry={geometry}
+      material={materials}
+      scale={scale}
+      castShadow
+      receiveShadow
+    />
   );
 };
 
