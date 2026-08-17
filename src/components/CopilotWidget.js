@@ -3,7 +3,7 @@ import { executeAgentPipeline } from '../services/gemini';
 import { useAgentActions } from '../hooks/useAgentActions';
 import AgentTerminal from './AgentTerminal';
 
-// Common pre-cached Q&A for frictionless recruiter interaction (No API Key Required!)
+// Common pre-cached Q&A for frictionless recruiter interaction (No Local LLM Setup Required!)
 const PRE_CACHED_QUESTIONS = [
   {
     id: 'thesis',
@@ -35,20 +35,10 @@ const CopilotWidget = () => {
     return saved !== null ? JSON.parse(saved) : true;
   });
   
-  const [llmType, setLlmType] = useState(localStorage.getItem('copilot_llm_type') || 'gemini'); // 'gemini' or 'local'
+  // Local model name defaults to 'llama3' (no more cloud Gemini keys required!)
   const [localModelName, setLocalModelName] = useState(localStorage.getItem('copilot_local_model') || 'llama3');
-
-  const [apiKey, setApiKey] = useState(() => {
-    const savedType = localStorage.getItem('copilot_llm_type') || 'gemini';
-    if (savedType === 'local') {
-      const savedModel = localStorage.getItem('copilot_local_model') || 'llama3';
-      return `local_model:${savedModel}`;
-    }
-    return localStorage.getItem('gemini_api_key') || '';
-  });
-  const [inputKey, setInputKey] = useState(localStorage.getItem('gemini_api_key') || '');
   const [inputModelName, setInputModelName] = useState(localModelName);
-  const [showKeyInput, setShowKeyInput] = useState(false); // Only show when triggered or settings clicked
+  const [showSettings, setShowSettings] = useState(false); // Only show when settings gear is clicked
   
   const [messages, setMessages] = useState(() => {
     const saved = sessionStorage.getItem('copilot_messages');
@@ -67,6 +57,9 @@ const CopilotWidget = () => {
   const chatContainerRef = useRef(null);
   const { executeActions } = useAgentActions();
 
+  // Keep compatibility with executeAgentPipeline signature: "local_model:model_name"
+  const modelConfigString = `local_model:${localModelName}`;
+
   // Sync state back to sessionStorage
   useEffect(() => {
     sessionStorage.setItem('copilot_is_open', JSON.stringify(isOpen));
@@ -83,35 +76,20 @@ const CopilotWidget = () => {
     }
   }, [messages, activeSteps, isProcessing]);
 
-  // Persist API Key & Model Configuration in LocalStorage
+  // Persist Local Model Configuration in LocalStorage
   const handleSaveSettings = (e) => {
     e.preventDefault();
-    localStorage.setItem('copilot_llm_type', llmType);
-    
-    if (llmType === 'local') {
-      const model = inputModelName.trim() || 'llama3';
-      localStorage.setItem('copilot_local_model', model);
-      setLocalModelName(model);
-      setApiKey(`local_model:${model}`);
-    } else {
-      const key = inputKey.trim();
-      localStorage.setItem('gemini_api_key', key);
-      setApiKey(key);
-    }
-    
-    setShowKeyInput(false);
+    const model = inputModelName.trim() || 'llama3';
+    localStorage.setItem('copilot_local_model', model);
+    setLocalModelName(model);
+    setShowSettings(false);
   };
 
   const handleClearSettings = () => {
-    localStorage.removeItem('gemini_api_key');
-    localStorage.removeItem('copilot_llm_type');
     localStorage.removeItem('copilot_local_model');
-    setApiKey('');
-    setInputKey('');
-    setLlmType('gemini');
     setLocalModelName('llama3');
     setInputModelName('llama3');
-    setShowKeyInput(true);
+    setShowSettings(true);
   };
 
   // Triggers the simulated 3-Stage Pipeline for pre-cached questions to show reasoning flow
@@ -169,18 +147,6 @@ const CopilotWidget = () => {
     e.preventDefault();
     if (!inputMessage.trim() || isProcessing) return;
 
-    // Trigger LOAD of LLM (Prompt for API key) on first custom prompt sent if not configured!
-    if (!apiKey) {
-      setMessages((prev) => [
-        ...prev,
-        { sender: 'user', text: inputMessage.trim() },
-        { sender: 'bot', text: "To answer custom questions, I need to load the Google Gemini model. Please select your architecture and configure your keys in the settings drawer that just slid open above.", isRejected: true }
-      ]);
-      setInputMessage('');
-      setShowKeyInput(true);
-      return;
-    }
-
     const userQuery = inputMessage.trim();
     setMessages((prev) => [...prev, { sender: 'user', text: userQuery }]);
     setInputMessage('');
@@ -201,8 +167,8 @@ const CopilotWidget = () => {
     };
 
     try {
-      // Trigger the 3-stage agentic chain directly from the browser Knowledge Base
-      const result = await executeAgentPipeline(apiKey, userQuery, onStepUpdate);
+      // Trigger the 3-stage agentic chain using local Ollama model
+      const result = await executeAgentPipeline(modelConfigString, userQuery, onStepUpdate);
 
       if (result.success) {
         setMessages((prev) => [
@@ -223,14 +189,8 @@ const CopilotWidget = () => {
       }
     } catch (err) {
       console.error("[Copilot Widget] Pipeline failed:", err);
-      let errMsg = "An unexpected error occurred. Please try again.";
-      if (err.message === "RATE_LIMIT_ERROR") {
-        errMsg = "Gemini API rate limit exceeded (429). Please wait a minute and try again.";
-      } else if (err.message.includes("API key")) {
-        errMsg = "Invalid API Key. Please verify your key and update it in settings.";
-        handleClearSettings();
-      }
-
+      let errMsg = `Could not connect to your local Ollama server. Please ensure Ollama is running locally on port 11434 and has the model loaded (e.g. run 'ollama run ${localModelName}' in your terminal).`;
+      
       setMessages((prev) => [
         ...prev,
         { sender: 'bot', text: errMsg, isError: true }
@@ -252,12 +212,6 @@ const CopilotWidget = () => {
         className="btn btn-primary btn-circle shadow-2xl h-14 w-14 hover:scale-105 transition-transform relative flex items-center justify-center text-2xl"
       >
         {isOpen ? '✕' : '🤖'}
-        {!isOpen && !apiKey && (
-          <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-error"></span>
-          </span>
-        )}
       </button>
 
       {/* Chat Window Drawer Popup */}
@@ -270,14 +224,14 @@ const CopilotWidget = () => {
               <span className="text-xl">🤖</span>
               <div>
                 <h3 className="text-sm font-black text-base-content leading-tight">Portfolio Copilot</h3>
-                <span className="text-[10px] text-success font-semibold tracking-wider uppercase block select-none">Gemini Agent Active</span>
+                <span className="text-[10px] text-success font-semibold tracking-wider uppercase block select-none">Local LLM Mode Active</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setShowKeyInput(!showKeyInput)}
-                title="Configure API Key Settings"
-                className={`btn btn-ghost btn-circle btn-xs text-sm ${showKeyInput ? 'text-primary bg-base-300' : 'text-base-content/50 hover:text-base-content'}`}
+                onClick={() => setShowSettings(!showSettings)}
+                title="Configure Local Model Settings"
+                className={`btn btn-ghost btn-circle btn-xs text-sm ${showSettings ? 'text-primary bg-base-300' : 'text-base-content/50 hover:text-base-content'}`}
               >
                 ⚙️
               </button>
@@ -287,77 +241,35 @@ const CopilotWidget = () => {
             </div>
           </div>
 
-          {/* Secure Settings Configuration Layer */}
-          {showKeyInput && (
+          {/* Secure Settings Configuration Layer (Ollama Local Only!) */}
+          {showSettings && (
             <div className="bg-base-300/40 p-4 border-b border-base-300 flex flex-col gap-3 transition-all">
               <div className="text-xs">
-                <span className="font-extrabold text-base-content block mb-1">⚙️ Copilot Architecture Settings</span>
+                <span className="font-extrabold text-base-content block mb-1">⚙️ Local LLM Settings</span>
                 <p className="text-base-content/60 leading-normal">
-                  To evaluate custom queries, select either Cloud Gemini or a Local LLM running on your machine.
+                  Configure the model name running on your local <a href="https://ollama.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Ollama</a> server (<code className="bg-base-200 px-1 rounded">localhost:11434</code>).
                 </p>
               </div>
-              
-              {/* Architecture Selector Toggle */}
-              <div className="flex justify-center bg-base-300 rounded-lg p-1 border border-base-200 text-[10px]">
-                <button
-                  type="button"
-                  onClick={() => setLlmType('gemini')}
-                  className={`flex-1 py-1 text-center font-bold rounded transition-colors ${llmType === 'gemini' ? 'bg-primary text-white' : 'text-base-content/50 hover:text-base-content'}`}
-                >
-                  Cloud Gemini
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLlmType('local')}
-                  className={`flex-1 py-1 text-center font-bold rounded transition-colors ${llmType === 'local' ? 'bg-primary text-white' : 'text-base-content/50 hover:text-base-content'}`}
-                >
-                  Local Model
-                </button>
-              </div>
 
-              <form onSubmit={handleSaveSettings} className="flex flex-col gap-2 w-full">
-                {llmType === 'gemini' ? (
-                  <div className="flex gap-2">
-                    <input
-                      type="password"
-                      placeholder="Paste Gemini API Key..."
-                      value={inputKey}
-                      onChange={(e) => setInputKey(e.target.value)}
-                      className="input input-bordered input-sm flex-1 bg-base-100 border-base-300 text-xs text-base-content"
-                      required={llmType === 'gemini'}
-                    />
-                    <button type="submit" className="btn btn-primary btn-sm font-bold text-xs text-white">
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Ollama Model Name (e.g. llama3)..."
-                      value={inputModelName}
-                      onChange={(e) => setInputModelName(e.target.value)}
-                      className="input input-bordered input-sm flex-1 bg-base-100 border-base-300 text-xs text-base-content"
-                      required={llmType === 'local'}
-                    />
-                    <button type="submit" className="btn btn-primary btn-sm font-bold text-xs text-white">
-                      Save
-                    </button>
-                  </div>
-                )}
+              <form onSubmit={handleSaveSettings} className="flex gap-2 w-full">
+                <input
+                  type="text"
+                  placeholder="Ollama Model Name (e.g. llama3)..."
+                  value={inputModelName}
+                  onChange={(e) => setInputModelName(e.target.value)}
+                  className="input input-bordered input-sm flex-1 bg-base-100 border-base-300 text-xs text-base-content"
+                  required
+                />
+                <button type="submit" className="btn btn-primary btn-sm font-bold text-xs text-white">
+                  Save
+                </button>
               </form>
 
               <div className="flex justify-between items-center text-[10px] text-base-content/40">
-                {llmType === 'gemini' ? (
-                  <span>Acquire key for free at <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google AI Studio</a>.</span>
-                ) : (
-                  <span>Requires <a href="https://ollama.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Ollama</a> running locally.</span>
-                )}
-                {apiKey && (
-                  <button type="button" onClick={handleClearSettings} className="text-error hover:underline font-bold">
-                    Purge Config
-                  </button>
-                )}
+                <span>Default: <code className="bg-base-200 px-1 rounded">llama3</code>. Supports any local model.</span>
+                <button type="button" onClick={handleClearSettings} className="text-error hover:underline font-bold">
+                  Reset
+                </button>
               </div>
             </div>
           )}
@@ -428,7 +340,7 @@ const CopilotWidget = () => {
           <form onSubmit={handleSendMessage} className="bg-base-200 border-t border-base-300 p-4 flex gap-2 shadow-inner">
             <input
               type="text"
-              placeholder="Ask a custom question..."
+              placeholder={`Ask custom (Ollama model: ${localModelName})...`}
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               disabled={isProcessing}
@@ -444,14 +356,9 @@ const CopilotWidget = () => {
           </form>
 
           {/* Key Purger button (for debugging) */}
-          {apiKey && (
-            <div className="bg-base-200 px-4 pb-2 text-[10px] text-center text-base-content/40 select-none">
-              Config securely saved locally.{" "}
-              <button onClick={handleClearSettings} className="text-error hover:underline font-bold">
-                Purge Config
-              </button>
-            </div>
-          )}
+          <div className="bg-base-200 px-4 pb-2 text-[10px] text-center text-base-content/40 select-none">
+            Local Ollama Engine Connected (Model: <code className="bg-base-300 px-1 rounded">{localModelName}</code>).
+          </div>
 
         </div>
       )}

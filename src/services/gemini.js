@@ -1,4 +1,3 @@
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const OLLAMA_API_URL = "http://localhost:11434/v1/chat/completions";
 
 let cachedContext = null;
@@ -14,44 +13,6 @@ async function fetchContext() {
   } catch (err) {
     console.error("[Copilot Service] Failed to load static context:", err);
     return null;
-  }
-}
-
-// Helper to trigger remote Gemini API with structured JSON output
-async function callGemini(apiKey, systemInstruction, userPrompt) {
-  const url = `${GEMINI_API_URL}?key=${apiKey}`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: userPrompt }] }],
-      systemInstruction: { parts: [{ text: systemInstruction }] },
-      generationConfig: {
-        responseMimeType: "application/json"
-      }
-    })
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    let parsedErr;
-    try { parsedErr = JSON.parse(errText); } catch { parsedErr = null; }
-    
-    if (response.status === 429) {
-      throw new Error("RATE_LIMIT_ERROR");
-    }
-    throw new Error(parsedErr?.error?.message || `API Error (Status ${response.status})`);
-  }
-
-  const result = await response.json();
-  const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawText) throw new Error("Invalid API response structure");
-
-  try {
-    return JSON.parse(rawText.trim());
-  } catch (err) {
-    console.error("[Copilot Service] Failed to parse JSON response:", rawText);
-    throw new Error("Failed to parse agent JSON response");
   }
 }
 
@@ -87,33 +48,24 @@ async function callLocalModel(modelName, systemInstruction, userPrompt) {
 }
 
 /**
- * Executes the 3-Stage Agentic Pipeline
- * @param {string} apiKey - Visitor's provided API Key (or "local_model:model_name" for local LLM routing)
+ * Executes the 3-Stage Agentic Pipeline exclusively using local Ollama LLM
+ * @param {string} modelNameConfig - Format "local_model:model_name" containing the local Ollama model to use
  * @param {string} query - Visitor's raw text input
  * @param {function} onStepUpdate - Callback to stream executing stages back to the Agent Terminal UI
  */
-export async function executeAgentPipeline(apiKey, query, onStepUpdate) {
-  if (!apiKey) throw new Error("API_KEY_REQUIRED");
-  
-  const isLocal = apiKey.startsWith("local_model:");
-  const modelName = isLocal ? apiKey.split(":")[1] : null;
+export async function executeAgentPipeline(modelNameConfig, query, onStepUpdate) {
+  // Extract model name from configuration string
+  const modelName = modelNameConfig.startsWith("local_model:") 
+    ? modelNameConfig.split(":")[1] 
+    : "llama3";
 
   const context = await fetchContext();
   if (!context) throw new Error("CONTEXT_LOAD_FAILED");
 
   const contextStr = JSON.stringify(context);
 
-  // Unified LLM caller to seamlessly route to either cloud Gemini or local Ollama
-  const callLLM = async (system, prompt) => {
-    if (isLocal) {
-      return await callLocalModel(modelName, system, prompt);
-    } else {
-      return await callGemini(apiKey, system, prompt);
-    }
-  };
-
   // --- STAGE 1: GATEKEEPER (Intent & Safety) ---
-  onStepUpdate({ stage: 1, status: "RUNNING", message: isLocal ? `Stage 1: Analysing query topic using ${modelName}...` : "Stage 1: Analysing query topic & safety..." });
+  onStepUpdate({ stage: 1, status: "RUNNING", message: `Stage 1: Analysing query topic using local ${modelName}...` });
   
   const gatekeeperSystem = `You are a strict routing node and safety gatekeeper for David Gabriel's portfolio website.
 Analyze the user's query.
@@ -128,7 +80,7 @@ You must return a JSON object with this EXACT structure:
 }
 * rejection_message should be a friendly, professional, dry rejection text (1-2 sentences) if is_relevant is false, otherwise null. Only discuss David's professional background. Avoid subjective or superlative adjectives.`;
 
-  const gateResult = await callLLM(gatekeeperSystem, `Query: "${query}"`);
+  const gateResult = await callLocalModel(modelName, gatekeeperSystem, `Query: "${query}"`);
   
   if (!gateResult.is_relevant) {
     onStepUpdate({ stage: 1, status: "REJECTED", message: gateResult.rejection_message || "Relevance check failed." });
@@ -141,7 +93,7 @@ You must return a JSON object with this EXACT structure:
   onStepUpdate({ stage: 1, status: "COMPLETED", message: `Stage 1: Passed. Category: ${gateResult.category}` });
 
   // --- STAGE 2: CORE RESPONDER & TOOL CALLER ---
-  onStepUpdate({ stage: 2, status: "RUNNING", message: "Stage 2: Scanning knowledge base & checking UI tool conditions..." });
+  onStepUpdate({ stage: 2, status: "RUNNING", message: `Stage 2: Scanning local context with ${modelName} & checking UI tool conditions...` });
 
   const responderSystem = `You are a professional assistant representing David Gabriel on his portfolio website.
 Answer the visitor's question using ONLY the facts provided in the following Context JSON.
@@ -168,11 +120,11 @@ You must return a JSON object with this EXACT structure:
 }
 Note: ui_actions should be an empty array if no action is requested or implied. Keep your answer highly concise, strictly dry, objective, and professional. Do not use hyperbolic or subjective adjectives.`;
 
-  const responseResult = await callLLM(responderSystem, `Visitor Query: "${query}"`);
+  const responseResult = await callLocalModel(modelName, responderSystem, `Visitor Query: "${query}"`);
   onStepUpdate({ stage: 2, status: "COMPLETED", message: "Stage 2: Response drafted & UI tools extracted." });
 
   // --- STAGE 3: THE EVALUATOR (Anti-Hallucination Guardrail) ---
-  onStepUpdate({ stage: 3, status: "RUNNING", message: "Stage 3: Cross-referencing draft answer against source facts..." });
+  onStepUpdate({ stage: 3, status: "RUNNING", message: `Stage 3: Fact-checking and polishing answer using ${modelName}...` });
 
   const evaluatorSystem = `You are a strict, dry, and objective fact-checker representing David Gabriel's portfolio copilot.
 Your job is to protect David Gabriel from hallucinated claims, metrics, timelines, or subjective statements.
@@ -191,7 +143,7 @@ You must return a JSON object with this EXACT structure:
 }
 Set passed_eval: true if the draft was 100% factual and did not require any modification, otherwise set passed_eval: false.`;
 
-  const evalResult = await callLLM(evaluatorSystem, `Draft Answer to evaluate: "${responseResult.draft_answer}"`);
+  const evalResult = await callLocalModel(modelName, evaluatorSystem, `Draft Answer to evaluate: "${responseResult.draft_answer}"`);
   onStepUpdate({ stage: 3, status: "COMPLETED", message: evalResult.passed_eval ? "Stage 3: Verified. Fact check passed." : "Stage 3: Verified. Polished and corrected." });
 
   return {
