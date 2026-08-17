@@ -174,7 +174,7 @@ const CopilotWidget = () => {
       setMessages((prev) => [
         ...prev,
         { sender: 'user', text: inputMessage.trim() },
-        { sender: 'bot', text: "To answer custom questions, I need to load the Google Gemini model. Please input your Gemini API Key in the settings drawer that just slid open above.", isRejected: true }
+        { sender: 'bot', text: "To answer custom questions, I need to load the Google Gemini model. Please select your architecture and configure your keys in the settings drawer that just slid open above.", isRejected: true }
       ]);
       setInputMessage('');
       setShowKeyInput(true);
@@ -262,26 +262,26 @@ const CopilotWidget = () => {
 
       {/* Chat Window Drawer Popup */}
       {isOpen && (
-        <div className="card bg-slate-900 border border-slate-800 rounded-2xl w-[380px] h-[550px] shadow-2xl flex flex-col overflow-hidden mt-3 transition-all duration-300">
+        <div className="card bg-base-100 border border-base-300 rounded-2xl w-[380px] h-[550px] shadow-2xl flex flex-col overflow-hidden mt-3 transition-all duration-300">
           
           {/* Header Card Area */}
-          <div className="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center shadow">
+          <div className="bg-base-200 border-b border-base-300 p-4 flex justify-between items-center shadow">
             <div className="flex items-center gap-2">
               <span className="text-xl">🤖</span>
               <div>
-                <h3 className="text-sm font-black text-white leading-tight">Portfolio Copilot</h3>
-                <span className="text-[10px] text-success font-semibold tracking-wider uppercase block">Gemini Agent Active</span>
+                <h3 className="text-sm font-black text-base-content leading-tight">Portfolio Copilot</h3>
+                <span className="text-[10px] text-success font-semibold tracking-wider uppercase block select-none">Gemini Agent Active</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowKeyInput(!showKeyInput)}
                 title="Configure API Key Settings"
-                className={`btn btn-ghost btn-circle btn-xs text-sm ${showKeyInput ? 'text-white bg-slate-700' : 'text-gray-400 hover:text-white'}`}
+                className={`btn btn-ghost btn-circle btn-xs text-sm ${showKeyInput ? 'text-primary bg-base-300' : 'text-base-content/50 hover:text-base-content'}`}
               >
                 ⚙️
               </button>
-              <button onClick={() => setIsOpen(false)} className="btn btn-ghost btn-circle btn-xs text-gray-400 hover:text-white text-sm">
+              <button onClick={() => setIsOpen(false)} className="btn btn-ghost btn-circle btn-xs text-base-content/50 hover:text-base-content text-sm">
                 ✕
               </button>
             </div>
@@ -289,27 +289,27 @@ const CopilotWidget = () => {
 
           {/* Secure Settings Configuration Layer */}
           {showKeyInput && (
-            <div className="bg-slate-950 p-4 border-b border-slate-800 flex flex-col gap-3 transition-all">
+            <div className="bg-base-300/40 p-4 border-b border-base-300 flex flex-col gap-3 transition-all">
               <div className="text-xs">
-                <span className="font-extrabold text-white block mb-1">⚙️ Copilot Architecture Settings</span>
-                <p className="text-slate-400 leading-normal">
+                <span className="font-extrabold text-base-content block mb-1">⚙️ Copilot Architecture Settings</span>
+                <p className="text-base-content/60 leading-normal">
                   To evaluate custom queries, select either Cloud Gemini or a Local LLM running on your machine.
                 </p>
               </div>
               
               {/* Architecture Selector Toggle */}
-              <div className="flex justify-center bg-slate-900 rounded-lg p-1 border border-slate-800 text-[10px]">
+              <div className="flex justify-center bg-base-300 rounded-lg p-1 border border-base-200 text-[10px]">
                 <button
                   type="button"
                   onClick={() => setLlmType('gemini')}
-                  className={`flex-1 py-1 text-center font-bold rounded ${llmType === 'gemini' ? 'bg-primary text-white' : 'text-slate-400 hover:text-white'}`}
+                  className={`flex-1 py-1 text-center font-bold rounded transition-colors ${llmType === 'gemini' ? 'bg-primary text-white' : 'text-base-content/50 hover:text-base-content'}`}
                 >
                   Cloud Gemini
                 </button>
                 <button
                   type="button"
                   onClick={() => setLlmType('local')}
-                  className={`flex-1 py-1 text-center font-bold rounded ${llmType === 'local' ? 'bg-primary text-white' : 'text-slate-400 hover:text-white'}`}
+                  className={`flex-1 py-1 text-center font-bold rounded transition-colors ${llmType === 'local' ? 'bg-primary text-white' : 'text-base-content/50 hover:text-base-content'}`}
                 >
                   Local Model
                 </button>
@@ -323,10 +323,10 @@ const CopilotWidget = () => {
                       placeholder="Paste Gemini API Key..."
                       value={inputKey}
                       onChange={(e) => setInputKey(e.target.value)}
-                      className="input input-bordered input-sm flex-1 bg-slate-900 border-slate-800 text-xs text-white"
+                      className="input input-bordered input-sm flex-1 bg-base-100 border-base-300 text-xs text-base-content"
                       required={llmType === 'gemini'}
                     />
-                    <button type="submit" className="btn btn-primary btn-sm font-bold text-xs">
+                    <button type="submit" className="btn btn-primary btn-sm font-bold text-xs text-white">
                       Save
                     </button>
                   </div>
@@ -337,17 +337,17 @@ const CopilotWidget = () => {
                       placeholder="Ollama Model Name (e.g. llama3)..."
                       value={inputModelName}
                       onChange={(e) => setInputModelName(e.target.value)}
-                      className="input input-bordered input-sm flex-1 bg-slate-900 border-slate-800 text-xs text-white"
+                      className="input input-bordered input-sm flex-1 bg-base-100 border-base-300 text-xs text-base-content"
                       required={llmType === 'local'}
                     />
-                    <button type="submit" className="btn btn-primary btn-sm font-bold text-xs">
+                    <button type="submit" className="btn btn-primary btn-sm font-bold text-xs text-white">
                       Save
                     </button>
                   </div>
                 )}
               </form>
 
-              <div className="flex justify-between items-center text-[10px] text-slate-500">
+              <div className="flex justify-between items-center text-[10px] text-base-content/40">
                 {llmType === 'gemini' ? (
                   <span>Acquire key for free at <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google AI Studio</a>.</span>
                 ) : (
@@ -363,22 +363,22 @@ const CopilotWidget = () => {
           )}
 
           {/* Conversation Log Area */}
-          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-slate-950">
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-base-300/30">
             {messages.map((msg, index) => (
               <div key={index} className={`chat ${msg.sender === 'user' ? 'chat-end' : 'chat-start'} transition-opacity duration-300`}>
-                <div className="chat-image avatar">
-                  <div className="w-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+                <div className="chat-image avatar select-none">
+                  <div className="w-8 rounded-full bg-base-300 border border-base-300 flex items-center justify-center">
                     <span className="text-sm select-none">{msg.sender === 'user' ? '👤' : '🤖'}</span>
                   </div>
                 </div>
                 <div className={`chat-bubble text-xs leading-normal max-w-[270px] ${
                   msg.sender === 'user'
-                    ? 'chat-bubble-primary text-white font-semibold'
+                    ? 'chat-bubble-primary text-white font-semibold shadow'
                     : msg.isRejected
-                      ? 'bg-slate-900 border border-amber-800/30 text-amber-300'
+                      ? 'bg-base-200 border border-warning/25 text-warning'
                       : msg.isError
-                        ? 'chat-bubble-error text-white font-bold'
-                        : 'bg-slate-900 border border-slate-800 text-slate-200'
+                        ? 'chat-bubble-error text-white font-bold shadow'
+                        : 'bg-base-200 border border-base-300 text-base-content shadow-sm'
                 }`}>
                   {msg.text}
                 </div>
@@ -388,13 +388,13 @@ const CopilotWidget = () => {
             {/* Simulated Live Agentic Terminal Executions bubble */}
             {isProcessing && (
               <div className="chat chat-start transition-opacity duration-300">
-                <div className="chat-image avatar">
-                  <div className="w-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+                <div className="chat-image avatar select-none">
+                  <div className="w-8 rounded-full bg-base-300 border border-base-300 flex items-center justify-center">
                     <span className="text-sm select-none">🤖</span>
                   </div>
                 </div>
-                <div className="chat-bubble bg-slate-900 border border-slate-800 text-xs max-w-[270px] w-full">
-                  <div className="flex items-center gap-1.5 text-slate-400 font-semibold mb-2">
+                <div className="chat-bubble bg-base-200 border border-base-300 text-xs max-w-[270px] w-full">
+                  <div className="flex items-center gap-1.5 text-base-content/50 font-semibold mb-2 select-none">
                     <span className="loading loading-ring loading-xs inline-block" />
                     <span>Pipeline Thinking...</span>
                   </div>
@@ -402,12 +402,12 @@ const CopilotWidget = () => {
                 </div>
               </div>
             )}
-            </div>
+          </div>
 
           {/* Suggested Common Q&A Pills (Frictionless Interaction Layer) */}
           {!isProcessing && (
-            <div className="bg-slate-950 px-4 pb-2 pt-1 border-t border-slate-900">
-              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
+            <div className="bg-base-100 px-4 pb-2 pt-1 border-t border-base-300">
+              <span className="text-[9px] font-bold text-base-content/45 uppercase tracking-wider block mb-1.5 select-none">
                 Suggested Quick Inquiries:
               </span>
               <div className="flex flex-col gap-1.5">
@@ -415,7 +415,7 @@ const CopilotWidget = () => {
                   <button
                     key={qa.id}
                     onClick={() => handlePreCachedClick(qa)}
-                    className="btn btn-outline btn-xs justify-start text-[11px] font-medium border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg py-1.5 px-2.5 h-auto text-left leading-normal"
+                    className="btn btn-outline btn-xs justify-start text-[11px] font-medium border-base-300 text-base-content/75 hover:bg-base-300 hover:text-base-content rounded-lg py-1.5 px-2.5 h-auto text-left leading-normal"
                   >
                     {qa.pill}
                   </button>
@@ -425,23 +425,33 @@ const CopilotWidget = () => {
           )}
 
           {/* Input Footer Form Field Area */}
-          <form onSubmit={handleSendMessage} className="bg-slate-900 border-t border-slate-800 p-4 flex gap-2 shadow-inner">
+          <form onSubmit={handleSendMessage} className="bg-base-200 border-t border-base-300 p-4 flex gap-2 shadow-inner">
             <input
               type="text"
               placeholder="Ask a custom question..."
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               disabled={isProcessing}
-              className="input input-bordered flex-1 bg-slate-950 border-slate-800 text-xs text-white"
+              className="input input-bordered flex-1 bg-base-100 border-base-300 text-xs text-base-content"
             />
             <button
               type="submit"
               disabled={isProcessing || !inputMessage.trim()}
-              className="btn btn-primary font-bold text-xs"
+              className="btn btn-primary font-bold text-xs text-white"
             >
               Ask
             </button>
           </form>
+
+          {/* Key Purger button (for debugging) */}
+          {apiKey && (
+            <div className="bg-base-200 px-4 pb-2 text-[10px] text-center text-base-content/40 select-none">
+              Config securely saved locally.{" "}
+              <button onClick={handleClearSettings} className="text-error hover:underline font-bold">
+                Purge Config
+              </button>
+            </div>
+          )}
 
         </div>
       )}
