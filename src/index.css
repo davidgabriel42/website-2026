@@ -1,6 +1,17 @@
 @import "tailwindcss";
+@plugin "daisyui";
 
 body {
-  background-color: #f7fafc;
-  color: #2d3748;
+  @apply bg-base-300 text-base-content transition-colors duration-300;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
 }
