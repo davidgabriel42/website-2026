@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { Stage, Layer, Rect } from 'react-konva';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -131,16 +132,82 @@ const createPieceCanvas = (img, cropX, cropY, W, H, topType, rightType, bottomTy
   };
 };
 
+// Post-processes ExtrudeGeometry to separate front cap, sides, and back cap into distinct material indices
+const splitExtrudeGroups = (geometry) => {
+  const indexAttr = geometry.getIndex();
+  const positionAttr = geometry.getAttribute('position');
+  
+  if (!indexAttr || !positionAttr) return;
+  
+  const indices = indexAttr.array;
+  const positions = positionAttr.array;
+  
+  const frontIndices = [];
+  const sideIndices = [];
+  const backIndices = [];
+  
+  const vA = new THREE.Vector3();
+  const vB = new THREE.Vector3();
+  const vC = new THREE.Vector3();
+  const cb = new THREE.Vector3();
+  const ab = new THREE.Vector3();
+  
+  for (let i = 0; i < indices.length; i += 3) {
+    const a = indices[i];
+    const b = indices[i + 1];
+    const c = indices[i + 2];
+    
+    vA.fromArray(positions, a * 3);
+    vB.fromArray(positions, b * 3);
+    vC.fromArray(positions, c * 3);
+    
+    cb.subVectors(vC, vB);
+    ab.subVectors(vA, vB);
+    cb.cross(ab);
+    cb.normalize();
+    
+    if (cb.z > 0.0001) {
+      frontIndices.push(a, b, c);
+    } else if (cb.z < -0.0001) {
+      backIndices.push(a, b, c);
+    } else {
+      sideIndices.push(a, b, c);
+    }
+  }
+  
+  const newIndices = new indices.constructor(
+    frontIndices.length + sideIndices.length + backIndices.length
+  );
+  
+  newIndices.set(frontIndices, 0);
+  newIndices.set(sideIndices, frontIndices.length);
+  newIndices.set(backIndices, frontIndices.length + sideIndices.length);
+  
+  geometry.setIndex(new THREE.BufferAttribute(newIndices, 1));
+  
+  geometry.clearGroups();
+  geometry.addGroup(0, frontIndices.length, 0);
+  geometry.addGroup(frontIndices.length, sideIndices.length, 1);
+  geometry.addGroup(frontIndices.length + sideIndices.length, backIndices.length, 2);
+};
+
 // 3D Piece component inside the R3F Canvas
 const ThreeDPiece = ({ piece, thickness, sideColor, autoRotate }) => {
-  const geomRef = useRef();
   const meshRef = useRef();
 
-  // Draw the THREE.Shape using the exact same path drawing logic
+  // Draw the THREE.Shape using the exact same path drawing logic, shifted to align with the cropped texture
   const shape = useMemo(() => {
     const s = new THREE.Shape();
+    const shiftX = -piece.minX;
+    const shiftY = -piece.minY;
+    const shiftTarget = {
+      moveTo: (x, y) => s.moveTo(x + shiftX, y + shiftY),
+      lineTo: (x, y) => s.lineTo(x + shiftX, y + shiftY),
+      bezierCurveTo: (cp1x, cp1y, cp2x, cp2y, x, y) => 
+        s.bezierCurveTo(cp1x + shiftX, cp1y + shiftY, cp2x + shiftX, cp2y + shiftY, x + shiftX, y + shiftY)
+    };
     drawPiecePath(
-      s,
+      shiftTarget,
       piece.width,
       piece.height,
       piece.edges.top,
@@ -162,43 +229,28 @@ const ThreeDPiece = ({ piece, thickness, sideColor, autoRotate }) => {
     bevelSegments: 3,
   }), [thickness]);
 
-  // Center geometry bounds automatically when shape or thickness changes
-  useEffect(() => {
-    if (geomRef.current) {
-      geomRef.current.center();
-    }
-  }, [shape, thickness]);
+  // Instantiate, split groups, and center geometry in useMemo before R3F binds to GPU
+  const geometry = useMemo(() => {
+    const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    splitExtrudeGroups(geom);
+    geom.center();
+    return geom;
+  }, [shape, extrudeSettings]);
 
   // Generate THREE.Texture from piece cropped image data URL
   const texture = useMemo(() => {
     if (!piece || !piece.dataUrl) return null;
-    const img = new window.Image();
-    img.src = piece.dataUrl;
-    const tex = new THREE.Texture(img);
-    img.onload = () => {
-      tex.needsUpdate = true;
-    };
+    const loader = new THREE.TextureLoader();
+    const tex = loader.load(piece.dataUrl);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    
+    // Enable repeat wrapping and scale the UV coordinates to [0, 1] relative to the custom piece canvas dimensions
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(1 / piece.canvasW, 1 / piece.canvasH);
+    
     return tex;
   }, [piece]);
-
-  // Memoize multi-materials
-  const materials = useMemo(() => {
-    const capMaterial = new THREE.MeshStandardMaterial({
-      map: texture,
-      roughness: 0.3,
-      metalness: 0.1,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-
-    const sideMaterial = new THREE.MeshStandardMaterial({
-      color: sideColor,
-      roughness: 0.7,
-      metalness: 0.1,
-    });
-
-    return [capMaterial, sideMaterial];
-  }, [texture, sideColor]);
 
   // Calculate dynamic scale factor so piece fits beautifully in 3D frame
   const scale = useMemo(() => {
@@ -215,8 +267,31 @@ const ThreeDPiece = ({ piece, thickness, sideColor, autoRotate }) => {
   });
 
   return (
-    <mesh ref={meshRef} material={materials} scale={scale} castShadow receiveShadow>
-      <extrudeGeometry ref={geomRef} args={[shape, extrudeSettings]} />
+    <mesh ref={meshRef} geometry={geometry} scale={scale} castShadow receiveShadow>
+      {/* Front flat face (Cap) gets the piece segment texture map (Material Index 0) */}
+      <meshStandardMaterial
+        attach="material-0"
+        map={texture}
+        roughness={0.3}
+        metalness={0.1}
+        transparent={true}
+        side={THREE.DoubleSide}
+      />
+      {/* Extruded side walls and bevels get solid cardboard/wood color (Material Index 1) */}
+      <meshStandardMaterial
+        attach="material-1"
+        color={sideColor}
+        roughness={0.7}
+        metalness={0.1}
+      />
+      {/* Back flat face (Cap) gets solid cardboard brown color (Material Index 2) */}
+      <meshStandardMaterial
+        attach="material-2"
+        color="#8c7355"
+        roughness={0.9}
+        metalness={0.0}
+        side={THREE.DoubleSide}
+      />
     </mesh>
   );
 };
@@ -481,7 +556,22 @@ const JigsawPuzzlePage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full h-full max-w-7xl mx-auto">
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col font-sans">
+      {/* Standalone Navigation Header */}
+      <header className="navbar bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-lg">
+        <div className="flex items-center gap-2">
+          <span className="text-3xl">🧩</span>
+          <span className="text-xl font-black tracking-tight text-white uppercase">3D Jigsaw Studio</span>
+        </div>
+        <div>
+          <Link to="/" className="btn btn-outline btn-sm hover:bg-white hover:text-black transition-colors gap-2">
+            &larr; Back to Portfolio
+          </Link>
+        </div>
+      </header>
+
+      {/* Main Workspace Container */}
+      <div className="flex-1 p-6 flex flex-col gap-6 max-w-7xl w-full mx-auto">
       {/* Title Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -602,6 +692,34 @@ const JigsawPuzzlePage = () => {
               )}
             </div>
 
+            {/* Selection Grid for Pieces */}
+            {pieces.length > 0 && (
+              <div className="p-4 border-b border-slate-800 bg-slate-950">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
+                  Quick Select Piece from Grid:
+                </span>
+                <div className="grid grid-cols-4 gap-2">
+                  {pieces.map((piece) => (
+                    <button
+                      key={piece.id}
+                      onClick={() => selectPiece(piece)}
+                      className={`aspect-square p-1 rounded border overflow-hidden flex items-center justify-center transition-all bg-slate-900 hover:bg-slate-800 ${
+                        selectedPiece?.id === piece.id
+                          ? 'border-primary ring-2 ring-primary/30 ring-offset-2 ring-offset-slate-900 scale-105'
+                          : 'border-slate-800'
+                      }`}
+                    >
+                      <img
+                        src={piece.dataUrl}
+                        alt={piece.id}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* R3F 3D Viewport container */}
             <div className="h-[320px] bg-slate-950 relative flex items-center justify-center">
               {selectedPiece ? (
@@ -635,7 +753,7 @@ const JigsawPuzzlePage = () => {
                   <div className="text-slate-600 text-5xl mb-3">🧩</div>
                   <p className="text-xs font-semibold text-slate-400">No Piece Selected</p>
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
-                    Click any jigsaw piece on the 2D assemble board to inspect its complete 3D extrusion structure here.
+                    Click any jigsaw piece on the 2D assemble board or select one from the grid above to inspect its complete 3D extrusion structure here.
                   </p>
                 </div>
               )}
@@ -728,6 +846,7 @@ const JigsawPuzzlePage = () => {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
