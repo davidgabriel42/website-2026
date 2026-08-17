@@ -314,6 +314,7 @@ const JigsawPuzzlePage = () => {
   const [thickness, setThickness] = useState(6);
   const [sideColor, setSideColor] = useState('#d2b48c'); // standard wood
   const [autoRotate, setAutoRotate] = useState(true);
+  const [isGridCollapsed, setIsGridCollapsed] = useState(false);
 
   const fileInputRef = useRef(null);
   const boardRef = useRef(null);
@@ -326,6 +327,13 @@ const JigsawPuzzlePage = () => {
       setBoardSize({ width: w, height: h });
     }
   }, []);
+
+  // Auto collapse the grid when a piece is selected
+  useEffect(() => {
+    if (selectedPiece) {
+      setIsGridCollapsed(true);
+    }
+  }, [selectedPiece]);
 
   // Generate fallback/procedural gradient image
   const generateFallbackImage = () => {
@@ -685,16 +693,26 @@ const JigsawPuzzlePage = () => {
           <div className="card bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
             <div className="bg-slate-800 border-b border-slate-700 px-4 py-3.5 flex justify-between items-center">
               <h2 className="text-md font-extrabold text-white uppercase tracking-wider">3D Piece Inspector</h2>
-              {selectedPiece && (
-                <div className="badge badge-accent badge-sm font-bold">
-                  Piece {selectedPiece.col + 1}, {selectedPiece.row + 1}
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                {isGridCollapsed && (
+                  <button
+                    onClick={() => setIsGridCollapsed(false)}
+                    className="btn btn-outline btn-primary btn-xs font-bold gap-1 shadow"
+                  >
+                    🧩 Show Grid
+                  </button>
+                )}
+                {selectedPiece && (
+                  <div className="badge badge-accent badge-sm font-bold">
+                    Piece {selectedPiece.col + 1}, {selectedPiece.row + 1}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Selection Grid for Pieces */}
-            {pieces.length > 0 && (
-              <div className="p-4 border-b border-slate-800 bg-slate-950">
+            {/* Selection Grid for Pieces (collapsible) */}
+            {!isGridCollapsed && pieces.length > 0 && (
+              <div className="p-4 border-b border-slate-800 bg-slate-950 transition-all duration-300">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
                   Quick Select Piece from Grid:
                 </span>
@@ -720,8 +738,8 @@ const JigsawPuzzlePage = () => {
               </div>
             )}
 
-            {/* R3F 3D Viewport container */}
-            <div className="h-[320px] bg-slate-950 relative flex items-center justify-center">
+            {/* R3F 3D Viewport container (dynamic height) */}
+            <div className={`bg-slate-950 relative flex items-center justify-center transition-all duration-300 ${isGridCollapsed ? 'h-[500px]' : 'h-[320px]'}`}>
               {selectedPiece ? (
                 <div className="w-full h-full">
                   <Canvas shadows camera={{ position: [0, 0, 5], fov: 50 }}>
