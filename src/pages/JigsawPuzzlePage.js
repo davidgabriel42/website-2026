@@ -192,7 +192,7 @@ const splitExtrudeGroups = (geometry) => {
 };
 
 // 3D Piece component inside the R3F Canvas
-const ThreeDPiece = ({ piece, thickness, sideColor, autoRotate }) => {
+const ThreeDPiece = ({ piece, imageSize, thickness, sideColor, autoRotate }) => {
   const meshRef = useRef();
 
   // Draw the THREE.Shape using the exact same path drawing logic, shifted to align with the cropped texture
@@ -237,20 +237,42 @@ const ThreeDPiece = ({ piece, thickness, sideColor, autoRotate }) => {
     return geom;
   }, [shape, extrudeSettings]);
 
-  // Generate THREE.Texture from piece cropped image data URL
+  // Generate THREE.Texture from the original solid image, using UV offset/repeat to map the segment
   const texture = useMemo(() => {
-    if (!piece || !piece.dataUrl) return null;
+    if (!piece || !piece.src || !imageSize.width || !imageSize.height) return null;
+    
     const loader = new THREE.TextureLoader();
-    const tex = loader.load(piece.dataUrl);
+    const tex = loader.load(piece.src);
     tex.colorSpace = THREE.SRGBColorSpace;
     
-    // Enable repeat wrapping and scale the UV coordinates to [0, 1] relative to the custom piece canvas dimensions
+    // Enable repeat wrapping
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(1 / piece.canvasW, 1 / piece.canvasH);
+    
+    const imgW = imageSize.width;
+    const imgH = imageSize.height;
+    
+    // Calculate the crop coordinates relative to the column and row of the 4x4 grid
+    const pieceWidth = imgW / 4;
+    const pieceHeight = imgH / 4;
+    const cropX = piece.col * pieceWidth;
+    const cropY = piece.row * pieceHeight;
+    
+    const shiftX = -piece.minX;
+    const shiftY = -piece.minY;
+    
+    // Scale UV coordinates to [0, 1] relative to the full image size
+    // We invert Y because WebGL textures start from the bottom-left
+    tex.repeat.set(1 / imgW, -1 / imgH);
+    
+    // Offset translates to the correct piece segment in the texture atlas
+    // We adjust for the shape's coordinate shift (shiftX, shiftY)
+    const offsetX = (cropX - shiftX) / imgW;
+    const offsetY = (imgH - cropY + shiftY) / imgH;
+    tex.offset.set(offsetX, offsetY);
     
     return tex;
-  }, [piece]);
+  }, [piece, imageSize]);
 
   // Compile materials directly as a flat array to bypass any dynamic attachment bugs in R3F
   const materials = useMemo(() => {
@@ -763,6 +785,7 @@ const JigsawPuzzlePage = () => {
                       />
                       <ThreeDPiece
                         piece={selectedPiece}
+                        imageSize={imageSize}
                         thickness={thickness}
                         sideColor={sideColor}
                         autoRotate={autoRotate}
