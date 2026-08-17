@@ -8,7 +8,7 @@ const demos = [
     description: 'An interactive jigsaw puzzle generator and solver. Users can upload any image, which the system dynamically slices into interlocking puzzle pieces.',
     techStack: ['React', 'Tailwind CSS', 'Konva.js', 'Three.js', 'React Three Fiber'],
     liveUrl: '/demos/jigsaw-puzzle',
-    codeUrl: '',
+    codeUrl: 'https://github.com/davidgabriel42/website-2026',
   },
 ];
 

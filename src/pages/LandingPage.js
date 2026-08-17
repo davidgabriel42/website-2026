@@ -20,7 +20,7 @@ const LandingPage = () => {
           <SocialLink url="https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing" label="Resume" />
         </div>
         <div className="mt-8">
-          <Button to="/demos">View Demos</Button>
+          <Button to="/demos/jigsaw-puzzle">View Demos</Button>
         </div>
       </div>
     </Layout>
