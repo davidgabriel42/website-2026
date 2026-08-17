@@ -98,13 +98,22 @@ const createPieceCanvas = (img, cropX, cropY, W, H, topType, rightType, bottomTy
   const canvasW = Math.ceil(maxX - minX);
   const canvasH = Math.ceil(maxY - minY);
 
+  const shiftX = -minX;
+  const shiftY = -minY;
+
+  // 1. Generate solid unclipped crop for 3D texture mapping (No CORS, No Phantom Edges)
+  const solidCanvas = document.createElement('canvas');
+  solidCanvas.width = canvasW;
+  solidCanvas.height = canvasH;
+  const sCtx = solidCanvas.getContext('2d');
+  sCtx.drawImage(img, shiftX - cropX, shiftY - cropY);
+  const solidDataUrl = solidCanvas.toDataURL();
+
+  // 2. Generate transparent clipped crop for 2D assembly board
   const canvas = document.createElement('canvas');
   canvas.width = canvasW;
   canvas.height = canvasH;
   const ctx = canvas.getContext('2d');
-
-  const shiftX = -minX;
-  const shiftY = -minY;
 
   ctx.beginPath();
   const shiftTarget = {
@@ -123,6 +132,7 @@ const createPieceCanvas = (img, cropX, cropY, W, H, topType, rightType, bottomTy
 
   return {
     dataUrl: canvas.toDataURL(),
+    solidDataUrl,
     minX,
     maxX,
     minY,
@@ -192,7 +202,7 @@ const splitExtrudeGroups = (geometry) => {
 };
 
 // 3D Piece component inside the R3F Canvas
-const ThreeDPiece = ({ piece, imageSize, thickness, sideColor, autoRotate }) => {
+const ThreeDPiece = ({ piece, thickness, sideColor, autoRotate }) => {
   const meshRef = useRef();
 
   // Draw the THREE.Shape using the exact same path drawing logic, shifted to align with the cropped texture
@@ -237,42 +247,21 @@ const ThreeDPiece = ({ piece, imageSize, thickness, sideColor, autoRotate }) => 
     return geom;
   }, [shape, extrudeSettings]);
 
-  // Generate THREE.Texture from the original solid image, using UV offset/repeat to map the segment
+  // Generate THREE.Texture from the solid, cropped piece data URL (No CORS, No Phantom Edges)
   const texture = useMemo(() => {
-    if (!piece || !piece.src || !imageSize.width || !imageSize.height) return null;
+    if (!piece || !piece.solidDataUrl) return null;
     
     const loader = new THREE.TextureLoader();
-    const tex = loader.load(piece.src);
+    const tex = loader.load(piece.solidDataUrl);
     tex.colorSpace = THREE.SRGBColorSpace;
     
-    // Enable repeat wrapping
+    // Enable repeat wrapping and scale to map the coordinates perfectly onto the [0, 1] texture space
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    
-    const imgW = imageSize.width;
-    const imgH = imageSize.height;
-    
-    // Calculate the crop coordinates relative to the column and row of the 4x4 grid
-    const pieceWidth = imgW / 4;
-    const pieceHeight = imgH / 4;
-    const cropX = piece.col * pieceWidth;
-    const cropY = piece.row * pieceHeight;
-    
-    const shiftX = -piece.minX;
-    const shiftY = -piece.minY;
-    
-    // Scale UV coordinates to [0, 1] relative to the full image size
-    // We invert Y because WebGL textures start from the bottom-left
-    tex.repeat.set(1 / imgW, -1 / imgH);
-    
-    // Offset translates to the correct piece segment in the texture atlas
-    // We adjust for the shape's coordinate shift (shiftX, shiftY)
-    const offsetX = (cropX - shiftX) / imgW;
-    const offsetY = (imgH - cropY + shiftY) / imgH;
-    tex.offset.set(offsetX, offsetY);
+    tex.repeat.set(1 / piece.canvasW, 1 / piece.canvasH);
     
     return tex;
-  }, [piece, imageSize]);
+  }, [piece]);
 
   // Compile materials directly as a flat array to bypass any dynamic attachment bugs in R3F
   const materials = useMemo(() => {
@@ -517,6 +506,7 @@ const JigsawPuzzlePage = () => {
               canvasW: canvasResult.canvasW,
               canvasH: canvasResult.canvasH,
               dataUrl: canvasResult.dataUrl,
+              solidDataUrl: canvasResult.solidDataUrl,
               edges: {
                 top: topType,
                 right: rightType,
@@ -785,7 +775,6 @@ const JigsawPuzzlePage = () => {
                       />
                       <ThreeDPiece
                         piece={selectedPiece}
-                        imageSize={imageSize}
                         thickness={thickness}
                         sideColor={sideColor}
                         autoRotate={autoRotate}
