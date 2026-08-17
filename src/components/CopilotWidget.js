@@ -189,7 +189,12 @@ const CopilotWidget = () => {
       }
     } catch (err) {
       console.error("[Copilot Widget] Pipeline failed:", err);
-      let errMsg = `Could not connect to your local Ollama server. Please ensure Ollama is running locally on port 11434 and has the model loaded (e.g. run 'ollama run ${localModelName}' in your terminal).`;
+      let errMsg = `Could not connect to your local Ollama server. Please ensure:
+1. Ollama is running locally on port 11434 (start the Ollama app or run 'ollama serve' in your terminal).
+2. CORS is enabled so your browser can communicate with it. Launch Ollama with the origins variable set:
+   • On Mac/Linux: run 'OLLAMA_ORIGINS="*" ollama serve' in your terminal.
+   • On Windows: close the Ollama system tray icon, set the environment variable OLLAMA_ORIGINS=* in your system settings, and restart Ollama.
+3. The model is downloaded (run 'ollama run ${localModelName}' in your terminal to pre-load it).`;
       
       setMessages((prev) => [
         ...prev,
