@@ -1,9 +1,12 @@
 import { pipeline, env } from "@xenova/transformers";
 
-// Configure Transformers.js to resolve models strictly from our public folder assets (100% offline-first!)
+// Configure Transformers.js to resolve models strictly from our public folder assets
 env.allowLocalModels = true;
 env.localModelRegexp = /.*/; 
 env.localURL = "/models/";
+
+// Configure Transformers.js to resolve the WebAssembly ONNX engine locally (100% CDN-free!)
+env.backends.onnx.wasm.wasmPaths = "/wasm/";
 
 let generator = null;
 let cachedContext = null;
