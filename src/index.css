@@ -1,6 +1,17 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* Custom DaisyUI 5 Color overrides to change primary brand colors from purple to premium blue */
+:root, [data-theme="light"] {
+  --p: #2563eb; /* Premium Blue-600 */
+  --pc: #ffffff; /* White text on primary backgrounds */
+}
+
+[data-theme="dark"] {
+  --p: #3b82f6; /* Premium Blue-500 */
+  --pc: #ffffff; /* White text on primary backgrounds */
+}
+
 body {
   @apply bg-base-300 text-base-content transition-colors duration-300;
   margin: 0;
