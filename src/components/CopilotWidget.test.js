@@ -94,8 +94,8 @@ describe('CopilotWidget UI Component', () => {
     // Verify user query is logged in-chat
     expect(screen.getByText("Where is David working?")).toBeInTheDocument();
 
-    // Verify LLM pipeline function was called
-    expect(executeAgentPipeline).toHaveBeenCalledWith("Where is David working?", expect.any(Function));
+    // Verify LLM pipeline function was called with conversational memory history
+    expect(executeAgentPipeline).toHaveBeenCalledWith("Where is David working?", expect.any(Function), expect.any(Array));
 
     // Verify mock response is appended after promise resolution
     await waitFor(() => {

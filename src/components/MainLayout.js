@@ -23,14 +23,13 @@ const MainLayout = () => {
         - Glides open to w-64 on hover without reflowing or shifting main page contents.
         - Uses tailwind 'group' classes to cleanly fade out contents when collapsed to prevent squishing.
       */}
-      <aside className="w-2 hover:w-64 fixed left-0 top-0 h-screen bg-base-200 border-r-2 border-primary/40 z-50 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-2xl group">
+      <aside className="w-20 hover:w-64 fixed left-0 top-0 h-screen bg-base-200 border-r-2 border-primary/40 z-50 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-2xl group">
         
         {/* Navigation Menu */}
         <div className="p-4 flex-1">
           {/* Brand/Indicator when hovered */}
           <div className="flex items-center gap-2 mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 select-none">
-            <span className="text-2xl">🧩</span>
-            <span className="text-sm font-black tracking-widest text-primary uppercase">DG STUDIO</span>
+            <span className="text-sm font-black tracking-widest text-primary uppercase">SITE MAP</span>
           </div>
 
           <ul className="menu menu-vertical p-0 gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-56">
@@ -43,7 +42,7 @@ const MainLayout = () => {
                   }`
                 }
               >
-                🏠 Home
+                Home
               </NavLink>
             </li>
             <li>
@@ -55,7 +54,7 @@ const MainLayout = () => {
                   }`
                 }
               >
-                📁 Demos Showcase
+                Demos Showcase
               </NavLink>
             </li>
             <li>
@@ -67,7 +66,7 @@ const MainLayout = () => {
                   }`
                 }
               >
-                🧩 3D Jigsaw Game
+                3D Jigsaw Game
               </NavLink>
             </li>
             <li>
@@ -79,7 +78,7 @@ const MainLayout = () => {
                   }`
                 }
               >
-                📝 Dev Blog
+                Dev Blog
               </NavLink>
             </li>
             <li>
@@ -91,7 +90,7 @@ const MainLayout = () => {
                   }`
                 }
               >
-                💼 Hire David
+                Hire David
               </NavLink>
             </li>
           </ul>
@@ -104,16 +103,15 @@ const MainLayout = () => {
             <span className="badge badge-primary badge-sm uppercase font-bold select-none">{theme}</span>
           </div>
           <label className="flex items-center justify-between cursor-pointer bg-base-200 p-2.5 rounded-lg border border-base-300 hover:bg-base-300 transition-all select-none">
-            {/* Sun Icon */}
-            <span className="text-sm">☀️</span>
+            {/* Simple text labels replacing standard sun/moon emojis */}
+            <span className="text-[10px] font-black tracking-wider uppercase text-base-content/50">Light</span>
             <input 
               type="checkbox" 
-              className="toggle toggle-primary toggle-sm" 
+              className="toggle toggle-primary toggle-sm mx-2" 
               onChange={toggleTheme} 
               checked={theme === 'dark'}
             />
-            {/* Moon Icon */}
-            <span className="text-sm">🌙</span>
+            <span className="text-[10px] font-black tracking-wider uppercase text-base-content/50">Dark</span>
           </label>
         </div>
 
