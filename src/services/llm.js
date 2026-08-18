@@ -1,8 +1,22 @@
 import { pipeline, env } from "@xenova/transformers";
 
 // Force the browser to fetch model files directly from the Hugging Face CDN (huggingface.co)
-// This guarantees that you will see actual Hugging Face network requests in your Network tab!
 env.allowLocalModels = false;
+
+// Override global env.fetch to completely strip standard local authorization headers
+// and omit credentials. This prevents any local dev proxy headers from triggering cross-origin 401 Unauthorized blocks on HuggingFace!
+env.fetch = (url, options) => {
+  const headers = { ...options?.headers };
+  // Explicitly delete standard Authorization headers to prevent credential leaking
+  delete headers["authorization"];
+  delete headers["Authorization"];
+
+  return fetch(url, {
+    ...options,
+    credentials: "omit", // Omit local cookies/dev server credentials
+    headers
+  });
+};
 
 let generator = null;
 let cachedContext = null;
