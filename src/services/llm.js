@@ -1,26 +1,59 @@
 import { pipeline, env } from "@xenova/transformers";
 
-// Configure Transformers.js to locate models strictly within our public folder assets
-env.allowLocalModels = true;
-env.localModelRegexp = /.*/; 
-env.localURL = "/models/";
+// Configure Transformers.js to resolve models strictly from our public unblocked GitHub Release CDN!
+env.allowLocalModels = false;
+env.remoteURL = "https://github.com/davidgabriel42/website-2026/releases/download/v1.0.0-model/";
+env.remotePathTemplate = ""; // Flat template to match GitHub Release asset formats
+
+// 100% Infallible Global Fetch Interceptor
+// 1. Intercepts any requests targeting our custom GitHub Release model assets.
+// 2. Automatically flat-maps "onnx/model_quantized.onnx" subpath requests to the flat release asset "model_quantized.onnx".
+// 3. Enforces public anonymous fetching to bypass corporate proxy header leaks.
+const originalFetch = window.fetch;
+window.fetch = async function (url, options) {
+  let urlStr = typeof url === 'string' ? url : url?.url || '';
+
+  if (urlStr.includes("github.com/davidgabriel42/website-2026/releases/download")) {
+    const headers = options && options.headers ? { ...options.headers } : {};
+    
+    // Explicitly delete any leaked Authorization or Proxy-Authorization headers
+    delete headers["authorization"];
+    delete headers["Authorization"];
+    delete headers["proxy-authorization"];
+    delete headers["Proxy-Authorization"];
+
+    // GitHub Release assets are flatly uploaded, so redirect the 'onnx/' subpath request to the root flat asset
+    if (urlStr.includes("onnx/model_quantized.onnx")) {
+      urlStr = urlStr.replace("onnx/model_quantized.onnx", "model_quantized.onnx");
+      url = urlStr;
+    }
+
+    return originalFetch(url, {
+      ...options,
+      credentials: "omit", // Force public anonymous fetch
+      headers
+    });
+  }
+
+  // Pass-through all other requests untouched
+  return originalFetch(url, options);
+};
 
 let generator = null;
 let cachedContext = null;
 
-// Initialize the local Transformers.js pipeline using ONLY local assets (100% offline-first!)
+// Initialize the local Transformers.js pipeline using our unblocked GitHub CDN
 async function getGenerator(onProgress) {
   if (!generator) {
-    onProgress("Initializing in-browser model...");
+    onProgress("Initializing in-browser model from GitHub CDN...");
     generator = await pipeline(
       "text2text-generation",
-      "Xenova/LaMini-Flan-T5-78M",
+      "LaMini-Flan-T5-78M", // Name is used to complete the URL pattern
       {
-        local_files_only: true, // Forces Transformers.js to ONLY load files from public/models/
         progress_callback: (data) => {
           if (data.status === "progress") {
             const pct = Math.round(data.progress);
-            onProgress(`Loading local weights... ${pct}%`);
+            onProgress(`Downloading weights from GitHub... ${pct}%`);
           } else if (data.status === "ready") {
             onProgress("Compiling WebAssembly engine...");
           }
@@ -106,7 +139,7 @@ He holds 5 USPTO patents.`;
   }
   onStepUpdate({ stage: 1, status: "COMPLETED", message: "Stage 1: Passed. Category: CUSTOM_QUERY" });
 
-  // --- STAGE 2: SINGLE-STAGE LOCAL HUGGINGFACE COMPLETION ---
+  // --- STAGE 2: SINGLE-STAGE HUGGINGFACE COMPLETION ---
   onStepUpdate({ stage: 2, status: "RUNNING", message: "Stage 2: Initializing local HuggingFace pipeline..." });
 
   const replyText = await callTransformersJS(
