@@ -12,13 +12,12 @@ const BASE_URL = "https://huggingface.co/Xenova/LaMini-Flan-T5-77M/resolve/main/
 
 const FILES_TO_DOWNLOAD = [
   "config.json",
-  "generation_config.json", // Essential generation parameters!
+  "generation_config.json",
   "tokenizer.json",
   "tokenizer_config.json",
   "special_tokens_map.json",
   "onnx/encoder_model_quantized.onnx",
-  "onnx/decoder_model_quantized.onnx",
-  "onnx/decoder_with_past_model_quantized.onnx"
+  "onnx/decoder_model_merged_quantized.onnx" // The combined merged decoder weights!
 ];
 
 async function start() {
