@@ -15,6 +15,41 @@ if (typeof window !== "undefined") {
 // Configure Transformers.js to resolve the WebAssembly ONNX engine locally (100% CDN-free!)
 env.backends.onnx.wasm.wasmPaths = "/wasm/";
 
+// ==============================================================================
+// 100% Bulletproof Browser Fetch Sanitizer (SPA Fallback Defense)
+// Intercepts browser fetches for local model assets. 
+// If Webpack DevServer serves 'index.html' (starts with '<!DOCTYPE') with status 200 
+// for a missing optional asset (like added_tokens.json), this sanitizer 
+// instantly flat-maps it to a clean '404 Not Found' Response.
+// This prevents JSON parsing crashes and lets the model load flawlessly!
+// ==============================================================================
+if (typeof window !== "undefined") {
+  const originalFetch = window.fetch;
+  window.fetch = async function (url, options) {
+    const urlStr = typeof url === 'string' ? url : url?.url || '';
+
+    // Filter for local model assets
+    if (urlStr.includes("/models/") || urlStr.includes("/wasm/") || urlStr.endsWith(".json") || urlStr.endsWith(".onnx") || urlStr.endsWith(".wasm")) {
+      const response = await originalFetch(url, options);
+      const contentType = response.headers.get("content-type") || "";
+
+      // If Webpack DevServer returned the SPA index.html fallback for a missing asset
+      if (contentType.includes("text/html") && response.ok) {
+        console.warn(`[Copilot Service] Intercepted SPA Fallback HTML redirect for missing asset: ${urlStr}. Forcing clean 404 Response.`);
+        return new Response("Not Found", {
+          status: 404,
+          statusText: "Not Found",
+          headers: { "Content-Type": "text/plain" }
+        });
+      }
+      return response;
+    }
+
+    // Pass-through all other requests untouched
+    return originalFetch(url, options);
+  };
+}
+
 let generator = null;
 let cachedContext = null;
 
