@@ -1,16 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* 
-  Tailwind v4 Theme Color Mapping
-  Forces the Tailwind compiler and DaisyUI 5 to resolve primary color classes 
-  (btn-primary, text-primary, border-primary) directly from our dynamic CSS variables.
-*/
-@theme {
-  --color-primary: var(--p);
-  --color-primary-content: var(--pc);
-}
-
 /* Light Mode Variables */
 :root, [data-theme="light"] {
   --p: #2563eb; /* Premium Blue-600 */
@@ -21,6 +11,40 @@
 [data-theme="dark"] {
   --p: #3b82f6; /* Premium Blue-500 */
   --pc: #ffffff; /* Clean white text on primary backgrounds */
+}
+
+/* 
+  Foolproof Utility Overrides
+  Bypasses any internal DaisyUI post-processors, loading orders, or specificity conflicts 
+  by directly forcing primary components to render in premium blue under all environments.
+*/
+.btn-primary {
+  background-color: var(--p) !important;
+  border-color: var(--p) !important;
+  color: var(--pc) !important;
+}
+.btn-primary:hover {
+  background-color: var(--p) !important;
+  opacity: 0.9 !important;
+}
+
+.text-primary {
+  color: var(--p) !important;
+}
+
+.border-primary {
+  border-color: var(--p) !important;
+}
+
+.toggle-primary:checked {
+  background-color: var(--p) !important;
+  border-color: var(--p) !important;
+}
+
+.badge-primary {
+  background-color: var(--p) !important;
+  border-color: var(--p) !important;
+  color: var(--pc) !important;
 }
 
 body {
