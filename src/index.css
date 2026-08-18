@@ -1,15 +1,26 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* Custom DaisyUI 5 Color overrides to change primary brand colors from purple to premium blue */
-:root, [data-theme="light"] {
-  --p: #2563eb; /* Premium Blue-600 */
-  --pc: #ffffff; /* White text on primary backgrounds */
+/* 
+  Tailwind v4 Theme Color Mapping
+  Forces the Tailwind compiler and DaisyUI 5 to resolve primary color classes 
+  (btn-primary, text-primary, border-primary) directly from our dynamic CSS variables.
+*/
+@theme {
+  --color-primary: var(--p);
+  --color-primary-content: var(--pc);
 }
 
+/* Light Mode Variables */
+:root, [data-theme="light"] {
+  --p: #2563eb; /* Premium Blue-600 */
+  --pc: #ffffff; /* Clean white text on primary backgrounds */
+}
+
+/* Dark Mode Variables */
 [data-theme="dark"] {
   --p: #3b82f6; /* Premium Blue-500 */
-  --pc: #ffffff; /* White text on primary backgrounds */
+  --pc: #ffffff; /* Clean white text on primary backgrounds */
 }
 
 body {
