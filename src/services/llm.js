@@ -58,7 +58,8 @@ async function getGenerator(onProgress) {
         local_files_only: true, // Forces Transformers.js to ONLY load files from public/models/
         progress_callback: (data) => {
           if (data.status === "progress") {
-            onProgress("Loading local model...");
+            const pct = Math.round(data.progress);
+            onProgress("Wasm Engine compiled successfully!");
           } else if (data.status === "ready") {
             onProgress("Compiling WebAssembly engine...");
           }
@@ -151,6 +152,14 @@ function retrieveRelevantContext(query, fullContext) {
     sections.push(`David Gabriel's Resume & CV Document download details:\n• Document Type: Public professional Resume CV.\n• Download URL: David's Resume is hosted on Google Docs at "https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing".`);
   }
 
+  // 8. Technical Design Documents & Specifications (Mapped with literal 'Design Doc / Specs / Blueprint' keywords)
+  if (q.includes("design") || q.includes("doc") || q.includes("spec") || q.includes("blueprint") || q.includes("repository") || q.includes("github") || q.includes("git")) {
+    sections.push(`David Gabriel's Technical Design Documents and Specifications:
+• Copilot Design Document URL: "https://docs.google.com/document/d/1Rf_RQ_K9-LTUf6Ifv6cuca4leprC2RVlwa7E_VGJtvs/edit?tab=t.0". Covers client-side WebAssembly, RAG dynamic retrievers, and SPA fallback fetch interceptors.
+• Jigsaw Puzzle Design Document URL: "https://docs.google.com/document/d/1KxEO4D6nljOGavBBcT9CyfIx6eIoKdojHf6LjYdKjas/edit?tab=t.0". Covers HTML5 Bezier curves, dual-texture rasterization pipeline, and 3-material split geometries.
+• Website GitHub Code Repository: "https://github.com/davidgabriel42/website-2026".`);
+  }
+
   return sections.join("\n\n");
 }
 
@@ -209,7 +218,9 @@ export async function executeAgentPipeline(query, onStepUpdate, history = []) {
                        !q.includes("cve") && !q.includes("security") && !q.includes("swoogo") && 
                        !q.includes("cloudera") && !q.includes("ridgeline") && !q.includes("patent") &&
                        !q.includes("puzzle") && !q.includes("game") && !q.includes("hire") &&
-                       !q.includes("contact");
+                       !q.includes("contact") && !q.includes("design") && !q.includes("doc") && 
+                       !q.includes("spec") && !q.includes("blueprint") && !q.includes("github") && 
+                       !q.includes("code") && !q.includes("repo");
 
     if (isOffTopic) {
       onStepUpdate({ stage: 1, status: "REJECTED", message: "Relevance check failed." });
@@ -274,7 +285,7 @@ export async function executeAgentPipeline(query, onStepUpdate, history = []) {
   onStepUpdate({ stage: 3, status: "RUNNING", message: "Stage 3: Parsing agent actions and polishing..." });
   
   const ui_actions = [];
-  if (q.includes("puzzle") || q.includes("game")) {
+  if (q.includes("puzzle") || q.includes("game") || q.includes("jigsaw")) {
     ui_actions.push({ action: "NAVIGATE", payload: "/demos/jigsaw-puzzle" });
   } else if (q.includes("work") || q.includes("portfolio") || q.includes("demo")) {
     ui_actions.push({ action: "NAVIGATE", payload: "/demos" });
@@ -284,6 +295,12 @@ export async function executeAgentPipeline(query, onStepUpdate, history = []) {
     ui_actions.push({ action: "OPEN_PDF", payload: "https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing" });
   } else if (q.includes("blog") || q.includes("article") || q.includes("post")) {
     ui_actions.push({ action: "OPEN_PDF", payload: "https://www.linkedin.com/in/davidjgabriel/recent-activity/articles/" });
+  } else if (q.includes("copilot") && (q.includes("doc") || q.includes("spec") || q.includes("blueprint"))) {
+    ui_actions.push({ action: "OPEN_PDF", payload: "https://docs.google.com/document/d/1Rf_RQ_K9-LTUf6Ifv6cuca4leprC2RVlwa7E_VGJtvs/edit?tab=t.0" });
+  } else if (q.includes("jigsaw") && (q.includes("doc") || q.includes("spec") || q.includes("blueprint"))) {
+    ui_actions.push({ action: "OPEN_PDF", payload: "https://docs.google.com/document/d/1KxEO4D6nljOGavBBcT9CyfIx6eIoKdojHf6LjYdKjas/edit?tab=t.0" });
+  } else if (q.includes("github") || q.includes("code") || q.includes("repo") || q.includes("repository")) {
+    ui_actions.push({ action: "OPEN_PDF", payload: "https://github.com/davidgabriel42/website-2026" });
   }
 
   onStepUpdate({ stage: 3, status: "COMPLETED", message: "Stage 3: Verified. Fact check passed." });
