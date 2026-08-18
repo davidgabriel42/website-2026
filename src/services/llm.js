@@ -1,20 +1,17 @@
-import { CreateMLCEngine } from "@mlc-ai/web-llm";
+import { MLCEngine } from "@mlc-ai/web-llm";
 
 let engine = null;
 let cachedContext = null;
 
-// Initialize the local WebLLM Engine on first call
+// Initialize the local MLCEngine on the main thread (No Web Workers!)
 async function getEngine(onProgress) {
   if (!engine) {
-    // We use TinyLlama-1.1B because it's highly compact (~600MB) and compiles fast on CPU/GPU
-    engine = await CreateMLCEngine(
-      "TinyLlama-1.1B-Chat-v1.0-q4f32_1",
-      {
-        initProgressCallback: (report) => {
-          onProgress(report.text);
-        }
-      }
-    );
+    engine = new MLCEngine();
+    engine.setInitProgressCallback((report) => {
+      onProgress(report.text);
+    });
+    // TinyLlama is highly compact (~600MB) and downloads fast into the browser cache
+    await engine.reload("TinyLlama-1.1B-Chat-v1.0-q4f32_1");
   }
   return engine;
 }
@@ -31,6 +28,22 @@ async function fetchContext() {
     console.error("[Copilot Service] Failed to load static context:", err);
     return null;
   }
+}
+
+// Helper to trigger WebLLM with plain text completions on the main thread
+async function callWebLLM(systemInstruction, userPrompt, onProgress) {
+  const chatEngine = await getEngine(onProgress);
+  
+  const response = await chatEngine.chat.completions.create({
+    messages: [
+      { role: "system", content: systemInstruction },
+      { role: "user", content: userPrompt }
+    ]
+  });
+  
+  const rawText = response.choices[0].message.content;
+  if (!rawText) throw new Error("Invalid WebLLM response structure");
+  return rawText;
 }
 
 /**
@@ -74,27 +87,17 @@ export async function executeAgentPipeline(query, onStepUpdate) {
   // --- STAGE 2: SINGLE-STAGE WEBLLM COMPLETION ---
   onStepUpdate({ stage: 2, status: "RUNNING", message: "Stage 2: Initializing WebLLM..." });
 
-  const chatEngine = await getEngine((progressText) => {
-    onStepUpdate({ stage: 2, status: "RUNNING", message: `Loading WebLLM: ${progressText}` });
-  });
-
-  onStepUpdate({ stage: 2, status: "RUNNING", message: "Stage 2: Reasoning over resume facts..." });
-
-  const systemPrompt = `You are a professional assistant representing David Gabriel on his portfolio website.
+  const replyText = await callWebLLM(
+    `You are a professional assistant representing David Gabriel on his portfolio website.
 Answer the visitor's question using ONLY the facts provided in this Context JSON:
 ${contextStr}
 
-Keep your answer highly concise (2-3 sentences), strictly dry, objective, and professional. Do not use hyperbolic or subjective adjectives. If the question cannot be answered using the context, state that the information is not available.`;
-
-  const response = await chatEngine.chat.completions.create({
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: query }
-    ]
-  });
-
-  const replyText = response.choices[0].message.content;
-  if (!replyText) throw new Error("Invalid WebLLM response structure");
+Keep your answer highly concise (2-3 sentences), strictly dry, objective, and professional. Do not use hyperbolic or subjective adjectives. If the question cannot be answered using the context, state that the information is not available.`,
+    query,
+    (progressText) => {
+      onStepUpdate({ stage: 2, status: "RUNNING", message: `Loading WebLLM: ${progressText}` });
+    }
+  );
 
   onStepUpdate({ stage: 2, status: "COMPLETED", message: "Stage 2: Response generated successfully." });
 
