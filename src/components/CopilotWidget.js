@@ -60,6 +60,13 @@ const CopilotWidget = () => {
     sessionStorage.setItem('copilot_messages', JSON.stringify(messages));
   }, [messages]);
 
+  // Listen for the custom "open-copilot-chat" event to open the drawer from other pages/components
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true);
+    window.addEventListener('open-copilot-chat', handleOpenChat);
+    return () => window.removeEventListener('open-copilot-chat', handleOpenChat);
+  }, []);
+
   // Auto scroll to bottom of chat container
   useEffect(() => {
     if (chatContainerRef.current) {

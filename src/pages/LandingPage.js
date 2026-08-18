@@ -1,11 +1,16 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Avatar from '../components/Avatar';
-import SocialLink from '../components/SocialLink';
 import Button from '../components/Button';
 import headshot from '../assets/dgabriel_headshot.png';
 
 const LandingPage = () => {
+  
+  const handleOpenCopilot = () => {
+    window.dispatchEvent(new CustomEvent('open-copilot-chat'));
+  };
+
   return (
     <Layout>
       <div className="flex flex-col items-center">
@@ -18,12 +23,18 @@ const LandingPage = () => {
           <p className="mt-4 max-w-2xl text-base-content/70 text-sm leading-relaxed">
             AI Professional who balances the capability to drive growth with a proven record of identifying and addressing hidden risk factors. Results and data driven mindset. Key experience during periods of rapid expansion in AI, Fintech, and LED technologies. Skillset honed from diverse technical and leadership backgrounds.
           </p>
-          <div className="flex gap-4 mt-6">
-            <SocialLink url="https://github.com/davidgabriel42" label="GitHub" />
-            <SocialLink url="https://www.linkedin.com/in/davidjgabriel/" label="LinkedIn" />
-          </div>
-          <div className="mt-6">
-            <Button to="/demos/jigsaw-puzzle">Play Jigsaw Game</Button>
+          
+          {/* Main Action Resources: 3 High-Impact Cohesive Buttons */}
+          <div className="flex flex-wrap justify-center gap-4 mt-8">
+            <Button href="https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing">
+              View Resume
+            </Button>
+            <Button href="https://github.com/davidgabriel42">
+              GitHub Profile
+            </Button>
+            <Button href="https://www.linkedin.com/in/davidjgabriel/">
+              LinkedIn Profile
+            </Button>
           </div>
         </div>
 
@@ -44,7 +55,7 @@ const LandingPage = () => {
                   Design specifications of the 100% browser-native RAG agent. Detailings on the WebAssembly T5 model compile pipelines and SPA fallback fetch interceptors.
                 </p>
               </div>
-              <div className="p-4 bg-base-200/50 border-t border-base-200 text-center">
+              <div className="p-4 bg-base-200/50 border-t border-base-200 flex flex-col gap-2.5 text-center">
                 <a 
                   href="https://docs.google.com/document/d/1Rf_RQ_K9-LTUf6Ifv6cuca4leprC2RVlwa7E_VGJtvs/edit?tab=t.0"
                   target="_blank"
@@ -53,6 +64,12 @@ const LandingPage = () => {
                 >
                   Read Copilot Doc &rarr;
                 </a>
+                <button 
+                  onClick={handleOpenCopilot}
+                  className="text-[10px] text-primary hover:text-primary-focus font-extrabold uppercase tracking-widest bg-transparent border-0 cursor-pointer hover:underline"
+                >
+                  Open Copilot Chat &darr;
+                </button>
               </div>
             </div>
 
@@ -65,7 +82,7 @@ const LandingPage = () => {
                   Specifications of the HTML5 Bezier curves edge slicing algorithms, dual-texture rasterization pipeline, and custom 3-material split group extrusions.
                 </p>
               </div>
-              <div className="p-4 bg-base-200/50 border-t border-base-200 text-center">
+              <div className="p-4 bg-base-200/50 border-t border-base-200 flex flex-col gap-2.5 text-center">
                 <a 
                   href="https://docs.google.com/document/d/1KxEO4D6nljOGavBBcT9CyfIx6eIoKdojHf6LjYdKjas/edit?tab=t.0"
                   target="_blank"
@@ -74,6 +91,12 @@ const LandingPage = () => {
                 >
                   Read Jigsaw Doc &rarr;
                 </a>
+                <Link 
+                  to="/demos/jigsaw-puzzle"
+                  className="text-[10px] text-primary hover:text-primary-focus font-extrabold uppercase tracking-widest hover:underline"
+                >
+                  Open Jigsaw Studio &rarr;
+                </Link>
               </div>
             </div>
 
