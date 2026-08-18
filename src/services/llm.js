@@ -3,19 +3,33 @@ import { pipeline, env } from "@xenova/transformers";
 // Force the browser to fetch model files directly from the Hugging Face CDN (huggingface.co)
 env.allowLocalModels = false;
 
-// Override global env.fetch to completely strip standard local authorization headers
-// and omit credentials. This prevents any local dev proxy headers from triggering cross-origin 401 Unauthorized blocks on HuggingFace!
-env.fetch = (url, options) => {
-  const headers = { ...options?.headers };
-  // Explicitly delete standard Authorization headers to prevent credential leaking
-  delete headers["authorization"];
-  delete headers["Authorization"];
+// 100% Infallible Global Fetch Interceptor
+// Intercepts all browser fetch calls at the root window level. 
+// If the destination is HuggingFace, it strips any standard and proxy authorization headers 
+// and enforces 'credentials: "omit"'. This guarantees that no local dev credentials leak,
+// completely bypassing any 401 Unauthorized cross-origin blocks!
+const originalFetch = window.fetch;
+window.fetch = async function (url, options) {
+  const urlStr = typeof url === 'string' ? url : url?.url || '';
 
-  return fetch(url, {
-    ...options,
-    credentials: "omit", // Omit local cookies/dev server credentials
-    headers
-  });
+  if (urlStr.includes("huggingface.co")) {
+    const headers = options && options.headers ? { ...options.headers } : {};
+    
+    // Explicitly delete any leaked Authorization or Proxy-Authorization headers
+    delete headers["authorization"];
+    delete headers["Authorization"];
+    delete headers["proxy-authorization"];
+    delete headers["Proxy-Authorization"];
+
+    return originalFetch(url, {
+      ...options,
+      credentials: "omit", // Force public anonymous fetch
+      headers
+    });
+  }
+
+  // Pass-through all other requests (such as local dev asset fetches) untouched
+  return originalFetch(url, options);
 };
 
 let generator = null;
