@@ -65,27 +65,38 @@ const MainLayout = () => {
                 3D Jigsaw Game
               </NavLink>
             </li>
+
             <li>
               <a 
-                href="https://www.linkedin.com/in/davidjgabriel/recent-activity/articles/" 
+                href="https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing"
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider font-extrabold transition-all hover:bg-base-100 text-base-content/80 hover:text-white"
               >
-                Dev Blog
+                Resume
               </a>
             </li>
+
             <li>
-              <NavLink 
-                to="/hire-me" 
-                className={({ isActive }) => 
-                  `px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider font-extrabold transition-all ${
-                    isActive ? 'btn-primary text-white shadow-lg' : 'hover:bg-base-100 text-base-content/80 hover:text-white'
-                  }`
-                }
+              <a 
+                href="https://github.com/davidgabriel42"
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider font-extrabold transition-all hover:bg-base-100 text-base-content/80 hover:text-white"
               >
-                Hire David
-              </NavLink>
+                GitHub
+              </a>
+            </li>
+
+            <li>
+              <a 
+                href="https://www.linkedin.com/in/davidjgabriel/"
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider font-extrabold transition-all hover:bg-base-100 text-base-content/80 hover:text-white"
+              >
+                LinkedIn
+              </a>
             </li>
           </ul>
         </div>

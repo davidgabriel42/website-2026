@@ -287,9 +287,9 @@ export async function executeAgentPipeline(query, onStepUpdate, history = []) {
   if (q.includes("puzzle") || q.includes("game") || q.includes("jigsaw")) {
     ui_actions.push({ action: "NAVIGATE", payload: "/demos/jigsaw-puzzle" });
   } else if (q.includes("work") || q.includes("portfolio") || q.includes("demo")) {
-    ui_actions.push({ action: "NAVIGATE", payload: "/demos" });
+    ui_actions.push({ action: "NAVIGATE", payload: "/demos/jigsaw-puzzle" });
   } else if (q.includes("contact") || q.includes("email") || q.includes("hire")) {
-    ui_actions.push({ action: "NAVIGATE", payload: "/hire-me" });
+    ui_actions.push({ action: "OPEN_PDF", payload: "https://www.linkedin.com/in/davidjgabriel/" });
   } else if (q.includes("resume") || q.includes("cv") || q.includes("download")) {
     ui_actions.push({ action: "OPEN_PDF", payload: "https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing" });
   } else if (q.includes("blog") || q.includes("article") || q.includes("post")) {
