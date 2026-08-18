@@ -1,9 +1,16 @@
 import { pipeline, env } from "@xenova/transformers";
 
-// Configure Transformers.js to resolve models strictly from our public folder assets
+// Configure Transformers.js to resolve models strictly from our public folder assets (100% offline-first!)
 env.allowLocalModels = true;
 env.localModelRegexp = /.*/; 
-env.localURL = "/models/";
+
+// Resolve explicitly to the absolute browser window origin to prevent route-nested path mismatches
+if (typeof window !== "undefined") {
+  env.localURL = window.location.origin + "/models/";
+  console.log(`[Copilot Service] Initialized local model resolver. Static path: ${env.localURL}`);
+} else {
+  env.localURL = "/models/";
+}
 
 // Configure Transformers.js to resolve the WebAssembly ONNX engine locally (100% CDN-free!)
 env.backends.onnx.wasm.wasmPaths = "/wasm/";
@@ -15,6 +22,8 @@ let cachedContext = null;
 async function getGenerator(onProgress) {
   if (!generator) {
     onProgress("Initializing in-browser model...");
+    console.log(`[Copilot Service] Initializing native pipeline. LocalURL: ${env.localURL}`);
+    
     generator = await pipeline(
       "text2text-generation",
       "Xenova/LaMini-Flan-T5-77M",
