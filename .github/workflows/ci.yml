@@ -14,10 +14,10 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Set up Node.js
+    - name: Set up Node.js 24
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '24'
         cache: 'npm'
 
     - name: Install Dependencies
@@ -30,3 +30,5 @@ jobs:
 
     - name: Run Jest Unit Tests
       run: npm test -- --watchAll=false
+      env:
+        CI: true
