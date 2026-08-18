@@ -70,16 +70,14 @@ const MainLayout = () => {
               </NavLink>
             </li>
             <li>
-              <NavLink 
-                to="/blog" 
-                className={({ isActive }) => 
-                  `px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider font-extrabold transition-all ${
-                    isActive ? 'btn-primary text-white shadow-lg' : 'hover:bg-base-100 text-base-content/80 hover:text-white'
-                  }`
-                }
+              <a 
+                href="https://www.linkedin.com/in/davidjgabriel/recent-activity/articles/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider font-extrabold transition-all hover:bg-base-100 text-base-content/80 hover:text-white"
               >
                 Dev Blog
-              </NavLink>
+              </a>
             </li>
             <li>
               <NavLink 

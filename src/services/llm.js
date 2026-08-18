@@ -58,8 +58,7 @@ async function getGenerator(onProgress) {
         local_files_only: true, // Forces Transformers.js to ONLY load files from public/models/
         progress_callback: (data) => {
           if (data.status === "progress") {
-            const pct = Math.round(data.progress);
-            onProgress("Wasm Engine compiled successfully!");
+            onProgress("Loading local model...");
           } else if (data.status === "ready") {
             onProgress("Compiling WebAssembly engine...");
           }
@@ -283,8 +282,8 @@ export async function executeAgentPipeline(query, onStepUpdate, history = []) {
     ui_actions.push({ action: "NAVIGATE", payload: "/hire-me" });
   } else if (q.includes("resume") || q.includes("cv") || q.includes("download")) {
     ui_actions.push({ action: "OPEN_PDF", payload: "https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing" });
-  } else if (q.includes("blog")) {
-    ui_actions.push({ action: "NAVIGATE", payload: "/blog" });
+  } else if (q.includes("blog") || q.includes("article") || q.includes("post")) {
+    ui_actions.push({ action: "OPEN_PDF", payload: "https://www.linkedin.com/in/davidjgabriel/recent-activity/articles/" });
   }
 
   onStepUpdate({ stage: 3, status: "COMPLETED", message: "Stage 3: Verified. Fact check passed." });
