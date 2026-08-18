@@ -12,6 +12,7 @@ const BASE_URL = "https://huggingface.co/Xenova/LaMini-Flan-T5-77M/resolve/main/
 
 const FILES_TO_DOWNLOAD = [
   "config.json",
+  "generation_config.json", // Essential generation parameters!
   "tokenizer.json",
   "tokenizer_config.json",
   "special_tokens_map.json",
