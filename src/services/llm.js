@@ -1,19 +1,8 @@
 import { pipeline, env } from "@xenova/transformers";
 
-// Configure Transformers.js to resolve models strictly from our public folder assets (100% offline-first!)
-env.allowLocalModels = true;
-env.localModelRegexp = /.*/; 
-
-// Resolve explicitly to the absolute browser window origin to prevent route-nested path mismatches
-if (typeof window !== "undefined") {
-  env.localURL = window.location.origin + "/models/";
-  console.log(`[Copilot Service] Initialized local model resolver. Static path: ${env.localURL}`);
-} else {
-  env.localURL = "/models/";
-}
-
-// Configure Transformers.js to resolve the WebAssembly ONNX engine locally (100% CDN-free!)
-env.backends.onnx.wasm.wasmPaths = "/wasm/";
+// Enable remote model downloads directly from the official Hugging Face Hub CDN.
+// The browser will download the weights on first load and cache them locally.
+env.allowLocalModels = false;
 
 // ==============================================================================
 // 100% Bulletproof Browser Fetch Sanitizer (SPA Fallback Defense)
@@ -23,7 +12,8 @@ if (typeof window !== "undefined") {
   window.fetch = async function (url, options) {
     const urlStr = typeof url === 'string' ? url : url?.url || '';
 
-    if (urlStr.includes("/models/") || urlStr.includes("/wasm/") || urlStr.endsWith(".json") || urlStr.endsWith(".onnx") || urlStr.endsWith(".wasm")) {
+    // Safeguard local assets from SPA HTML fallback overrides
+    if (urlStr.endsWith(".json") && !urlStr.startsWith("http")) {
       const response = await originalFetch(url, options);
       const contentType = response.headers.get("content-type") || "";
 
@@ -45,17 +35,16 @@ if (typeof window !== "undefined") {
 let generator = null;
 let cachedContext = null;
 
-// Initialize the local Transformers.js pipeline using ONLY local unblocked assets
+// Initialize the local Transformers.js pipeline using the global Hugging Face CDN
 async function getGenerator(onProgress) {
   if (!generator) {
     onProgress("Initializing in-browser model...");
-    console.log(`[Copilot Service] Initializing native pipeline. LocalURL: ${env.localURL}`);
+    console.log(`[Copilot Service] Initializing pipeline streaming weights from Hugging Face CDN.`);
     
     generator = await pipeline(
       "text2text-generation",
       "Xenova/LaMini-Flan-T5-248M",
       {
-        local_files_only: true, // Forces Transformers.js to ONLY load files from public/models/
         progress_callback: (data) => {
           if (data.status === "progress") {
             onProgress("Wasm Engine compiled successfully!");
