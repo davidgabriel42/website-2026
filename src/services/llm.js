@@ -1,19 +1,22 @@
-import { Chat } from "@mlc-ai/web-llm";
+import { CreateMLCEngine } from "@mlc-ai/web-llm";
 
-let chat;
+let engine = null;
 let cachedContext = null;
 
-// Initialize the ChatModule and Chat instance on first call
-async function getChat(onProgress) {
-  if (!chat) {
-    chat = new Chat();
-    chat.setInitProgressCallback((report) => {
-      onProgress(report.text);
-    });
-    // For this portfolio, we'll use a small, efficient model.
-    await chat.reload("TinyLlama-1.1B-Chat-v1.0-q4f32_1");
+// Initialize the local WebLLM Engine on first call
+async function getEngine(onProgress) {
+  if (!engine) {
+    // We use TinyLlama-1.1B because it's highly compact (~600MB) and compiles fast on the CPU/GPU
+    engine = await CreateMLCEngine(
+      "TinyLlama-1.1B-Chat-v1.0-q4f32_1",
+      {
+        initProgressCallback: (report) => {
+          onProgress(report.text);
+        }
+      }
+    );
   }
-  return chat;
+  return engine;
 }
 
 // Dynamically fetch minified resume/thesis context from public folder
@@ -30,7 +33,31 @@ async function fetchContext() {
   }
 }
 
-// Local Semantic Parser Fallback (100% offline, zero-load, mobile-friendly, bulletproof!)
+// Helper to trigger WebLLM with structured JSON output using OpenAI standard protocols
+async function callWebLLM(systemInstruction, userPrompt, onProgress) {
+  const chatEngine = await getEngine(onProgress);
+  
+  const response = await chatEngine.chat.completions.create({
+    messages: [
+      { role: "system", content: systemInstruction },
+      { role: "user", content: userPrompt }
+    ],
+    // Force structured JSON output
+    response_format: { type: "json_object" }
+  });
+  
+  const rawText = response.choices[0].message.content;
+  if (!rawText) throw new Error("Invalid WebLLM response structure");
+  
+  try {
+    return JSON.parse(rawText.trim());
+  } catch (err) {
+    console.error("[Copilot Service] Failed to parse JSON response:", rawText);
+    throw new Error("Failed to parse WebLLM JSON response");
+  }
+}
+
+// Local Semantic Parser Fallback (Used strictly as an off-topic relevance catcher, or when WebGPU is not supported)
 function localFailsafeResponse(query, context) {
   const q = query.toLowerCase();
 
@@ -122,28 +149,8 @@ function localFailsafeResponse(query, context) {
   );
 }
 
-// Helper to trigger WebLLM with structured JSON output
-async function callWebLLM(systemInstruction, userPrompt, onProgress) {
-  const chatInstance = await getChat(onProgress);
-  const prompt = `${systemInstruction}\n\n${userPrompt}`;
-  const reply = await chatInstance.generate(prompt);
-  
-  // Extract JSON from the reply
-  const jsonMatch = reply.match(/```json\n([\s\S]*?)\n```/);
-  if (!jsonMatch || !jsonMatch[1]) {
-    throw new Error("Failed to extract JSON from WebLLM response.");
-  }
-  
-  try {
-    return JSON.parse(jsonMatch[1].trim());
-  } catch (err) {
-    console.error("[Copilot Service] Failed to parse JSON response:", jsonMatch[1]);
-    throw new Error("Failed to parse agent JSON response");
-  }
-}
-
 /**
- * Executes the 3-Stage Agentic Pipeline using WebLLM, with an instant Local Semantic Parser fallback
+ * Executes the 3-Stage Agentic Pipeline using WebLLM
  * @param {string} query - Visitor's raw text input
  * @param {function} onStepUpdate - Callback to stream executing stages back to the Agent Terminal UI
  */
@@ -154,7 +161,11 @@ export async function executeAgentPipeline(query, onStepUpdate) {
   const contextStr = JSON.stringify(context);
 
   try {
-    // 1. Attempt to execute the 3-Stage Pipeline on WebLLM first!
+    // Verify WebGPU support on the execution thread before attempting WebLLM
+    if (!navigator.gpu) {
+      throw new Error("WEBGPU_UNSUPPORTED");
+    }
+
     const callLLM = (system, prompt) => callWebLLM(system, prompt, (progressText) => {
       onStepUpdate({ stage: 0, status: "RUNNING", message: `Loading WebLLM: ${progressText}` });
     });
@@ -254,14 +265,17 @@ Set passed_eval: true if the draft was 100% factual and did not require any modi
     };
 
   } catch (err) {
-    console.warn("[Copilot Service] WebLLM not supported or failed to load. Falling back instantly to local semantic parser.", err);
+    if (err.message === "WEBGPU_UNSUPPORTED") {
+      console.warn("[Copilot Service] WebGPU is not supported on this browser thread.");
+      throw err;
+    }
     
-    // Smoothly stream terminal logs indicating fallback load (taking 0.6 seconds)
+    console.warn("[Copilot Service] WebLLM failed to load. Falling back to local semantic parser.", err);
+    
     onStepUpdate({ stage: 1, status: "COMPLETED", message: "Stage 1: Passed. Category: FAILSFE_FALLBACK" });
-    onStepUpdate({ stage: 2, status: "COMPLETED", message: "Stage 2: Offline Semantic Parser loaded successfully." });
+    onStepUpdate({ stage: 2, status: "COMPLETED", message: "Stage 2: Offline Semantic Parser loaded." });
     onStepUpdate({ stage: 3, status: "COMPLETED", message: "Stage 3: Polished response verified against knowledge cache." });
 
-    // Fall back instantly and return parsed content!
     return localFailsafeResponse(query, context);
   }
 }
