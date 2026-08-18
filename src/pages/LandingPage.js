@@ -49,7 +49,6 @@ const LandingPage = () => {
             {/* RAG Copilot Specs Card */}
             <div className="card bg-base-100 border border-base-200 rounded-xl shadow hover:shadow-lg transition-all flex flex-col justify-between overflow-hidden">
               <div className="p-5">
-                <span className="text-2xl block mb-2 select-none">🤖</span>
                 <h3 className="text-sm font-bold text-base-content leading-tight">Conversational RAG Copilot</h3>
                 <p className="text-xs text-base-content/60 mt-2 leading-relaxed">
                   Design specifications of the 100% browser-native RAG agent. Detailings on the WebAssembly T5 model compile pipelines and SPA fallback fetch interceptors.
@@ -76,7 +75,6 @@ const LandingPage = () => {
             {/* 3D Jigsaw Specs Card */}
             <div className="card bg-base-100 border border-base-200 rounded-xl shadow hover:shadow-lg transition-all flex flex-col justify-between overflow-hidden">
               <div className="p-5">
-                <span className="text-2xl block mb-2 select-none">🧩</span>
                 <h3 className="text-sm font-bold text-base-content leading-tight">3D Jigsaw Studio</h3>
                 <p className="text-xs text-base-content/60 mt-2 leading-relaxed">
                   Specifications of the HTML5 Bezier curves edge slicing algorithms, dual-texture rasterization pipeline, and custom 3-material split group extrusions.
@@ -103,7 +101,6 @@ const LandingPage = () => {
             {/* Project Repository Card */}
             <div className="card bg-base-100 border border-base-200 rounded-xl shadow hover:shadow-lg transition-all flex flex-col justify-between overflow-hidden">
               <div className="p-5">
-                <span className="text-2xl block mb-2 select-none">💻</span>
                 <h3 className="text-sm font-bold text-base-content leading-tight">Project Repository</h3>
                 <p className="text-xs text-base-content/60 mt-2 leading-relaxed">
                   Explore the full project codebase on GitHub. Features Craco PostCSS setups, automated Jest units, and GitHook automated workflows.
