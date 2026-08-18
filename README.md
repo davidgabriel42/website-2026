@@ -1,70 +1,85 @@
-# Getting Started with Create React App
+# David Gabriel: Personal Portfolio & Engineering Workspace
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A client-side portfolio website showcasing advanced interactive full-stack and systems engineering capabilities. This workspace runs entirely in the user's browser with zero server-side or database hosting dependencies.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Engineering Links and Assets
 
-### `npm start`
+*   **Professional Resume and CV (Google Docs):** https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing
+*   **Conversational RAG Copilot Design Specification:** https://docs.google.com/document/d/1Rf_RQ_K9-LTUf6Ifv6cuca4leprC2RVlwa7E_VGJtvs/edit?tab=t.0
+*   **3D Jigsaw Studio Design Specification:** https://docs.google.com/document/d/1KxEO4D6nljOGavBBcT9CyfIx6eIoKdojHf6LjYdKjas/edit?tab=t.0
+*   **Active Website Code Repository:** https://github.com/davidgabriel42/website-2026
+*   **LinkedIn Professional Profile:** https://www.linkedin.com/in/davidjgabriel/
+*   **Technical Articles and Dev Blog:** https://www.linkedin.com/in/davidjgabriel/recent-activity/articles/
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Architectural Systems Overview
 
-### `npm test`
+### 1. Browser-Native Conversational RAG Copilot
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The portfolio copilot is a client-side Conversational Retrieval-Augmented Generation (RAG) agent. It operates offline-first using WebAssembly compilation runtimes to run deep inference directly inside the client browser.
 
-### `npm run build`
+*   **Engine Core:** Upgraded from small models to Xenova/LaMini-Flan-T5-248M (quantized 8-bit ONNX weights, approximately 240MB) to achieve a 3.2x increase in reasoning depth, permitting precise multi-turn pronoun resolutions.
+*   **Dynamic RAG Retriever:** Extracts relevant chunks from a minified professional corpus schema (public/agent_context.json) on-demand using exact keyword-aligned query mappings.
+*   **100% Offline Runtimes:** All WebAssembly ONNX runtimes are packaged locally within public/wasm/, eliminating third-party Content Delivery Network (CDN) blocks or latency.
+*   **SPA Fallback Defense:** Intercepts Webpack Single Page Application (SPA) redirects that serve index.html text/html responses for missing optional files, converting them to clean 404 responses to prevent JSON parser failures.
+*   **Relevance Gatekeeping:** Utilizes a hybrid validation flow. First-message queries undergo strict Javascript keyword checks to deflect off-topic entries. Subsequent multi-turn dialogues are contextually moderated by the language model's integrated instructions.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 2. Standalone 3D Jigsaw Puzzle Studio
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The 3D Jigsaw Puzzle Studio is a dual-stage simulator combining a high-performance 2D board with a real-time 3D piece inspector.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+*   **Bezier Curve Slicing:** Dynamically divides any loaded texture into a 4x4 coordinate grid and traces interlocking boundary vectors using a mathematically modeled Cubic Bezier Curve algorithm.
+*   **Dual-Texture Pipeline:** Splites rasterization routines. High-performance, pre-clipped transparent canvases are routed to the 2D Konva.js board, while the raw unclipped texture is loaded inside the WebGL shader and cropped dynamically in UV coordinate space.
+*   **Custom 3-Material Extrusion:** Re-indexes extruded geometries in React Three Fiber (R3F) to split face materials. Group 0 (front cap) displays the unclipped high-resolution image texture; Group 1 (side bevels) renders a solid, customizable cardboard edge; Group 2 (back cap) maps a solid cardboard color simulation.
+*   **Automated Raster Solver:** Features a sequential solver utilizing frame-by-frame interpolation to solve scrambled pieces in grid order.
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Developer Operations Manual
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Local Installation
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Clone the repository and install all npm dependencies locally:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+git clone https://github.com/davidgabriel42/website-2026.git
+cd personal-website
+npm install
+```
 
-## Learn More
+### Running the Workspace
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Execute the development server. The CRACO-configured PostCSS compiler will execute, compiling Tailwind CSS v4 and DaisyUI configurations natively:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+npm start
+```
 
-### Code Splitting
+Open [http://localhost:3000](http://localhost:3000) to view the workspace inside your browser.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## Quality Assurance & Automated Testing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### 1. Jest React UI Unit Tests
+Run the component test runner to verify UI widget mounting, button clicks, and Avatar rendering properties:
 
-### Making a Progressive Web App
+```bash
+npm test -- --watchAll=false
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### 2. Node.js RAG Evaluation Suite
+Run the dedicated offline RAG test suite in Node.js to evaluate context retrievals, conversational memory, pronoun resolutions, safety deflection guardrails, and direct link actions:
 
-### Advanced Configuration
+```bash
+node scripts/test-llm-suite.js
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### 3. GitHub Actions CI Pipeline
+The repository features an automated continuous integration pipeline (.github/workflows/ci.yml) targeting Node.js 24. On every push and pull request, the runner executes:
+*   Standard dependency checkouts.
+*   A complete compilation test (npm run build).
+*   The automated Jest unit testing suites.
