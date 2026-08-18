@@ -58,7 +58,6 @@ async function getGenerator(onProgress) {
         local_files_only: true, // Forces Transformers.js to ONLY load files from public/models/
         progress_callback: (data) => {
           if (data.status === "progress") {
-            const pct = Math.round(data.progress);
             onProgress("Wasm Engine compiled successfully!");
           } else if (data.status === "ready") {
             onProgress("Compiling WebAssembly engine...");
