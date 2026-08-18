@@ -25,22 +25,21 @@ describe('CopilotWidget UI Component', () => {
     render(<CopilotWidget />);
     // Chat starts open by default on the first visit
     expect(screen.getByText('Portfolio Copilot')).toBeInTheDocument();
-    expect(screen.getByText('WebLLM Engine Active')).toBeInTheDocument();
+    expect(screen.getByText('Local WebAssembly Engine Active')).toBeInTheDocument();
   });
 
   test('can collapse and open the chat window when clicking the FAB', () => {
     render(<CopilotWidget />);
     
-    // Locate and click the close button inside the header (multiple '✕' buttons exist when open)
-    const closeButtons = screen.getAllByRole('button', { name: '✕' });
-    // The second button is the close button in the header drawer
-    fireEvent.click(closeButtons[1]);
+    // Locate and click the close button inside the header card directly
+    const closeBtn = screen.getByRole('button', { name: '✕' });
+    fireEvent.click(closeBtn);
 
     // Verify chat window is closed and only the FAB remains
     expect(screen.queryByText('Portfolio Copilot')).not.toBeInTheDocument();
 
-    // Click the FAB button to re-open
-    const openBtn = screen.getByRole('button');
+    // Click the text-based FAB button to re-open
+    const openBtn = screen.getByRole('button', { name: 'Copilot Chat' });
     fireEvent.click(openBtn);
 
     // Verify chat is open again
@@ -48,11 +47,15 @@ describe('CopilotWidget UI Component', () => {
   });
 
   test('displays suggested quick inquiries and appends answers when clicked', async () => {
+    // Mock Math.random to make the pill shuffling fully deterministic for Jest
+    const originalRandom = Math.random;
+    Math.random = () => 0.1;
+
     jest.useFakeTimers();
     render(<CopilotWidget />);
 
     // Check that suggestion pills exist
-    const thesisPill = screen.getByText('📚 Read his MS Thesis');
+    const thesisPill = screen.getByText("📚 Master's Thesis Topic");
     expect(thesisPill).toBeInTheDocument();
 
     // Click the thesis suggestion pill
@@ -72,6 +75,7 @@ describe('CopilotWidget UI Component', () => {
     });
 
     jest.useRealTimers();
+    Math.random = originalRandom; // Restore Math.random
   });
 
   test('allows typing and sending a custom query, triggering the LLM pipeline', async () => {
