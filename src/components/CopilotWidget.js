@@ -154,7 +154,19 @@ const CopilotWidget = () => {
       }
     } catch (err) {
       console.error("[Copilot Widget] Pipeline failed:", err);
-      let errMsg = "An unexpected error occurred. Please try again. Your browser may not fully support WebLLM.";
+      let errMsg = "An unexpected error occurred. Please try again.";
+      
+      if (err.message === "WEBGPU_UNSUPPORTED" || !navigator.gpu) {
+        errMsg = "⚠️ Your browser or device does not support WebGPU (required to compile and run local WebAssembly LLM models client-side in the browser).\n\n" +
+                 "To run this in-browser LLM demo:\n" +
+                 "1. Ensure you are using a compatible desktop browser (Chrome 113+, Edge 113+, or Safari 18+).\n" +
+                 "2. Double-check that Hardware Acceleration is enabled in your browser settings.\n" +
+                 "3. On some Chrome builds, you may need to navigate to 'chrome://flags/#enable-unsafe-webgpu' and enable it manually.\n\n" +
+                 "For now, you can still click our suggested quick inquiries below to see fully simulated 3-stage agent runs!";
+      } else {
+        errMsg = "An unexpected error occurred while loading the browser model. Please ensure you are connected to the internet (on first query to download the 600MB model) and try again. Your system's WebGPU or RAM might be temporarily overloaded.";
+      }
+
       setMessages((prev) => [
         ...prev,
         { sender: 'bot', text: errMsg, isError: true }
