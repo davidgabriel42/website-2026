@@ -41,7 +41,7 @@ const LandingPage = () => {
         {/* Technical Design Documents Section */}
         <div className="w-full max-w-4xl border-t border-base-200 pt-12">
           <h2 className="text-lg font-black tracking-widest text-primary uppercase text-center mb-8 select-none">
-            Technical Design Specs
+            Website Features
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
