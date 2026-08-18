@@ -2,13 +2,14 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const MODEL_DIR = path.join(__dirname, '../public/models/Xenova/LaMini-Flan-T5-77M');
+// Upgrade to the 248M parameter model (~240MB total) for exponentially superior RAG reasoning capability!
+const MODEL_DIR = path.join(__dirname, '../public/models/Xenova/LaMini-Flan-T5-248M');
 const ONNX_DIR = path.join(MODEL_DIR, 'onnx');
 
 // Ensure directories exist
 fs.mkdirSync(ONNX_DIR, { recursive: true });
 
-const BASE_URL = "https://huggingface.co/Xenova/LaMini-Flan-T5-77M/resolve/main/";
+const BASE_URL = "https://huggingface.co/Xenova/LaMini-Flan-T5-248M/resolve/main/";
 
 const FILES_TO_DOWNLOAD = [
   "config.json",
@@ -17,11 +18,11 @@ const FILES_TO_DOWNLOAD = [
   "tokenizer_config.json",
   "special_tokens_map.json",
   "onnx/encoder_model_quantized.onnx",
-  "onnx/decoder_model_merged_quantized.onnx" // The combined merged decoder weights!
+  "onnx/decoder_model_merged_quantized.onnx"
 ];
 
 async function start() {
-  console.log("Starting T5 model download using native curl...");
+  console.log("Starting T5-248M model download using native curl...");
   for (const file of FILES_TO_DOWNLOAD) {
     const destPath = path.join(MODEL_DIR, file);
     const url = BASE_URL + file;
@@ -39,7 +40,7 @@ async function start() {
       process.exit(1);
     }
   }
-  console.log("\nAll genuine T5 model files downloaded successfully from HuggingFace!");
+  console.log("\nAll genuine T5-248M model files downloaded successfully from HuggingFace!");
 }
 
 start();

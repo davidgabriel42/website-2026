@@ -136,7 +136,7 @@ const CopilotWidget = () => {
     };
 
     try {
-      const result = await executeAgentPipeline(userQuery, onStepUpdate);
+      const result = await executeAgentPipeline(userQuery, onStepUpdate, messages);
 
       if (result.success) {
         setMessages((prev) => [
