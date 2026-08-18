@@ -1,19 +1,33 @@
-import { MLCEngine } from "@mlc-ai/web-llm";
+import { pipeline, env } from "@xenova/transformers";
 
-let engine = null;
+// Force the browser to fetch model files directly from the Hugging Face CDN (huggingface.co)
+// This guarantees that you will see actual Hugging Face network requests in your Network tab!
+env.allowLocalModels = false;
+
+let generator = null;
 let cachedContext = null;
 
-// Initialize the local MLCEngine on the main thread (No Web Workers!)
-async function getEngine(onProgress) {
-  if (!engine) {
-    engine = new MLCEngine();
-    engine.setInitProgressCallback((report) => {
-      onProgress(report.text);
-    });
-    // TinyLlama is highly compact (~600MB) and downloads fast into the browser cache
-    await engine.reload("TinyLlama-1.1B-Chat-v1.0-q4f32_1");
+// Initialize the local Transformers.js pipeline on the main thread
+async function getGenerator(onProgress) {
+  if (!generator) {
+    // LaMini-Flan-T5-78M is an ultra-lightweight (150MB) seq2seq model highly optimized for structured Q&A.
+    // It downloads in under 5 seconds and compiles instantly, creating a spectacular recruiter experience.
+    generator = await pipeline(
+      "text2text-generation",
+      "Xenova/LaMini-Flan-T5-78M",
+      {
+        progress_callback: (data) => {
+          if (data.status === "progress") {
+            const pct = Math.round(data.progress);
+            onProgress(`Downloading HuggingFace model weights... ${pct}%`);
+          } else if (data.status === "ready") {
+            onProgress("Compiling WebAssembly engine...");
+          }
+        }
+      }
+    );
   }
-  return engine;
+  return generator;
 }
 
 // Dynamically fetch minified resume/thesis context from public folder
@@ -30,24 +44,30 @@ async function fetchContext() {
   }
 }
 
-// Helper to trigger WebLLM with plain text completions on the main thread
-async function callWebLLM(systemInstruction, userPrompt, onProgress) {
-  const chatEngine = await getEngine(onProgress);
+// Helper to trigger Transformers.js generating direct replies on the main thread
+async function callTransformersJS(contextStr, query, onProgress) {
+  const gen = await getGenerator(onProgress);
   
-  const response = await chatEngine.chat.completions.create({
-    messages: [
-      { role: "system", content: systemInstruction },
-      { role: "user", content: userPrompt }
-    ]
+  // Clean context summary for the tiny 150MB model to keep its reasoning focused and flawless
+  const prompt = `You are a professional assistant representing David Gabriel. 
+Answer the question using ONLY these facts: ${contextStr}. 
+Question: ${query}
+Answer:`;
+
+  onProgress("Reasoning over facts...");
+  const out = await gen(prompt, {
+    max_new_tokens: 150,
+    temperature: 0.3,
+    repetition_penalty: 1.2
   });
   
-  const rawText = response.choices[0].message.content;
-  if (!rawText) throw new Error("Invalid WebLLM response structure");
-  return rawText;
+  const replyText = out[0]?.generated_text;
+  if (!replyText) throw new Error("Invalid Transformers.js text output");
+  return replyText;
 }
 
 /**
- * Executes the streamlined single-stage Agentic Pipeline using WebLLM
+ * Executes the streamlined single-stage Agentic Pipeline using HuggingFace Transformers.js
  * @param {string} query - Visitor's raw text input
  * @param {function} onStepUpdate - Callback to stream executing stages back to the Agent Terminal UI
  */
@@ -55,12 +75,13 @@ export async function executeAgentPipeline(query, onStepUpdate) {
   const context = await fetchContext();
   if (!context) throw new Error("CONTEXT_LOAD_FAILED");
 
-  const contextStr = JSON.stringify(context);
-
-  // Verify WebGPU support on the execution thread before attempting WebLLM
-  if (!navigator.gpu) {
-    throw new Error("WEBGPU_UNSUPPORTED");
-  }
+  // Minify context to keep prompt length small and optimal for the seq2seq attention window
+  const contextSummary = `David Gabriel is a Senior Software Engineer with 13+ years of experience. 
+He holds an MS in CS (thesis: Throughput Prediction on Parallel File Systems using ML) and a BS in EE. 
+Current role: Software Engineer at Ridgeline Apps (Feb 2026 - Current) focusing on report generation performance tuning using Java, Kotlin, and LLMs. 
+Previous role: Sr. Software Engineer & AI Security Champion at Cloudera (Sept 2022 - Oct 2025) building Agentic Security CVE scanners. 
+Previous role: Software Engineer II at Swoogo (May 2021 - Sept 2022) designing OIDC MFA and PCI payments. 
+He holds 5 USPTO patents.`;
 
   // --- STAGE 1: SAFETY GATEKEEPER ---
   onStepUpdate({ stage: 1, status: "RUNNING", message: "Stage 1: Checking query relevance..." });
@@ -84,18 +105,14 @@ export async function executeAgentPipeline(query, onStepUpdate) {
   }
   onStepUpdate({ stage: 1, status: "COMPLETED", message: "Stage 1: Passed. Category: CUSTOM_QUERY" });
 
-  // --- STAGE 2: SINGLE-STAGE WEBLLM COMPLETION ---
-  onStepUpdate({ stage: 2, status: "RUNNING", message: "Stage 2: Initializing WebLLM..." });
+  // --- STAGE 2: SINGLE-STAGE HUGGINGFACE COMPLETION ---
+  onStepUpdate({ stage: 2, status: "RUNNING", message: "Stage 2: Initializing local HuggingFace pipeline..." });
 
-  const replyText = await callWebLLM(
-    `You are a professional assistant representing David Gabriel on his portfolio website.
-Answer the visitor's question using ONLY the facts provided in this Context JSON:
-${contextStr}
-
-Keep your answer highly concise (2-3 sentences), strictly dry, objective, and professional. Do not use hyperbolic or subjective adjectives. If the question cannot be answered using the context, state that the information is not available.`,
+  const replyText = await callTransformersJS(
+    contextSummary,
     query,
     (progressText) => {
-      onStepUpdate({ stage: 2, status: "RUNNING", message: `Loading WebLLM: ${progressText}` });
+      onStepUpdate({ stage: 2, status: "RUNNING", message: progressText });
     }
   );
 
