@@ -62,7 +62,15 @@ async function getGenerator(onProgress) {
 async function fetchContext() {
   if (cachedContext) return cachedContext;
   try {
-    const res = await fetch("/agent_context.json");
+    // Resolve context path dynamically relative to the app's actual subfolder base location to support GitHub Pages
+    const basePath = typeof window !== "undefined" && window.location.pathname.endsWith("/") 
+      ? window.location.pathname 
+      : typeof window !== "undefined" ? window.location.pathname + "/" : "/";
+    const contextUrl = typeof window !== "undefined" 
+      ? window.location.origin + basePath + "agent_context.json" 
+      : "/agent_context.json";
+      
+    const res = await fetch(contextUrl);
     if (!res.ok) throw new Error("Could not find agent_context.json");
     cachedContext = await res.json();
     return cachedContext;
