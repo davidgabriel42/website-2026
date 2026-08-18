@@ -21,7 +21,7 @@ const LandingPage = () => {
           <h1 className="text-4xl font-bold mt-4">David Gabriel</h1>
           <p className="text-xl text-primary font-medium mt-1">Senior Software Engineer & AI Researcher</p>
           <p className="mt-4 max-w-2xl text-base-content/70 text-sm leading-relaxed">
-            AI Professional who balances the capability to drive growth with a proven record of identifying and addressing hidden risk factors. Results and data driven mindset. Key experience during periods of rapid expansion in AI, Fintech, and LED technologies. Skillset honed from diverse technical and leadership backgrounds.
+            With over 13 years of engineering experience that spans embedded systems, cloud native SaaS and PaaS applications, and cutting edge AI research, I have the technical depth to drive high impact projects. I have delivered code for life safety critical systems, and top enterprise AI platforms. AI, distributed computing and performance optimizations are some areas I have specialized in. I also hold a Masters in CS and a Bachelors in EE.
           </p>
           
           {/* Main Action Resources: 3 High-Impact Cohesive Buttons */}
