@@ -19,7 +19,7 @@ const LandingPage = () => {
         <div className="text-center flex flex-col items-center mb-16">
           <Avatar src={headshot} alt="David Gabriel" />
           <h1 className="text-4xl font-bold mt-4">David Gabriel</h1>
-          <p className="text-xl text-primary font-medium mt-1">Senior Software & Systems Architect</p>
+          <p className="text-xl text-primary font-medium mt-1">Senior Software Engineer & AI Researcher</p>
           <p className="mt-4 max-w-2xl text-base-content/70 text-sm leading-relaxed">
             AI Professional who balances the capability to drive growth with a proven record of identifying and addressing hidden risk factors. Results and data driven mindset. Key experience during periods of rapid expansion in AI, Fintech, and LED technologies. Skillset honed from diverse technical and leadership backgrounds.
           </p>
