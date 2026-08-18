@@ -1,6 +1,34 @@
-# David Gabriel: Personal Portfolio & Engineering Workspace
+# David Gabriel: Interactive Portfolio & Systems Engineering Workspace
 
-A client-side portfolio website showcasing advanced interactive full-stack and systems engineering capabilities. This workspace runs entirely in the user's browser with zero server-side or database hosting dependencies.
+This application is a 100% client-side interactive portfolio website running entirely inside the user's web browser. Because it requires zero server-side execution, database connections, or external API keys, it can be deployed with extreme simplicity to any static hosting provider (including GitHub Pages, Cloudflare Pages, Vercel, Netlify, or Amazon S3).
+
+## Purpose of the Site
+
+The purpose of this site is to serve as a high-fidelity interactive resume and engineering portfolio for David Gabriel. It provides a technical demonstration of:
+*   In-browser artificial intelligence and client-side WebAssembly inference pipelines.
+*   Advanced real-time WebGL 3D graphics rendering and mathematical layout simulations.
+*   Polished full-stack UI composition adhering to strict linting, styling, and automated testing standards.
+
+---
+
+## Two Key Features
+
+### 1. Browser-Native Conversational RAG Copilot
+An unblocked, offline-ready conversational chatbot running 100% in the browser. It compiles quantized 8-bit ONNX models (`Xenova/LaMini-Flan-T5-248M`) locally via WebAssembly, utilizing a selective RAG context retriever to answer resume-related inquiries and trigger direct page navigations or resource downloads in real-time.
+
+### 2. Standalone 3D Jigsaw Puzzle Studio
+A real-time 3D workspace rendering interactive jigsaw puzzle components. It utilizes a mathematical Cubic Bezier Curve algorithm to trace interlocking edge connections on any uploaded texture, extruding 2D shapes into 3D geometries with custom face-split material indexes in React Three Fiber.
+
+---
+
+## Technical Stack & CI Integration
+
+*   **Core Framework:** React 18 SPA (Single Page Application).
+*   **Build Tooling & Styling:** CRACO (Create React App Configuration Overrides) compiling Tailwind CSS v4 and DaisyUI 5 utility classes natively via PostCSS.
+*   **Continuous Integration (CI):** Fully configured GitHub Actions pipeline (`.github/workflows/ci.yml`) running on Node.js 24. On every push and pull request, the runner executes automated checkouts, npm dependency installations, production-ready webpack builds, and Jest unit test suites.
+*   **Quality Assurance Suite:** Equipped with two automated testing harnesses:
+    *   *Jest React UI Unit Tests:* Verifies UI components, button clicks, and DOM rendering.
+    *   *Node.js RAG Evaluation Harness:* Measures local model response accuracy, safety guardrails, conversational memory retention, and action extractions.
 
 ---
 
