@@ -197,11 +197,6 @@ export async function executeAgentPipeline(query, onStepUpdate, history = []) {
   const context = await fetchContext();
   if (!context) throw new Error("CONTEXT_LOAD_FAILED");
 
-  // Verify WebGPU support on the execution thread before attempting WebLLM
-  if (!navigator.gpu) {
-    throw new Error("WEBGPU_UNSUPPORTED");
-  }
-
   // --- STAGE 1: HYBRID RELEVANCE GATEKEEPER & CONTEXT RETRIEVAL (RAG) ---
   const q = query.toLowerCase();
 
