@@ -26,7 +26,14 @@ const MainLayout = () => {
       <aside className="w-20 hover:w-64 fixed left-0 top-0 h-screen bg-base-200 border-r-2 border-primary/40 z-50 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-2xl group">
         
         {/* Navigation Menu */}
-        <div className="p-4 flex-1">
+        <div className="p-4 flex-1 relative">
+          
+          {/* Centered expand indicator (visible only when collapsed to guide recruiters and visitors) */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-100 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none select-none text-center flex flex-col items-center gap-2">
+            <span className="text-xl font-black text-primary animate-pulse">&gt;</span>
+            <span className="text-[9px] font-black tracking-widest text-primary/60 uppercase [writing-mode:vertical-lr]">MENU</span>
+          </div>
+
           {/* Brand/Indicator when hovered */}
           <div className="flex items-center gap-2 mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 select-none">
             <span className="text-sm font-black tracking-widest text-primary uppercase">SITE MAP</span>
