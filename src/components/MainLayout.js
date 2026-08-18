@@ -45,18 +45,7 @@ const MainLayout = () => {
                 Home
               </NavLink>
             </li>
-            <li>
-              <NavLink 
-                to="/demos" 
-                className={({ isActive }) => 
-                  `px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider font-extrabold transition-all ${
-                    isActive ? 'btn-primary text-white shadow-lg' : 'hover:bg-base-100 text-base-content/80 hover:text-white'
-                  }`
-                }
-              >
-                Demos Showcase
-              </NavLink>
-            </li>
+
             <li>
               <NavLink 
                 to="/demos/jigsaw-puzzle" 
