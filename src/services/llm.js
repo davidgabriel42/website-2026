@@ -1,53 +1,26 @@
 import { pipeline, env } from "@xenova/transformers";
 
-// Force the browser to fetch model files directly from the Hugging Face CDN (huggingface.co)
-env.allowLocalModels = false;
-
-// 100% Infallible Global Fetch Interceptor
-// Intercepts all browser fetch calls at the root window level. 
-// If the destination is HuggingFace, it strips any standard and proxy authorization headers 
-// and enforces 'credentials: "omit"'. This guarantees that no local dev credentials leak,
-// completely bypassing any 401 Unauthorized cross-origin blocks!
-const originalFetch = window.fetch;
-window.fetch = async function (url, options) {
-  const urlStr = typeof url === 'string' ? url : url?.url || '';
-
-  if (urlStr.includes("huggingface.co")) {
-    const headers = options && options.headers ? { ...options.headers } : {};
-    
-    // Explicitly delete any leaked Authorization or Proxy-Authorization headers
-    delete headers["authorization"];
-    delete headers["Authorization"];
-    delete headers["proxy-authorization"];
-    delete headers["Proxy-Authorization"];
-
-    return originalFetch(url, {
-      ...options,
-      credentials: "omit", // Force public anonymous fetch
-      headers
-    });
-  }
-
-  // Pass-through all other requests (such as local dev asset fetches) untouched
-  return originalFetch(url, options);
-};
+// Configure Transformers.js to locate models strictly within our public folder assets
+env.allowLocalModels = true;
+env.localModelRegexp = /.*/; 
+env.localURL = "/models/";
 
 let generator = null;
 let cachedContext = null;
 
-// Initialize the local Transformers.js pipeline on the main thread
+// Initialize the local Transformers.js pipeline using ONLY local assets (100% offline-first!)
 async function getGenerator(onProgress) {
   if (!generator) {
-    // LaMini-Flan-T5-78M is an ultra-lightweight (150MB) seq2seq model highly optimized for structured Q&A.
-    // It downloads in under 5 seconds and compiles instantly, creating a spectacular recruiter experience.
+    onProgress("Initializing in-browser model...");
     generator = await pipeline(
       "text2text-generation",
       "Xenova/LaMini-Flan-T5-78M",
       {
+        local_files_only: true, // Forces Transformers.js to ONLY load files from public/models/
         progress_callback: (data) => {
           if (data.status === "progress") {
             const pct = Math.round(data.progress);
-            onProgress(`Downloading HuggingFace model weights... ${pct}%`);
+            onProgress(`Loading local weights... ${pct}%`);
           } else if (data.status === "ready") {
             onProgress("Compiling WebAssembly engine...");
           }
@@ -133,7 +106,7 @@ He holds 5 USPTO patents.`;
   }
   onStepUpdate({ stage: 1, status: "COMPLETED", message: "Stage 1: Passed. Category: CUSTOM_QUERY" });
 
-  // --- STAGE 2: SINGLE-STAGE HUGGINGFACE COMPLETION ---
+  // --- STAGE 2: SINGLE-STAGE LOCAL HUGGINGFACE COMPLETION ---
   onStepUpdate({ stage: 2, status: "RUNNING", message: "Stage 2: Initializing local HuggingFace pipeline..." });
 
   const replyText = await callTransformersJS(
