@@ -25,7 +25,7 @@ const MainLayout = () => {
       
       {/* 
         Slick Fixed-Position Overlay Sidebar 
-        - Collapses to a 20px (w-20) panel.
+        - Collapses to a 16px (w-16) panel on mobile, w-20 on desktop.
         - Desktop: Glides open to w-64 on hover.
         - Mobile/Touch: Toggles open/closed smoothly on direct tap of the bar.
         - Safe Interaction: Disables pointer actions on invisible menu items when collapsed.
@@ -33,7 +33,7 @@ const MainLayout = () => {
       <aside 
         onClick={() => setIsExpanded(!isExpanded)}
         className={`fixed left-0 top-0 h-screen bg-base-200 border-r-2 border-primary/40 z-50 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-2xl group cursor-pointer ${
-          isExpanded ? 'w-64' : 'w-20 hover:w-64'
+          isExpanded ? 'w-64' : 'w-16 md:w-20 hover:w-64'
         }`}
       >
         
@@ -159,8 +159,12 @@ const MainLayout = () => {
 
       </aside>
 
-      {/* Main Content Pane (Indented by 8px to never overlap the 2px left border) */}
-      <main className="flex-1 pl-8 min-h-screen overflow-y-auto bg-base-300 transition-colors duration-300">
+      {/* 
+        Symmetric Main Content Pane:
+        Perfectly clears the responsive collapsed sidebar on mobile (pl-20) and desktop (md:pl-28)
+        while adding beautiful padding-right and vertical gutters.
+      */}
+      <main className="flex-1 pl-20 md:pl-28 pr-4 md:pr-12 py-8 min-h-screen overflow-y-auto bg-base-300 transition-colors duration-300">
         <Outlet />
       </main>
 
