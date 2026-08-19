@@ -15,27 +15,42 @@ const LandingPage = () => {
     <Layout>
       <div className="flex flex-col items-center">
         
-        {/* Main Bio / Hero Section */}
-        <div className="text-center flex flex-col items-center mb-16">
-          <Avatar src={headshot} alt="David Gabriel" />
-          <h1 className="text-4xl font-bold mt-4">David Gabriel</h1>
-          <p className="text-xl text-primary font-medium mt-1">Senior Software Engineer & AI Researcher</p>
-          <p className="mt-4 max-w-2xl text-base-content/70 text-sm leading-relaxed">
-            With over 13 years of engineering experience that spans embedded systems, cloud native SaaS and PaaS applications, and cutting edge AI research, I have the technical depth to drive high impact projects. I have delivered code for life safety critical systems, and top enterprise AI platforms. AI, distributed computing and performance optimizations are some areas I have specialized in. I also hold a Masters in CS and a Bachelors in EE.
-          </p>
+        {/* Main Bio / Hero Section: Two Column Responsive Flex */}
+        <div className="flex flex-col-reverse md:flex-row items-center md:items-start gap-12 mb-16 max-w-4xl w-full">
           
-          {/* Main Action Resources: 3 High-Impact Cohesive Buttons */}
-          <div className="flex flex-wrap justify-center gap-4 mt-8">
-            <Button href="https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing">
-              View Resume
-            </Button>
-            <Button href="https://github.com/davidgabriel42">
-              GitHub Profile
-            </Button>
-            <Button href="https://www.linkedin.com/in/davidjgabriel/">
-              LinkedIn Profile
-            </Button>
+          {/* Left Column: Text & 3 Resource Buttons */}
+          <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start">
+            <h1 className="text-4xl md:text-5xl font-black text-base-content leading-tight">David Gabriel</h1>
+            <p className="text-lg md:text-xl text-primary font-bold mt-1.5 uppercase tracking-wide">
+              Senior Software Engineer & AI Researcher
+            </p>
+            <p className="mt-5 max-w-2xl text-base-content/70 text-sm md:text-base leading-relaxed">
+              With over 13 years of engineering experience that spans embedded systems, cloud native SaaS and PaaS applications, and cutting edge AI research, I have the technical depth to drive high impact projects. I have delivered code for life safety critical systems, and top enterprise AI platforms. AI, distributed computing and performance optimizations are some areas I have specialized in. I also hold a Masters in CS and a Bachelors in EE.
+            </p>
+            
+            {/* Main Action Resources: 3 High-Impact Cohesive Buttons */}
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-8 w-full">
+              <Button href="https://docs.google.com/document/d/1T4PW7TdsYxuVa48pqpJGPF_YyJ-GEJRQBvYSkvhMb6I/edit?usp=sharing">
+                View Resume
+              </Button>
+              <Button href="https://github.com/davidgabriel42">
+                GitHub Profile
+              </Button>
+              <Button href="https://www.linkedin.com/in/davidjgabriel/">
+                LinkedIn Profile
+              </Button>
+            </div>
           </div>
+
+          {/* Right Column: Larger Headshot with Framed border and scaling effects */}
+          <div className="flex-shrink-0 flex justify-center">
+            <Avatar 
+              src={headshot} 
+              alt="David Gabriel" 
+              className="w-56 h-56 md:w-72 md:h-72 shadow-2xl border-4 border-primary/20 hover:scale-[1.02] transition-transform duration-200" 
+            />
+          </div>
+
         </div>
 
         {/* Technical Design Documents Section */}
