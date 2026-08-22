@@ -2,33 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
 
-// Mock database with clearance classifications and encrypted segments
-const MOCK_DATABASE = [
-  { 
-    id: 'USER_01', 
-    name: 'John Doe', 
-    role: 'Employee (Restricted)', 
-    ssn: '987-65-4321', 
-    salary: '$85,000', 
-    balance: '$12,450.00',
-    raw_ssn: '987-65-4321',
-    raw_salary: '$85,000',
-    raw_balance: '$12,450.00'
-  },
-  { 
-    id: 'USER_02', 
-    name: 'Jane Smith', 
-    role: 'Executive (Privileged)', 
-    ssn: '123-45-6789', 
-    salary: '$210,000', 
-    balance: '$480,100.00',
-    raw_ssn: '123-45-6789',
-    raw_salary: '$210,000',
-    raw_balance: '$480,100.00'
-  }
-];
-
-// Preset Prompts specifically designed to trigger different layers of the pipeline
+// Mock list of 5 prompt scenarios to showcase security layers
 const PRESET_PROMPTS = [
   {
     id: 'benign',
@@ -66,6 +40,8 @@ const PRESET_PROMPTS = [
     desc: "Jailbreak attempt trying to bypass access boundaries."
   }
 ];
+
+
 
 const GuardrailPage = () => {
   const [prompt, setPrompt] = useState('');
@@ -151,7 +127,7 @@ const GuardrailPage = () => {
     setStageStatuses(['passed', 'running', 'idle', 'idle', 'idle']);
     addLog(`[STAGE 2] AuthZ Evaluator: Session Role [${selectedRole.toUpperCase()}] verification started.`, "info");
     setAuthzContext({ user: selectedRole.toUpperCase(), scope: selectedRole === 'executive' ? 'PRIVILEGED:READ' : selectedRole === 'employee' ? 'RESTRICTED:READ' : 'PUBLIC:READ' });
-    await sleep(600);
+    await sleep(500);
 
     const requiresJane = q.includes("jane") || q.includes("smith") || q.includes("user_02");
     const requiresJohn = q.includes("john") || q.includes("doe") || q.includes("user_01");
@@ -315,44 +291,254 @@ const GuardrailPage = () => {
 
   return (
     <Layout>
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center w-full px-2">
         
         {/* Page Title Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-black text-base-content uppercase tracking-widest">
-            Explainable Security Proxy
+            Explainable AI Security Proxy
           </h1>
           <p className="text-xs text-primary font-extrabold tracking-widest uppercase mt-1">
-            Zero-Trust Guardrails & Data Leakage Protections
+            Full-Screen Zero-Trust Visual Safeguards Pipeline
           </p>
         </div>
 
-        {/* Preset Prompt Selection Section */}
-        <div className="w-full max-w-4xl bg-base-200 p-4 border border-base-300 rounded-xl mb-6 shadow select-none">
-          <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-2">
-            Interact: Choose a prompt scenario
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {PRESET_PROMPTS.map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => handleLoadPreset(preset)}
-                disabled={isSimulating}
-                className="btn btn-outline btn-sm bg-base-100 border-base-300 text-xs font-bold text-base-content/80 hover:bg-base-300 hover:text-base-content rounded-lg"
-              >
-                {preset.label}
-              </button>
-            ))}
+        {/* 
+          1. FULL WIDTH FLOWCHART & SECRETS VAULT PANEL 
+          Occupies the dominant upper area of the page.
+          Directly integrates the Secrets Vault / Database into the SVG vector graph.
+        */}
+        <div className="w-full max-w-5xl bg-base-200 border border-base-300 p-5 rounded-xl shadow mb-6 flex flex-col gap-4 relative overflow-hidden">
+          
+          <div className="flex justify-between items-center select-none border-b border-base-300 pb-2 mb-1">
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
+              Visual Defense-in-Depth Pipeline & Secrets Vault
+            </span>
+            
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Risk:</span>
+                <span className={`badge font-black text-[10px] uppercase tracking-wider shadow ${
+                  riskScore > 80 
+                    ? 'badge-error text-white animate-pulse' 
+                    : riskScore > 10 
+                      ? 'badge-warning text-slate-800' 
+                      : 'badge-success text-white'
+                }`}>
+                  {riskScore}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">State:</span>
+                <span className="badge badge-success badge-sm font-black text-[9px] uppercase tracking-wider text-white">
+                  GATEWAY ACTIVE
+                </span>
+              </div>
+            </div>
           </div>
+
+          {/* 
+            Large-Scale Responsive SVG Vector Flowchart
+            - Full-page width (viewBox="0 0 980 240").
+            - Integrates the Secrets Database directly below Stage 2 (AuthZ).
+            - Animate-pulse signals traverse from node to node, shooting down to the DB node!
+          */}
+          <div className="w-full bg-base-300/40 rounded-xl border border-base-300 p-4 min-h-[220px] flex items-center justify-center">
+            <svg viewBox="0 0 980 240" className="w-full h-auto select-none pointer-events-none">
+              
+              {/* Stroke Connectors */}
+              <path 
+                d="M 120 60 L 170 60" 
+                stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} 
+                strokeWidth="3"
+                className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''}
+              />
+              <path 
+                d="M 270 60 L 330 60" 
+                stroke={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#475569'} 
+                strokeWidth="3"
+                className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''}
+              />
+              {/* Vertical connector path shooting down from AuthZ (Stage 2) to the Secrets Database! */}
+              <path 
+                d="M 220 100 L 220 150" 
+                stroke={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#475569'} 
+                strokeWidth="3"
+                className={stageStatuses[1] === 'running' ? 'stroke-dash' : stageStatuses[1] === 'blocked' ? 'stroke-blink' : ''}
+              />
+              <path 
+                d="M 430 60 L 490 60" 
+                stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} 
+                strokeWidth="3"
+                className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''}
+              />
+              <path 
+                d="M 590 60 L 650 60" 
+                stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
+                strokeWidth="3"
+                className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''}
+              />
+              <path 
+                d="M 750 60 L 810 60" 
+                stroke={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#475569'} 
+                strokeWidth="3"
+                className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
+              />
+
+              {/* Node 1: Middleware */}
+              <g>
+                <rect 
+                  x="20" y="20" width="100" height="80" rx="8" 
+                  fill="#1e293b" 
+                  stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} 
+                  strokeWidth="2.5"
+                  className={stageStatuses[0] === 'running' ? 'animate-pulse' : ''}
+                />
+                <text x="70" y="55" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Rate</text>
+                <text x="70" y="75" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Limit</text>
+              </g>
+
+              {/* Node 2: AuthZ Policy */}
+              <g>
+                <rect 
+                  x="170" y="20" width="100" height="80" rx="8" 
+                  fill="#1e293b" 
+                  stroke={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#475569'} 
+                  strokeWidth="2.5"
+                  className={stageStatuses[1] === 'running' ? 'animate-pulse' : stageStatuses[1] === 'blocked' ? 'stroke-blink' : ''}
+                />
+                <text x="220" y="55" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">AuthZ</text>
+                <text x="220" y="75" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Policy</text>
+              </g>
+
+              {/* Node 3: Jailbreak Guard */}
+              <g>
+                <rect 
+                  x="330" y="20" width="100" height="80" rx="8" 
+                  fill="#1e293b" 
+                  stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} 
+                  strokeWidth="2.5"
+                  className={stageStatuses[2] === 'running' ? 'animate-pulse' : stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
+                />
+                <text x="380" y="55" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Jailbreak</text>
+                <text x="380" y="75" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Guard</text>
+              </g>
+
+              {/* Node 4: PII Redactor */}
+              <g>
+                <rect 
+                  x="490" y="20" width="100" height="80" rx="8" 
+                  fill="#1e293b" 
+                  stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
+                  strokeWidth="2.5"
+                  className={stageStatuses[3] === 'running' ? 'animate-pulse' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''}
+                />
+                <text x="540" y="55" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">PII</text>
+                <text x="540" y="75" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Redactor</text>
+              </g>
+
+              {/* Node 5: Egress Audit */}
+              <g>
+                <rect 
+                  x="650" y="20" width="100" height="80" rx="8" 
+                  fill="#1e293b" 
+                  stroke={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#475569'} 
+                  strokeWidth="2.5"
+                  className={stageStatuses[4] === 'running' ? 'animate-pulse' : ''}
+                />
+                <text x="700" y="55" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Egress</text>
+                <text x="700" y="75" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Audit</text>
+              </g>
+
+              {/* Node 6: SLM RELEASE CORE */}
+              <g>
+                <rect 
+                  x="810" y="20" width="150" height="80" rx="8" 
+                  fill="#0f172a" 
+                  stroke={stageStatuses[4] === 'passed' ? '#10b981' : '#475569'} 
+                  strokeWidth="2.5"
+                />
+                <text x="885" y="55" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest">Language</text>
+                <text x="885" y="75" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest">Model (SLM)</text>
+              </g>
+
+              {/* 
+                INTEGRATED FLOWCHART NODE: Protected Database & Secrets Vault
+                Positioned vertically below Node 2 (AuthZ).
+                Flashes red with blocked banners or decrypts green in real-time inside the SVG vector frame!
+              */}
+              <g>
+                <rect 
+                  x="100" y="150" width="240" height="80" rx="8" 
+                  fill="#090d16" 
+                  stroke={authzTargetViolated ? '#ef4444' : selectedRole === 'executive' ? '#10b981' : '#475569'} 
+                  strokeWidth="2.5"
+                  className={authzTargetViolated ? 'stroke-blink' : ''}
+                />
+                <text x="220" y="170" textAnchor="middle" fill={authzTargetViolated ? '#ef4444' : selectedRole === 'executive' ? '#10b981' : '#475569'} className="text-[9px] font-black uppercase tracking-widest">Secrets Vault & Database</text>
+                
+                {/* Dynamically display data states natively inside the SVG flowchart! */}
+                {authzTargetViolated ? (
+                  <>
+                    <rect x="110" y="180" width="220" height="40" fill="#7f1d1d" rx="4" />
+                    <text x="220" y="204" textAnchor="middle" fill="#fca5a5" className="text-[9px] font-black uppercase tracking-widest">🚨 403 FORBIDDEN - AuthZ Violation</text>
+                  </>
+                ) : selectedRole === 'executive' ? (
+                  <>
+                    <text x="120" y="195" fill="#10b981" className="text-[8px] font-bold">USER_01.SSN: 987-65-4321</text>
+                    <text x="120" y="215" fill="#10b981" className="text-[8px] font-bold">USER_02.SSN: 123-45-6789</text>
+                    <rect x="235" y="190" width="90" height="25" fill="#065f46" rx="4" />
+                    <text x="280" y="206" textAnchor="middle" fill="#34d399" className="text-[8px] font-black tracking-wider">[DECRYPTED]</text>
+                  </>
+                ) : selectedRole === 'employee' ? (
+                  <>
+                    <text x="120" y="195" fill="#34d399" className="text-[8px] font-bold">USER_01.SSN: 987-65-4321</text>
+                    <text x="120" y="215" fill="#64748b" className="text-[8px] font-bold blur-[2px]">USER_02.SSN: 123-45-6789</text>
+                    <text x="240" y="210" fill="#64748b" className="text-[7px] font-black">[USER_02 LOCKED]</text>
+                  </>
+                ) : (
+                  <>
+                    <text x="120" y="195" fill="#64748b" className="text-[8px] font-bold blur-[2px]">USER_01.SSN: 987-XX-XXXX</text>
+                    <text x="120" y="215" fill="#64748b" className="text-[8px] font-bold blur-[2px]">USER_02.SSN: 123-XX-XXXX</text>
+                    <text x="240" y="210" fill="#64748b" className="text-[8px] font-black">[🔒 LOCKED]</text>
+                  </>
+                )}
+              </g>
+
+            </svg>
+          </div>
+
+          {/* Description status metrics */}
+          <div className="flex flex-col md:flex-row justify-between gap-4 text-[11px] leading-relaxed text-base-content/70 select-none border-t border-base-300 pt-3">
+            <div className="flex-1 flex justify-between md:justify-start gap-4">
+              <span className="font-extrabold uppercase">Ingress State:</span>
+              <span className="font-mono text-slate-400 font-bold">
+                {isSimulating ? `Evaluating (Stage ${currentStage}/5)` : currentStage === 5 ? "Cleared" : currentStage > 0 ? `Threat Blocked (Stage ${currentStage})` : "Idle"}
+              </span>
+            </div>
+            <div className="flex-1 flex justify-between md:justify-end gap-4">
+              <span className="font-extrabold uppercase">AuthZ Scope:</span>
+              <span className="font-mono text-slate-400 font-bold">
+                User: {authzContext.user} | Scope: {authzContext.scope}
+              </span>
+            </div>
+          </div>
+
         </div>
 
-        {/* Control and SVG pipeline grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-4xl mb-6">
+        {/* 
+          2. CONFIGURATION & PROMPT INPUT AREA
+          Positioned below the dominant flowchart.
+        */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-5xl mb-6">
           
-          {/* Column 1: Config & Query inputs (Lg: col-5) */}
+          {/* Form settings and query textarea (Lg: col-5) */}
           <form onSubmit={executePipeline} className="lg:col-span-5 flex flex-col gap-4 bg-base-200 border border-base-300 p-5 rounded-xl shadow">
-            
-            {/* User Role dropdown */}
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest block select-none border-b border-base-300 pb-1.5">
+              Configuration & Prompt Ingress
+            </span>
+
+            {/* User Role selector */}
             <div>
               <label className="label py-1 select-none">
                 <span className="label-text text-[10px] font-black text-slate-500 uppercase tracking-wider">User authentication Role:</span>
@@ -385,7 +571,7 @@ const GuardrailPage = () => {
               </select>
             </div>
 
-            {/* Text Input area */}
+            {/* Input Query field */}
             <div>
               <label className="label py-1 select-none">
                 <span className="label-text text-[10px] font-black text-slate-500 uppercase tracking-wider">Query Input String:</span>
@@ -400,305 +586,79 @@ const GuardrailPage = () => {
               />
             </div>
 
-            {/* Submit Trigger */}
+            {/* Submit button */}
             <Button
               type="submit"
               disabled={isSimulating || !prompt.trim()}
             >
               {isSimulating ? "Verifying..." : "Validate Ingress"}
             </Button>
-
           </form>
 
-          {/* Column 2: SVG Node Flowchart & Risk Meter (Lg: col-7) */}
-          <div className="lg:col-span-7 flex flex-col gap-4 bg-base-200 border border-base-300 p-5 rounded-xl shadow relative justify-between overflow-hidden">
-            
-            <div className="flex justify-between items-center select-none border-b border-base-300 pb-2">
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
-                Visual defense-in-depth pipeline
+          {/* Syslog Terminal (Lg: col-7) */}
+          <div className="lg:col-span-7 bg-black/90 border border-slate-800 rounded-xl shadow-2xl flex flex-col overflow-hidden font-mono min-h-[280px] max-h-[300px]">
+            <div className="bg-slate-900 border-b border-slate-800 px-4 py-2 flex justify-between items-center select-none">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Zero-Trust Audit Log Console
               </span>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Risk Score:</span>
-                <span className={`badge font-black text-xs uppercase tracking-wider shadow ${
-                  riskScore > 80 
-                    ? 'badge-error text-white animate-pulse' 
-                    : riskScore > 10 
-                      ? 'badge-warning text-slate-800' 
-                      : 'badge-success text-white'
-                }`}>
-                  {riskScore}%
-                </span>
-              </div>
+              <span className="badge badge-neutral text-[9px] font-bold tracking-wider select-none">SYSLOG // STREAM</span>
             </div>
 
-            {/* SVG Pipeline */}
-            <div className="flex items-center justify-center p-2 bg-base-300/40 rounded-xl border border-base-300 min-h-[140px]">
-              <svg viewBox="0 0 760 140" className="w-full h-auto max-h-[140px] select-none pointer-events-none">
-                
-                {/* Connectors */}
-                <path 
-                  d="M 120 70 L 160 70" 
-                  stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} 
-                  strokeWidth="3"
-                  className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''}
-                />
-                <path 
-                  d="M 260 70 L 300 70" 
-                  stroke={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#475569'} 
-                  strokeWidth="3"
-                  className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''}
-                />
-                <path 
-                  d="M 400 70 L 440 70" 
-                  stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} 
-                  strokeWidth="3"
-                  className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''}
-                />
-                <path 
-                  d="M 540 70 L 580 70" 
-                  stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
-                  strokeWidth="3"
-                  className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''}
-                />
-
-                {/* Node 1: Rate Limiting */}
-                <g>
-                  <rect 
-                    x="20" y="30" width="100" height="80" rx="8" 
-                    fill="#1e293b" 
-                    stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} 
-                    strokeWidth="2.5"
-                    className={stageStatuses[0] === 'running' ? 'animate-pulse' : ''}
-                  />
-                  <text x="70" y="65" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Rate</text>
-                  <text x="70" y="85" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Limit</text>
-                </g>
-
-                {/* Node 2: Auth policy */}
-                <g>
-                  <rect 
-                    x="160" y="30" width="100" height="80" rx="8" 
-                    fill="#1e293b" 
-                    stroke={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#475569'} 
-                    strokeWidth="2.5"
-                    className={stageStatuses[1] === 'running' ? 'animate-pulse' : stageStatuses[1] === 'blocked' ? 'stroke-blink' : ''}
-                  />
-                  <text x="210" y="65" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">AuthZ</text>
-                  <text x="210" y="85" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Policy</text>
-                </g>
-
-                {/* Node 3: Jailbreak Interceptor */}
-                <g>
-                  <rect 
-                    x="300" y="30" width="100" height="80" rx="8" 
-                    fill="#1e293b" 
-                    stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} 
-                    strokeWidth="2.5"
-                    className={stageStatuses[2] === 'running' ? 'animate-pulse' : stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
-                  />
-                  <text x="350" y="65" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Jailbreak</text>
-                  <text x="350" y="85" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Guard</text>
-                </g>
-
-                {/* Node 4: PII Redactor */}
-                <g>
-                  <rect 
-                    x="440" y="30" width="100" height="80" rx="8" 
-                    fill="#1e293b" 
-                    stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
-                    strokeWidth="2.5"
-                    className={stageStatuses[3] === 'running' ? 'animate-pulse' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''}
-                  />
-                  <text x="490" y="65" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">PII</text>
-                  <text x="490" y="85" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Redactor</text>
-                </g>
-
-                {/* Node 5: Egress Interceptor */}
-                <g>
-                  <rect 
-                    x="580" y="30" width="100" height="80" rx="8" 
-                    fill="#1e293b" 
-                    stroke={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#475569'} 
-                    strokeWidth="2.5"
-                    className={stageStatuses[4] === 'running' ? 'animate-pulse' : ''}
-                  />
-                  <text x="630" y="65" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Egress</text>
-                  <text x="630" y="85" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Audit</text>
-                </g>
-
-              </svg>
-            </div>
-
-            <style dangerouslySetInnerHTML={{__html: `
-              .stroke-dash {
-                stroke-dasharray: 6, 6;
-                animation: flowDash 0.8s linear infinite;
-              }
-              .stroke-blink {
-                animation: blinkStroke 0.6s ease-in-out infinite alternate;
-              }
-              @keyframes flowDash {
-                to { stroke-dashoffset: -12; }
-              }
-              @keyframes blinkStroke {
-                from { stroke: #ef4444; stroke-opacity: 0.4; }
-                to { stroke: #b91c1c; stroke-opacity: 1; }
-              }
-            `}} />
-
-            {/* Description metrics */}
-            <div className="flex flex-col gap-1.5 text-[11px] leading-relaxed text-base-content/70 select-none">
-              <div className="flex justify-between border-b border-base-300 py-1">
-                <span className="font-extrabold uppercase">Ingress State:</span>
-                <span className="font-mono text-slate-400 font-bold">
-                  {isSimulating ? `Evaluating (Stage ${currentStage}/5)` : currentStage === 5 ? "Cleared" : currentStage > 0 ? `Threat Blocked (Stage ${currentStage})` : "Idle"}
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1.5 leading-relaxed text-xs">
+              {terminalLogs.length === 0 ? (
+                <span className="text-slate-600 italic select-none">
+                  Console idle. Awaiting ingress prompt validation trigger...
                 </span>
-              </div>
-              <div className="flex justify-between border-b border-base-300 py-1">
-                <span className="font-extrabold uppercase">AuthZ Context:</span>
-                <span className="font-mono text-slate-400 font-bold">
-                  User: {authzContext.user} | Scope: {authzContext.scope}
-                </span>
-              </div>
+              ) : (
+                terminalLogs.map((log, idx) => (
+                  <div key={idx} className="flex items-start gap-2 break-all select-text">
+                    <span className="text-slate-500 font-normal select-none">[{log.time}]</span>
+                    <span className={`font-bold ${
+                      log.type === 'error' 
+                        ? 'text-rose-400 font-extrabold' 
+                        : log.type === 'warning' 
+                          ? 'text-amber-400' 
+                          : log.type === 'success' 
+                            ? 'text-emerald-400' 
+                            : 'text-slate-300'
+                    }`}>
+                      {log.message}
+                    </span>
+                  </div>
+                ))
+              )}
+              <div ref={terminalBottomRef} />
             </div>
-
           </div>
 
         </div>
 
         {/* 
-          NEW VISUAL PANEL: Protected Database & Secrets Vault
-          Positioned below the main query and pipeline columns.
-          Displays visually redacted/blurred elements for unauthorized roles, 
-          glowing green decryption badges for Executive clearance, 
-          and full row-level 403 Forbidden blockade warnings in flashing red.
+          3. SUGGESTED PILLS: Relocated below the Flowchart and Terminal
         */}
-        <div className="w-full max-w-4xl bg-base-200 border border-base-300 p-5 rounded-xl shadow mb-6 relative">
-          <div className="flex justify-between items-center select-none border-b border-base-300 pb-2 mb-4">
-            <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
-              Protected Database & Secrets Vault
-            </span>
-            <span className="badge badge-sm font-black text-[9px] uppercase tracking-wider bg-slate-900 border-slate-700 text-slate-400">
-              GATEWAY STATE: ACTIVE
-            </span>
-          </div>
-
-          <div className="overflow-x-auto relative rounded-lg border border-base-300 bg-base-100">
-            <table className="table table-sm w-full text-left font-mono">
-              <thead>
-                <tr className="bg-base-200 text-slate-400 text-[10px] font-black select-none">
-                  <th>ID</th>
-                  <th>NAME</th>
-                  <th>ROLE CLEARANCE</th>
-                  <th>SSN</th>
-                  <th>SALARY</th>
-                  <th>ACCOUNT BALANCE</th>
-                </tr>
-              </thead>
-              <tbody>
-                {MOCK_DATABASE.map((row) => {
-                  const isViolated = authzTargetViolated === row.id;
-                  const isExecutive = selectedRole === 'executive';
-                  const isEmployeeSelf = selectedRole === 'employee' && row.id === 'USER_01';
-                  const hasAccess = isExecutive || isEmployeeSelf;
-
-                  return (
-                    <tr 
-                      key={row.id} 
-                      className={`relative transition-all duration-300 ${
-                        isViolated 
-                          ? 'bg-rose-950/40 text-rose-300 border-2 border-rose-500 font-extrabold' 
-                          : 'hover:bg-base-300/30'
-                      }`}
-                    >
-                      <td>
-                        <span className="font-bold text-slate-500">{row.id}</span>
-                      </td>
-                      <td className="font-bold text-base-content">{row.name}</td>
-                      <td>
-                        <span className={`badge badge-sm uppercase text-[9px] font-black ${
-                          row.id === 'USER_02' ? 'badge-primary' : 'badge-neutral'
-                        }`}>
-                          {row.role}
-                        </span>
-                      </td>
-                      
-                      {/* SSN Column: Redacted/Locked vs Decrypted */}
-                      <td className="relative">
-                        {hasAccess ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-emerald-400 font-bold">{row.ssn}</span>
-                            <span className="badge badge-success text-[8px] px-1 font-black tracking-widest uppercase select-none text-white">
-                              DECRYPTED
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 select-none">
-                            <span className="blur-[3px] text-slate-600 font-bold">987-XX-XXXX</span>
-                            <span className="badge badge-neutral text-[8px] px-1 font-black tracking-widest uppercase select-none">
-                              🔒 LOCKED
-                            </span>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Salary Column: Redacted/Locked vs Decrypted */}
-                      <td>
-                        {hasAccess ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-emerald-400 font-bold">{row.salary}</span>
-                            <span className="badge badge-success text-[8px] px-1 font-black tracking-widest uppercase select-none text-white">
-                              KEK_OK
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 select-none">
-                            <span className="blur-[3px] text-slate-600 font-bold">$XX,XXX</span>
-                            <span className="badge badge-neutral text-[8px] px-1 font-black tracking-widest uppercase select-none">
-                              🔒 MASKED
-                            </span>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Balance Column: Redacted/Locked vs Decrypted */}
-                      <td>
-                        {hasAccess ? (
-                          <span className="text-emerald-400 font-bold">{row.balance}</span>
-                        ) : (
-                          <div className="flex items-center gap-1.5 select-none">
-                            <span className="blur-[3px] text-slate-600 font-bold">$XX,XXX.XX</span>
-                            <span className="badge badge-neutral text-[8px] px-1 font-black tracking-widest uppercase select-none">
-                              🔒 MASKED
-                            </span>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* 403 Forbidden Overlay for target violation */}
-                      {isViolated && (
-                        <div className="absolute inset-0 bg-rose-950/90 flex items-center justify-center border border-rose-500 z-10 transition-all duration-300">
-                          <span className="text-xs font-black tracking-widest uppercase animate-pulse text-rose-300">
-                            🚨 403 FORBIDDEN - AuthZ Violation: Scope [PII:READ] Denied for Role [${selectedRole.toUpperCase()}]
-                          </span>
-                        </div>
-                      )}
-
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <div className="w-full max-w-5xl bg-base-200 p-4 border border-base-300 rounded-xl mb-6 shadow select-none">
+          <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-2 select-none">
+            Choose a quick scenario to simulate:
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {PRESET_PROMPTS.map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => handleLoadPreset(preset)}
+                disabled={isSimulating}
+                className="btn btn-outline btn-sm bg-base-100 border-base-300 text-xs font-bold text-base-content/80 hover:bg-base-300 hover:text-base-content rounded-lg"
+              >
+                {preset.label}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* 
-          NEW VISUAL PANEL: AI Safeguards & Pipeline Operations
-          Displays the raw prompt vs. tokenized output sent to SLM
-          along with SLM generation interceptors (egress protection).
+          4. AI SAFEGUARDS & TOKENIZERS (Comparative view)
         */}
         {inputGuardrailTokenized && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mb-6 select-none">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mb-6 select-none">
             
             {/* Input Redaction card */}
             <div className="card bg-base-200 border border-base-300 p-5 rounded-xl shadow relative justify-between overflow-hidden">
@@ -741,39 +701,43 @@ const GuardrailPage = () => {
           </div>
         )}
 
-        {/* Console Log Panel: Streams detailed dry, step-by-step logs */}
-        <div className="w-full max-w-4xl bg-black/90 border border-slate-800 rounded-xl shadow-2xl flex flex-col overflow-hidden font-mono min-h-[220px] max-h-[250px] mb-8">
-          <div className="bg-slate-900 border-b border-slate-800 px-4 py-2 flex justify-between items-center select-none">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Zero-Trust Audit Log Console
+        {/* 
+          5. NEW COMPONENT: SYSTEM ARCHITECTURE & DATA FLOWS MAP
+          A comprehensive, monospaced design outline mapping exactly 
+          how the client browser, DNS, and GitHub CD pipelines interact.
+        */}
+        <div className="w-full max-w-5xl bg-base-200 border border-base-300 p-5 rounded-xl shadow mb-8">
+          <div className="flex justify-between items-center select-none border-b border-base-300 pb-2 mb-4">
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
+              AI Security Proxy Data-Flow Map
             </span>
-            <span className="badge badge-neutral text-[9px] font-bold tracking-wider select-none">SYSLOG // STREAM</span>
+            <span className="badge badge-sm font-black text-[9px] uppercase tracking-wider bg-slate-900 border-slate-700 text-slate-400">
+              SYSTEM ARCHITECTURE
+            </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1.5 leading-relaxed text-xs">
-            {terminalLogs.length === 0 ? (
-              <span className="text-slate-600 italic select-none">
-                Console idle. Awaiting ingress prompt validation trigger...
-              </span>
-            ) : (
-              terminalLogs.map((log, idx) => (
-                <div key={idx} className="flex items-start gap-2 break-all select-text">
-                  <span className="text-slate-500 font-normal select-none">[{log.time}]</span>
-                  <span className={`font-bold ${
-                    log.type === 'error' 
-                      ? 'text-rose-400 font-extrabold' 
-                      : log.type === 'warning' 
-                        ? 'text-amber-400' 
-                        : log.type === 'success' 
-                          ? 'text-emerald-400' 
-                          : 'text-slate-300'
-                  }`}>
-                    {log.message}
-                  </span>
-                </div>
-              ))
-            )}
-            <div ref={terminalBottomRef} />
+          <div className="font-mono text-xs leading-relaxed text-base-content/75 bg-base-100 border border-base-300 rounded-lg p-4 overflow-x-auto">
+            <span className="text-primary font-black uppercase text-[10px] tracking-widest block mb-2 select-none">
+              Authoritative Static Route Mapping:
+            </span>
+            <pre className="text-[11px] leading-relaxed select-text">{`
+[ Visitor Browser ] ──(1. Navigates CNAME)──► [ Namecheap DNS ] 
+       │                                            │
+       │ (Resolves to GitHub CDN IPs)                │ (Maps david-gabriel.com)
+       ▼                                            ▼
+[ GitHub Pages Edge Server ] ◄──(2. CD Deploys)─── [ GitHub Actions Runner ]
+       │                                            │
+       ▼ (Serves Static React SPA bundle)           │ (compiles Craco PostCSS,
+[ Client-Side runtime environment ]                 │  runs Jest unit tests)
+       │
+       ├──► [ SVG Flowchart Dashboard ] (Explains proxy gatekeepers)
+       │
+       ├──► [ Transformers.js WASM ] (Streams 240M Flan-T5 model from HF CDN)
+       │
+       └──► [ Zero-Trust Data Gateway ] ──(3. AuthZ Scope)──► [ Mock Secrets Vault ]
+                                                                     │
+                                             (Blur Redacts / Decrypts) ◄┘
+            `}</pre>
           </div>
         </div>
 
