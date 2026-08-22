@@ -41,8 +41,6 @@ const PRESET_PROMPTS = [
   }
 ];
 
-
-
 const GuardrailPage = () => {
   const [prompt, setPrompt] = useState('');
   const [selectedRole, setSelectedRole] = useState('guest'); // guest vs employee vs executive
@@ -63,12 +61,12 @@ const GuardrailPage = () => {
   const [authzTargetViolated, setAuthzTargetViolated] = useState(null); // 'USER_01' or 'USER_02'
 
   const [terminalLogs, setTerminalLogs] = useState([]);
-  const terminalBottomRef = useRef(null);
+  const terminalContainerRef = useRef(null);
 
-  // Auto-scroll terminal logs
+  // Auto-scroll terminal logs INTERNALLY inside the terminal container only (keeps browser window 100% stationary!)
   useEffect(() => {
-    if (terminalBottomRef.current) {
-      terminalBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (terminalContainerRef.current) {
+      terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
     }
   }, [terminalLogs]);
 
@@ -104,7 +102,7 @@ const GuardrailPage = () => {
     const q = prompt.toLowerCase();
     let failed = false;
 
-    // Helper sleep utility to animate visual pipeline signal traversal (200ms per stage)
+    // Helper sleep utility (slowed down to 1.0s–1.2s per stage to make visual flows highly readable!)
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     // ==============================================================================
@@ -113,12 +111,12 @@ const GuardrailPage = () => {
     setCurrentStage(1);
     setStageStatuses(['running', 'idle', 'idle', 'idle', 'idle']);
     addLog("[STAGE 1] Ingress Rate Limiter & Middleware initialized.", "info");
-    await sleep(400);
+    await sleep(1000);
 
     addLog("[STAGE 1] Ingress throughput validated: 1 request / second. SLA active.", "success");
     addLog("[STAGE 1] Header verification completed. Origin verified: browser-client.", "success");
     setStageStatuses(['passed', 'idle', 'idle', 'idle', 'idle']);
-    await sleep(200);
+    await sleep(400);
 
     // ==============================================================================
     // STAGE 2: AuthN/AuthZ Access Control Policy & Database Check
@@ -127,7 +125,7 @@ const GuardrailPage = () => {
     setStageStatuses(['passed', 'running', 'idle', 'idle', 'idle']);
     addLog(`[STAGE 2] AuthZ Evaluator: Session Role [${selectedRole.toUpperCase()}] verification started.`, "info");
     setAuthzContext({ user: selectedRole.toUpperCase(), scope: selectedRole === 'executive' ? 'PRIVILEGED:READ' : selectedRole === 'employee' ? 'RESTRICTED:READ' : 'PUBLIC:READ' });
-    await sleep(500);
+    await sleep(1200);
 
     const requiresJane = q.includes("jane") || q.includes("smith") || q.includes("user_02");
     const requiresJohn = q.includes("john") || q.includes("doe") || q.includes("user_01");
@@ -165,7 +163,7 @@ const GuardrailPage = () => {
       setIsSimulating(false);
       return;
     }
-    await sleep(200);
+    await sleep(400);
 
     // ==============================================================================
     // STAGE 3: Jailbreak & Prompt Injection Interceptor
@@ -173,7 +171,7 @@ const GuardrailPage = () => {
     setCurrentStage(3);
     setStageStatuses(['passed', 'passed', 'running', 'idle', 'idle']);
     addLog("[STAGE 3] Scanning for Jailbreaks & Prompt Injections.", "info");
-    await sleep(600);
+    await sleep(1200);
 
     const jailbreakPatterns = [
       "ignore previous instructions",
@@ -204,7 +202,7 @@ const GuardrailPage = () => {
       setIsSimulating(false);
       return;
     }
-    await sleep(200);
+    await sleep(400);
 
     // ==============================================================================
     // STAGE 4: Input Guardrail & PII Tokenizer/Sanitizer
@@ -213,7 +211,7 @@ const GuardrailPage = () => {
     setStageStatuses(['passed', 'passed', 'passed', 'running', 'idle']);
     addLog("[STAGE 4] Ingress Redactor: Scanning for Private PII.", "info");
     setInputGuardrailRaw(prompt);
-    await sleep(600);
+    await sleep(1200);
 
     const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
@@ -255,7 +253,7 @@ const GuardrailPage = () => {
       setIsSimulating(false);
       return;
     }
-    await sleep(200);
+    await sleep(400);
 
     // ==============================================================================
     // STAGE 5: SLM Generation & Egress Output Interceptor
@@ -263,7 +261,7 @@ const GuardrailPage = () => {
     setCurrentStage(5);
     setStageStatuses(['passed', 'passed', 'passed', 'passed', 'running']);
     addLog("[STAGE 5] LLM generation triggered using tokenized egress prompt.", "info");
-    await sleep(500);
+    await sleep(1000);
 
     // Mock SLM generation and Egress Redaction responses
     if (requiresJohn) {
@@ -604,7 +602,7 @@ const GuardrailPage = () => {
               <span className="badge badge-neutral text-[9px] font-bold tracking-wider select-none">SYSLOG // STREAM</span>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1.5 leading-relaxed text-xs">
+            <div ref={terminalContainerRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-1.5 leading-relaxed text-xs">
               {terminalLogs.length === 0 ? (
                 <span className="text-slate-600 italic select-none">
                   Console idle. Awaiting ingress prompt validation trigger...
@@ -627,30 +625,45 @@ const GuardrailPage = () => {
                   </div>
                 ))
               )}
-              <div ref={terminalBottomRef} />
             </div>
           </div>
 
         </div>
 
         {/* 
-          3. SUGGESTED PILLS: Relocated below the Flowchart and Terminal
+          3. SUGGESTED PILLS: Relocated below the Flowchart and Terminal, structured in a two-row left-aligned layout!
         */}
-        <div className="w-full max-w-5xl bg-base-200 p-4 border border-base-300 rounded-xl mb-6 shadow select-none">
-          <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-2 select-none">
+        <div className="w-full max-w-5xl bg-base-200 p-5 border border-base-300 rounded-xl mb-6 shadow select-none">
+          <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-3">
             Choose a quick scenario to simulate:
           </span>
-          <div className="flex flex-wrap gap-2">
-            {PRESET_PROMPTS.map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => handleLoadPreset(preset)}
-                disabled={isSimulating}
-                className="btn btn-outline btn-sm bg-base-100 border-base-300 text-xs font-bold text-base-content/80 hover:bg-base-300 hover:text-base-content rounded-lg"
-              >
-                {preset.label}
-              </button>
-            ))}
+          <div className="flex flex-col gap-2.5 w-full items-start">
+            {/* Row 1: First 2 pills (Left Aligned) */}
+            <div className="flex flex-wrap gap-2 justify-start">
+              {PRESET_PROMPTS.slice(0, 2).map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => handleLoadPreset(preset)}
+                  disabled={isSimulating}
+                  className="btn btn-outline btn-sm bg-base-100 border-base-300 text-xs font-bold text-base-content/80 hover:bg-base-300 hover:text-base-content rounded-lg"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            {/* Row 2: Remaining 3 pills (Left Aligned) */}
+            <div className="flex flex-wrap gap-2 justify-start">
+              {PRESET_PROMPTS.slice(2).map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => handleLoadPreset(preset)}
+                  disabled={isSimulating}
+                  className="btn btn-outline btn-sm bg-base-100 border-base-300 text-xs font-bold text-base-content/80 hover:bg-base-300 hover:text-base-content rounded-lg"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
