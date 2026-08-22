@@ -59,7 +59,7 @@ const LandingPage = () => {
             Website Features
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* RAG Copilot Specs Card */}
             <div className="card bg-base-100 border border-base-200 rounded-xl shadow hover:shadow-lg transition-all flex flex-col justify-between overflow-hidden">
@@ -109,6 +109,24 @@ const LandingPage = () => {
                   className="text-[10px] text-primary hover:text-primary-focus font-extrabold uppercase tracking-widest hover:underline"
                 >
                   Open Jigsaw Studio &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* Explainable Security Proxy Card */}
+            <div className="card bg-base-100 border border-base-200 rounded-xl shadow hover:shadow-lg transition-all flex flex-col justify-between overflow-hidden">
+              <div className="p-5">
+                <h3 className="text-sm font-bold text-base-content leading-tight">Explainable Security Proxy</h3>
+                <p className="text-xs text-base-content/60 mt-2 leading-relaxed">
+                  Interactive visualization of a 5-layer AI security proxy. Scans inputs for jailbreaks, prompt injections, and redacts sensitive PII format leaks in real-time.
+                </p>
+              </div>
+              <div className="p-4 bg-base-200/50 border-t border-base-200 flex flex-col gap-2.5 text-center">
+                <Link 
+                  to="/demos/guardrail"
+                  className="text-xs text-primary font-bold hover:underline uppercase tracking-wider"
+                >
+                  Open Guardrail Studio &rarr;
                 </Link>
               </div>
             </div>
