@@ -130,7 +130,7 @@ const GuardrailPage = () => {
   const [stageStatuses, setStageStatuses] = useState(['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
   const [riskScore, setRiskScore] = useState(0);
   
-  // Manual node click inspection index (1 to 8). Defaults to active pipeline stage during running.
+  // Manual node click inspection index (1 to 9). Defaults to active pipeline stage during running.
   const [inspectedNode, setInspectedNode] = useState(1);
 
   // Real-time Text Translation details
@@ -301,7 +301,7 @@ const GuardrailPage = () => {
       addLog("[12:00:02] [AGENT_CORE] Initializing local reasoning weights...", "info");
       
       setTimeout(() => {
-        if (requiresJohn || requiresJane) {
+        if (requiresJohn || requiresJane || requiresEgressLeak) {
           addLog("[12:00:02] [AGENT_CORE] Structured request identified. Formulating DB Tool Call Request...", "info");
         } else {
           addLog("[12:00:02] [AGENT_CORE] Harmless query. No external tools requested.", "success");
@@ -585,44 +585,66 @@ const GuardrailPage = () => {
           <div className="flex-1 bg-base-300/40 flex items-center justify-center p-3 relative overflow-hidden">
             <svg viewBox="0 0 1220 320" className="w-full h-auto max-h-[260px] pointer-events-auto overflow-visible mb-16">
               
+              {/* SVG marker definitions for clean arrows */}
+              <defs>
+                <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#3b82f6" />
+                </marker>
+                <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981" />
+                </marker>
+                <marker id="arrow-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ef4444" />
+                </marker>
+                <marker id="arrow-dark" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2B3548" />
+                </marker>
+              </defs>
+
               {/* 
                 ROW 1 CONNECTION LINES (Orthogonal Happy Path Y: 55 center) 
                 M (nodeA.right, 55) L (nodeB.left, 55)
               */}
               <path 
-                d="M 150 55 L 202 55" 
+                d="M 190 55 L 202 55" 
                 stroke={isSimulating && currentStage === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#2B3548'} 
                 strokeWidth={isSimulating && currentStage === 1 ? '3.5' : '2.5'} 
                 className={isSimulating && currentStage === 1 ? 'stroke-dash' : ''} 
+                marker-end={isSimulating && currentStage === 1 ? "url(#arrow-blue)" : stageStatuses[0] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               <path 
-                d="M 342 55 L 374 55" 
+                d="M 354 55 L 366 55" 
                 stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[0] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''} 
+                marker-end={stageStatuses[0] === 'running' ? "url(#arrow-blue)" : stageStatuses[0] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               <path 
-                d="M 514 55 L 546 55" 
+                d="M 518 55 L 530 55" 
                 stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[1] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''} 
+                marker-end={stageStatuses[1] === 'running' ? "url(#arrow-blue)" : stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               <path 
-                d="M 686 55 L 718 55" 
+                d="M 682 55 L 706 55" 
                 stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[2] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''} 
+                marker-end={stageStatuses[2] === 'running' ? "url(#arrow-blue)" : stageStatuses[2] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               <path 
-                d="M 858 55 L 890 55" 
+                d="M 858 55 L 878 55" 
                 stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[3] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
+                marker-end={stageStatuses[3] === 'running' ? "url(#arrow-blue)" : stageStatuses[3] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               <path 
-                d="M 1030 55 L 1062 55" 
+                d="M 1030 55 L 1050 55" 
                 stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#2B3548'} 
                 strokeWidth="2.5" 
+                marker-end={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
 
 
@@ -631,33 +653,34 @@ const GuardrailPage = () => {
                 Intent Guard (Node 3 Y: 20) bottom-center (612, 90) -> Terminate (Node 7 Y: 130) top-center (612, 130)
               */}
               <path 
-                d="M 612 90 L 612 130" 
+                d="M 612 90 L 612 120" 
                 stroke={stageStatuses[2] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
+                marker-end={stageStatuses[2] === 'blocked' ? "url(#arrow-red)" : "url(#arrow-dark)"}
               />
               
               {/* 
                 RE-ACT BIDIRECTIONAL DUAL-PATH LOOP (Node 4 to Node 5 Y: 90 to 130) 
-                Down Path: Agent Core to Tool Gateway left-half (753, 90) -> (753, 130)
+                Down Path: Agent Core to Tool Gateway right-half (823, 90) -> (823, 130)
               */}
               <path 
-                d="M 753 90 L 753 130" 
+                d="M 823 90 L 823 120" 
                 stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'running' || stageStatuses[4] === 'blocked' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[3] === 'passed' && currentStage === 5 ? 'stroke-dash' : ''}
+                marker-end={stageStatuses[3] === 'passed' && currentStage === 5 ? "url(#arrow-blue)" : "url(#arrow-dark)"}
               />
-              <text x="748" y="112" textAnchor="end" fill="#64748b" className="text-[8px] font-black select-none tracking-wider uppercase font-mono">Action: Tool Call</text>
               
-              {/* Up Path: Tool Gateway back up via Intent Guard (823, 130) -> (823, 110) -> (650, 110) -> (650, 90) */}
+              {/* Up Path: Tool Gateway back up via Intent Guard left-half (753, 130) -> (753, 110) -> (612, 110) -> (612, 90) */}
               <path 
-                d="M 823 130 L 823 110 L 650 110 L 650 90" 
+                d="M 753 130 L 753 110 L 612 110 L 612 95" 
                 stroke={stageStatuses[4] === 'passed' ? '#10b981' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
                 className={stageStatuses[4] === 'passed' ? 'stroke-dash' : ''}
+                marker-end={stageStatuses[4] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
-              <text x="736" y="106" textAnchor="middle" fill="#64748b" className="text-[8px] font-black select-none tracking-wider uppercase font-mono">Observation: Payload</text>
 
 
               {/* 
@@ -665,19 +688,21 @@ const GuardrailPage = () => {
               */}
               {/* Left Path: Tool Gateway bottom-center (788, 200) -> Relational DB top-center (700, 240) */}
               <path 
-                d="M 788 200 L 788 215 L 700 215 L 700 240" 
+                d="M 788 200 L 788 215 L 700 215 L 700 232" 
                 stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
                 className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
+                marker-end={stageStatuses[7] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : "url(#arrow-dark)"}
               />
               {/* Right Path: Tool Gateway bottom-center (788, 200) -> Vector DB top-center (872, 240) */}
               <path 
-                d="M 788 200 L 788 215 L 872 215 L 872 240" 
+                d="M 788 200 L 788 215 L 872 215 L 872 232" 
                 stroke={stageStatuses[8] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
                 className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
+                marker-end={stageStatuses[8] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : "url(#arrow-dark)"}
               />
 
 
@@ -685,10 +710,11 @@ const GuardrailPage = () => {
                 AUTHZ VIOLATION HORIZONTAL BLOCK PATH (Gateway left-center (718, 165) to Terminate right-center (682, 165)) 
               */}
               <path 
-                d="M 718 165 L 682 165" 
+                d="M 718 165 L 692 165" 
                 stroke={stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[4] === 'blocked' ? 'stroke-blink' : ''}
+                marker-end={stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : "url(#arrow-dark)"}
               />
 
 
@@ -917,7 +943,7 @@ const GuardrailPage = () => {
             </div>
 
             {/* Inspector Right Column: Live Node Transformations Payload (Stacked 2-row layout with border divider) */}
-            <div className="flex flex-col justify-center gap-1.5 w-[45%] text-right font-mono text-[10px] pl-4 border-l border-base-content/10">
+            <div className="flex flex-col justify-center gap-1.5 w-[45%] text-right font-mono text-[10px] pl-4 border-l border-slate-700/50">
               <span className="font-extrabold text-[9px] text-base-content/50 uppercase tracking-wider block text-right leading-none">Live State Transformation:</span>
               <div className="flex justify-end items-center">
                 {inspectedNode === 2 && inputGuardrailTokenized ? (
