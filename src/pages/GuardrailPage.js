@@ -41,6 +41,28 @@ const PRESET_PROMPTS = [
   }
 ];
 
+// Mock database with Row-Level Security (RLS) and clearance scopes
+const MOCK_DATABASE = [
+  { 
+    id: 'USER_01', 
+    name: 'John Doe', 
+    role: 'Restricted (ROLE_USER)', 
+    ssn: '987-65-4321', 
+    salary: '$85,000', 
+    balance: '$12,450.00',
+    default_rls: 'READ_RESTRICTED'
+  },
+  { 
+    id: 'USER_02', 
+    name: 'Jane Smith', 
+    role: 'Executive (ROLE_ADMIN)', 
+    ssn: '123-45-6789', 
+    salary: '$210,000', 
+    balance: '$480,100.00',
+    default_rls: 'READ_ALLOW'
+  }
+];
+
 const GuardrailPage = () => {
   const [prompt, setPrompt] = useState('');
   const [selectedRole, setSelectedRole] = useState('guest'); // guest vs employee vs executive
@@ -49,7 +71,9 @@ const GuardrailPage = () => {
   // Simulation Pipeline States
   const [isSimulating, setIsSimulating] = useState(false);
   const [currentStage, setCurrentStage] = useState(0); // 0 to 5
-  const [stageStatuses, setStageStatuses] = useState(['idle', 'idle', 'idle', 'idle', 'idle']);
+  
+  // Statuses for the 6 flowchart checkpoints: 'idle', 'running', 'passed', 'blocked', 'warning'
+  const [stageStatuses, setStageStatuses] = useState(['idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
   const [riskScore, setRiskScore] = useState(0);
   
   // Real-time Text Translation details
@@ -89,7 +113,7 @@ const GuardrailPage = () => {
     setIsSimulating(true);
     setCurrentStage(0);
     setRiskScore(0);
-    setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle']);
+    setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
     setTerminalLogs([]);
     
     setInputGuardrailRaw('');
@@ -102,61 +126,64 @@ const GuardrailPage = () => {
     const q = prompt.toLowerCase();
     let failed = false;
 
-    // Helper sleep utility (slowed down to 1.0s–1.2s per stage to make visual flows highly readable!)
+    // Helper sleep utility (slowed down to 1.0s–1.2s per stage to make visual state transitions fully observable!)
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     // ==============================================================================
-    // STAGE 1: Rate Limiter & Middleware
+    // STAGE 1: INGRESS_EDGE (Rate Limiting & Ingress Checks) - AST03
     // ==============================================================================
     setCurrentStage(1);
-    setStageStatuses(['running', 'idle', 'idle', 'idle', 'idle']);
-    addLog("[STAGE 1] Ingress Rate Limiter & Middleware initialized.", "info");
+    setStageStatuses(['running', 'idle', 'idle', 'idle', 'idle', 'idle']);
+    addLog("[INGRESS] Origin IP: Client. Rate limit check: INITIALIZED.", "info");
     await sleep(1000);
 
-    addLog("[STAGE 1] Ingress throughput validated: 1 request / second. SLA active.", "success");
-    addLog("[STAGE 1] Header verification completed. Origin verified: browser-client.", "success");
-    setStageStatuses(['passed', 'idle', 'idle', 'idle', 'idle']);
+    addLog("[INGRESS] Rate limit check: PASSED (1/10 req/s)", "success");
+    addLog("[INGRESS] Gateway Header check: CLEARED. Ingress route secure.", "success");
+    setStageStatuses(['passed', 'idle', 'idle', 'idle', 'idle', 'idle']);
     await sleep(400);
 
     // ==============================================================================
-    // STAGE 2: AuthN/AuthZ Access Control Policy & Database Check
+    // STAGE 2: TOKENIZER (PII & Secret Tokenization) - AST03
     // ==============================================================================
     setCurrentStage(2);
-    setStageStatuses(['passed', 'running', 'idle', 'idle', 'idle']);
-    addLog(`[STAGE 2] AuthZ Evaluator: Session Role [${selectedRole.toUpperCase()}] verification started.`, "info");
-    setAuthzContext({ user: selectedRole.toUpperCase(), scope: selectedRole === 'executive' ? 'PRIVILEGED:READ' : selectedRole === 'employee' ? 'RESTRICTED:READ' : 'PUBLIC:READ' });
+    setStageStatuses(['passed', 'running', 'idle', 'idle', 'idle', 'idle']);
+    addLog("[TOKENIZER] Ingress Scanner initialized. Checking for secrets/PII...", "info");
+    setInputGuardrailRaw(prompt);
     await sleep(1200);
 
-    const requiresJane = q.includes("jane") || q.includes("smith") || q.includes("user_02");
-    const requiresJohn = q.includes("john") || q.includes("doe") || q.includes("user_01");
+    const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
+    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
 
-    if (requiresJane && selectedRole !== 'executive') {
-      // 403 Forbidden Access Violation targeting Jane Smith
-      addLog(`[STAGE 2] AuthZ Denial: Insufficient permissions for scope [PII:READ]. Query aborted at Data Gateway.`, "error");
-      addLog(`[STAGE 2] ACCESS DENIED: Role [${selectedRole.toUpperCase()}] requested unauthorized access to Object [USER_02.SALARY].`, "error");
-      setStageStatuses(['passed', 'blocked', 'idle', 'idle', 'idle']);
-      setRiskScore(92);
-      setAuthzTargetViolated('USER_02'); // Highlights USER_02 in red with a 403 overlay!
-      failed = true;
-    } else if (requiresJohn && selectedRole === 'guest') {
-      // Guest trying to read restricted employee John Doe
-      addLog(`[STAGE 2] AuthZ Denial: Insufficient permissions for scope [PII:READ]. Query aborted at Data Gateway.`, "error");
-      addLog(`[STAGE 2] ACCESS DENIED: Role GUEST requested access to Object [USER_01.SSN].`, "error");
-      setStageStatuses(['passed', 'blocked', 'idle', 'idle', 'idle']);
-      setRiskScore(92);
-      setAuthzTargetViolated('USER_01'); // Highlights USER_01 in red with a 403 overlay!
-      failed = true;
-    } else {
-      // Access granted (either Executive accessing Jane, Employee accessing John, or benign search)
-      if (selectedRole === 'executive' && requiresJane) {
-        addLog(`[STAGE 2] AuthZ Verification: Session Role [EXECUTIVE] authorized. Scope [PRIVILEGED:READ] activated.`, "success");
-        addLog(`[STAGE 2] Data Gateway Decryption: KEK verified successfully. Decrypting Object [USER_02].`, "success");
-      } else if (selectedRole === 'employee' && requiresJohn) {
-        addLog(`[STAGE 2] AuthZ Verification: Session Role [EMPLOYEE] authorized. Scope [RESTRICTED:READ] activated.`, "success");
+    const hasSSN = ssnRegex.test(prompt);
+    const hasEmail = emailRegex.test(prompt);
+
+    let tokenizedText = prompt;
+
+    if (hasSSN || hasEmail) {
+      if (piiPolicy === 'block') {
+        addLog(`[TOKENIZER] Ingress redactor block: PII leakage policy set to "BLOCK REQUEST". Halting.`, "error");
+        setStageStatuses(['passed', 'blocked', 'idle', 'idle', 'idle', 'idle']);
+        setRiskScore(75);
+        failed = true;
       } else {
-        addLog(`[STAGE 2] AuthZ Verification: Public scope cleared. No restricted objects requested.`, "success");
+        addLog(`[TOKENIZER] Regex match identified [PII_PATTERN]. Tokenizing...`, "warning");
+        
+        if (hasSSN) {
+          tokenizedText = tokenizedText.replace(ssnRegex, "<REDACTED_PII_SSN>");
+          addLog(`[TOKENIZER] SSN detected -> Swapped with Token <TOKEN_SSN_01>`, "warning");
+        }
+        if (hasEmail) {
+          tokenizedText = tokenizedText.replace(emailRegex, "<REDACTED_PII_EMAIL>");
+          addLog(`[TOKENIZER] Email detected -> Swapped with Token <TOKEN_EMAIL_01>`, "warning");
+        }
+
+        setInputGuardrailTokenized(tokenizedText);
+        setStageStatuses(['passed', 'warning', 'idle', 'idle', 'idle', 'idle']); // Yellow for tokenized
       }
-      setStageStatuses(['passed', 'passed', 'idle', 'idle', 'idle']);
+    } else {
+      setInputGuardrailTokenized(prompt);
+      addLog("[TOKENIZER] No PII or credentials detected inside query string.", "success");
+      setStageStatuses(['passed', 'passed', 'idle', 'idle', 'idle', 'idle']);
     }
 
     if (failed) {
@@ -166,11 +193,18 @@ const GuardrailPage = () => {
     await sleep(400);
 
     // ==============================================================================
-    // STAGE 3: Jailbreak & Prompt Injection Interceptor
+    // STAGE 3: INTENT_GUARD (Jailbreak & Prompt Injection Filter) - OWASP 1st Pillar
     // ==============================================================================
     setCurrentStage(3);
-    setStageStatuses(['passed', 'passed', 'running', 'idle', 'idle']);
-    addLog("[STAGE 3] Scanning for Jailbreaks & Prompt Injections.", "info");
+    setStageStatuses([
+      stageStatuses[1], // Maintain tokenizer status (green or yellow)
+      stageStatuses[1],
+      'running',
+      'idle',
+      'idle',
+      'idle'
+    ]);
+    addLog("[GUARDRAIL:IN] Scanning input for direct/indirect prompt injection...", "info");
     await sleep(1200);
 
     const jailbreakPatterns = [
@@ -188,14 +222,14 @@ const GuardrailPage = () => {
     const isJailbreak = jailbreakPatterns.some(pat => q.includes(pat));
 
     if (isJailbreak) {
-      addLog(`[STAGE 3] THREAT DETECTED: Input matched prompt injection jailbreak signature.`, "error");
-      addLog(`[STAGE 3] Jailbreak Interception: Active blockade applied at Proxy level.`, "error");
-      setStageStatuses(['passed', 'passed', 'blocked', 'idle', 'idle']);
+      addLog(`[GUARDRAIL:IN] BLOCK: Input matched prompt injection jailbreak signature.`, "error");
+      addLog(`[GUARDRAIL:IN] Threat Vector: "ignore/overwrite rules"`, "error");
+      setStageStatuses(['passed', stageStatuses[1], 'blocked', 'idle', 'idle', 'idle']);
       setRiskScore(98);
       failed = true;
     } else {
-      addLog("[STAGE 3] Interceptor proxy scan completed. No jailbreak signatures detected.", "success");
-      setStageStatuses(['passed', 'passed', 'passed', 'idle', 'idle']);
+      addLog("[GUARDRAIL:IN] Scanning input for indirect prompt injection... NO_MATCH", "success");
+      setStageStatuses(['passed', stageStatuses[1], 'passed', 'idle', 'idle', 'idle']);
     }
 
     if (failed) {
@@ -205,48 +239,44 @@ const GuardrailPage = () => {
     await sleep(400);
 
     // ==============================================================================
-    // STAGE 4: Input Guardrail & PII Tokenizer/Sanitizer
+    // STAGE 4: AGENT_CORE & TOOL_GATEWAY (SLM Reasoning & Database RBAC) - AST03
     // ==============================================================================
     setCurrentStage(4);
-    setStageStatuses(['passed', 'passed', 'passed', 'running', 'idle']);
-    addLog("[STAGE 4] Ingress Redactor: Scanning for Private PII.", "info");
-    setInputGuardrailRaw(prompt);
+    setStageStatuses(['passed', stageStatuses[1], 'passed', 'running', 'idle', 'idle']);
+    addLog(`[AUTHZ_GATEWAY] Evaluating scope for Role: ${selectedRole.toUpperCase()}...`, "info");
+    setAuthzContext({ user: selectedRole.toUpperCase(), scope: selectedRole === 'executive' ? 'ROLE_ADMIN (PRIVILEGED:READ)' : selectedRole === 'employee' ? 'ROLE_USER (RESTRICTED:READ)' : 'GUEST (PUBLIC:READ)' });
     await sleep(1200);
 
-    const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
-    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+    const requiresJane = q.includes("jane") || q.includes("smith") || q.includes("user_02");
+    const requiresJohn = q.includes("john") || q.includes("doe") || q.includes("user_01");
 
-    const hasSSN = ssnRegex.test(prompt);
-    const hasEmail = emailRegex.test(prompt);
-
-    let tokenizedText = prompt;
-
-    if (hasSSN || hasEmail) {
-      if (piiPolicy === 'block') {
-        addLog(`[STAGE 4] Ingress Redactor Block: PII Leak policy set to "BLOCK REQUEST". Halting transaction.`, "error");
-        setStageStatuses(['passed', 'passed', 'passed', 'blocked', 'idle']);
-        setRiskScore(75);
-        failed = true;
-      } else {
-        addLog(`[STAGE 4] Ingress Redactor: Identified PII Pattern. Swapping with secure tokens.`, "warning");
-        
-        if (hasSSN) {
-          tokenizedText = tokenizedText.replace(ssnRegex, "<IDENTIFIER_SSN>");
-          addLog(`[STAGE 4] Ingress Redactor: SSN detected -> Swapped with Token <IDENTIFIER_SSN>`, "warning");
-        }
-        if (hasEmail) {
-          tokenizedText = tokenizedText.replace(emailRegex, "<IDENTIFIER_EMAIL>");
-          addLog(`[STAGE 4] Ingress Redactor: Email detected -> Swapped with Token <IDENTIFIER_EMAIL>`, "warning");
-        }
-
-        setInputGuardrailTokenized(tokenizedText);
-        setStageStatuses(['passed', 'passed', 'passed', 'passed', 'idle']);
-        setRiskScore(15); // Safe after tokenization
-      }
+    if (requiresJane && selectedRole !== 'executive') {
+      // 403 Forbidden Access Violation targeting Jane Smith
+      addLog(`[AUTHZ_GATEWAY] BLOCK: ${selectedRole.toUpperCase()} role lacks permission scope [PII:READ] on USER_02.SSN.`, "error");
+      addLog(`[AUTHZ_GATEWAY] RLS Blockade: Denied access to Object [USER_02] due to Least-Privilege policy.`, "error");
+      setStageStatuses(['passed', stageStatuses[1], 'passed', 'blocked', 'idle', 'idle']);
+      setRiskScore(92);
+      setAuthzTargetViolated('USER_02'); // Highlights USER_02 in red with a 403 overlay!
+      failed = true;
+    } else if (requiresJohn && selectedRole === 'guest') {
+      // Guest trying to read restricted employee John Doe
+      addLog(`[AUTHZ_GATEWAY] BLOCK: GUEST role lacks permission scope [PII:READ] on USER_01.SSN.`, "error");
+      addLog(`[AUTHZ_GATEWAY] Request dropped at Data Gateway.`, "error");
+      setStageStatuses(['passed', stageStatuses[1], 'passed', 'blocked', 'idle', 'idle']);
+      setRiskScore(92);
+      setAuthzTargetViolated('USER_01'); // Highlights USER_01 in red with a 403 overlay!
+      failed = true;
     } else {
-      setInputGuardrailTokenized(prompt);
-      addLog("[STAGE 4] Ingress Redactor: No sensitive PII detected. Scrubbing passed.", "success");
-      setStageStatuses(['passed', 'passed', 'passed', 'passed', 'idle']);
+      // Access granted (either Executive accessing Jane, Employee accessing John, or benign search)
+      if (selectedRole === 'executive' && requiresJane) {
+        addLog(`[AUTHZ_GATEWAY] AuthZ Verification: Session Role [EXECUTIVE] authorized. Scope [ROLE_ADMIN] verified.`, "success");
+        addLog(`[AUTHZ_GATEWAY] Data Gateway Decryption: KEK verified. Decrypting Object [USER_02] via AES-256.`, "success");
+      } else if (selectedRole === 'employee' && requiresJohn) {
+        addLog(`[AUTHZ_GATEWAY] AuthZ Verification: Session Role [EMPLOYEE] authorized. Scope [ROLE_USER] verified.`, "success");
+      } else {
+        addLog(`[AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
+      }
+      setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'idle', 'idle']);
     }
 
     if (failed) {
@@ -256,34 +286,36 @@ const GuardrailPage = () => {
     await sleep(400);
 
     // ==============================================================================
-    // STAGE 5: SLM Generation & Egress Output Interceptor
+    // STAGE 5: EGRESS_AUDITOR (Hallucination & Leakage Filter) - OWASP 2nd Pillar
     // ==============================================================================
     setCurrentStage(5);
-    setStageStatuses(['passed', 'passed', 'passed', 'passed', 'running']);
-    addLog("[STAGE 5] LLM generation triggered using tokenized egress prompt.", "info");
+    setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'running', 'idle']);
+    addLog("[GUARDRAIL:OUT] Triggering LLM reasoning generation using tokenized context...", "info");
     await sleep(1000);
 
     // Mock SLM generation and Egress Redaction responses
     if (requiresJohn) {
-      setSlmRawResponse("The social security number for USER_01 is 987-65-4321.");
-      setEgressGuardrailResponse("The requested information [<IDENTIFIER_SSN>] was redacted due to policy [RESTRICT_PII].");
-      addLog(`[STAGE 5] Egress Inspector: SLM attempted to leak raw SSN. Intercepting.`, "warning");
-      addLog(`[STAGE 5] Egress Policy Violation: Blocked SLM response output [USER_01.SSN].`, "warning");
+      setSlmRawResponse("The SSN for USER_01 is 987-65-4321.");
+      setEgressGuardrailResponse("Policy [RESTRICT_PII] prevented the disclosure of SSN for USER_01.");
+      addLog(`[GUARDRAIL:OUT] Sanitizing response payload. Egress block: SLM attempted to leak raw SSN.`, "warning");
+      addLog(`[GUARDRAIL:OUT] Egress Block: Redacting sensitive token leakage from output generation.`, "warning");
+      setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'warning', 'passed']); // Yellow alert for redacted egress
     } else if (requiresJane && selectedRole === 'executive') {
-      setSlmRawResponse("The social security number for USER_02 is 123-45-6789.");
-      setEgressGuardrailResponse("The social security number for USER_02 is [DECRYPTED_123-45-6789].");
-      addLog(`[STAGE 5] Egress Inspector: Privileged context verified. Decrypted payload released cleanly.`, "success");
+      setSlmRawResponse("The SSN for USER_02 is 123-45-6789.");
+      setEgressGuardrailResponse("The decrypted SSN for USER_02 is [123-45-6789].");
+      addLog(`[GUARDRAIL:OUT] Egress status: CLEARED (Privileged clearance confirmed).`, "success");
+      setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'passed', 'passed']);
     } else {
       setSlmRawResponse("Here is a summary of David Gabriel's 13 years of full-stack engineering experience...");
       setEgressGuardrailResponse("Here is a summary of David Gabriel's 13 years of full-stack engineering experience...");
-      addLog(`[STAGE 5] Egress Inspector: Verifying model output against Data Leakage Policy... CLEARED.`, "success");
+      addLog(`[GUARDRAIL:OUT] Sanitizing response payload. Egress status: CLEARED (No leakage).`, "success");
+      setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'passed', 'passed']);
     }
 
-    addLog("[STAGE 5] Writing finalized transaction log to Audit Ledger.", "success");
+    addLog("[AUDIT_LEDGER] Writing finalized transaction log to Audit Ledger.", "success");
     const txHash = "0x" + Math.random().toString(16).substring(2, 10).toUpperCase() + "..." + Math.random().toString(16).substring(2, 6).toUpperCase();
-    addLog(`[STAGE 5] Ledger transaction hashed successfully: ${txHash}`, "success");
+    addLog(`[AUDIT_LEDGER] Ledger transaction hashed successfully: ${txHash}`, "success");
 
-    setStageStatuses(['passed', 'passed', 'passed', 'passed', 'passed']);
     setIsSimulating(false);
   };
 
@@ -297,25 +329,22 @@ const GuardrailPage = () => {
             Explainable AI Security Proxy
           </h1>
           <p className="text-xs text-primary font-extrabold tracking-widest uppercase mt-1">
-            Full-Screen Zero-Trust Visual Safeguards Pipeline
+            Zero-Trust Guardrails & Data Leakage Protections
           </p>
         </div>
 
         {/* 
-          1. FULL WIDTH FLOWCHART & SECRETS VAULT PANEL 
-          Occupies the dominant upper area of the page.
-          Directly integrates the Secrets Vault / Database into the SVG vector graph.
+          PANEL 1: AGENTIC WORKFLOW & CONTROL PLANE (Visual SVG Flowchart) 
+          Renders the 6 safety edge checkpoints in full width.
         */}
         <div className="w-full max-w-5xl bg-base-200 border border-base-300 p-5 rounded-xl shadow mb-6 flex flex-col gap-4 relative overflow-hidden">
-          
           <div className="flex justify-between items-center select-none border-b border-base-300 pb-2 mb-1">
             <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
-              Visual Defense-in-Depth Pipeline & Secrets Vault
+              PANEL 1: AGENTIC WORKFLOW & CONTROL PLANE (Visual Node Pipeline)
             </span>
-            
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Risk:</span>
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Risk Score:</span>
                 <span className={`badge font-black text-[10px] uppercase tracking-wider shadow ${
                   riskScore > 80 
                     ? 'badge-error text-white animate-pulse' 
@@ -326,25 +355,14 @@ const GuardrailPage = () => {
                   {riskScore}%
                 </span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">State:</span>
-                <span className="badge badge-success badge-sm font-black text-[9px] uppercase tracking-wider text-white">
-                  GATEWAY ACTIVE
-                </span>
-              </div>
             </div>
           </div>
 
-          {/* 
-            Large-Scale Responsive SVG Vector Flowchart
-            - Full-page width (viewBox="0 0 980 240").
-            - Integrates the Secrets Database directly below Stage 2 (AuthZ).
-            - Animate-pulse signals traverse from node to node, shooting down to the DB node!
-          */}
-          <div className="w-full bg-base-300/40 rounded-xl border border-base-300 p-4 min-h-[220px] flex items-center justify-center">
-            <svg viewBox="0 0 980 240" className="w-full h-auto select-none pointer-events-none">
+          {/* SVG Pipeline */}
+          <div className="w-full bg-base-300/40 rounded-xl border border-base-300 p-4 min-h-[200px] flex items-center justify-center">
+            <svg viewBox="0 0 980 200" className="w-full h-auto select-none pointer-events-none">
               
-              {/* Stroke Connectors */}
+              {/* Stroke Connecting Paths */}
               <path 
                 d="M 120 60 L 170 60" 
                 stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} 
@@ -353,22 +371,22 @@ const GuardrailPage = () => {
               />
               <path 
                 d="M 270 60 L 330 60" 
-                stroke={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#475569'} 
+                stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#475569'} 
                 strokeWidth="3"
                 className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''}
-              />
-              {/* Vertical connector path shooting down from AuthZ (Stage 2) to the Secrets Database! */}
-              <path 
-                d="M 220 100 L 220 150" 
-                stroke={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#475569'} 
-                strokeWidth="3"
-                className={stageStatuses[1] === 'running' ? 'stroke-dash' : stageStatuses[1] === 'blocked' ? 'stroke-blink' : ''}
               />
               <path 
                 d="M 430 60 L 490 60" 
                 stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} 
                 strokeWidth="3"
                 className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''}
+              />
+              {/* Vertical connector path shooting down from Agent Core (Stage 4) to Tool Gateway! */}
+              <path 
+                d="M 540 100 L 540 135" 
+                stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
+                strokeWidth="3"
+                className={stageStatuses[3] === 'running' ? 'stroke-dash' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''}
               />
               <path 
                 d="M 590 60 L 650 60" 
@@ -378,12 +396,12 @@ const GuardrailPage = () => {
               />
               <path 
                 d="M 750 60 L 810 60" 
-                stroke={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#475569'} 
+                stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'warning' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#475569'} 
                 strokeWidth="3"
                 className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
               />
 
-              {/* Node 1: Middleware */}
+              {/* Node 1: INGRESS_EDGE */}
               <g>
                 <rect 
                   x="20" y="20" width="100" height="80" rx="8" 
@@ -392,24 +410,23 @@ const GuardrailPage = () => {
                   strokeWidth="2.5"
                   className={stageStatuses[0] === 'running' ? 'animate-pulse' : ''}
                 />
-                <text x="70" y="55" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Rate</text>
-                <text x="70" y="75" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Limit</text>
+                <text x="70" y="55" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[9px] font-black uppercase tracking-widest">Ingress</text>
+                <text x="70" y="75" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[9px] font-black uppercase tracking-widest">Edge</text>
               </g>
 
-              {/* Node 2: AuthZ Policy */}
+              {/* Node 2: TOKENIZER */}
               <g>
                 <rect 
                   x="170" y="20" width="100" height="80" rx="8" 
                   fill="#1e293b" 
-                  stroke={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#475569'} 
+                  stroke={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'warning' ? '#f59e0b' : '#475569'} 
                   strokeWidth="2.5"
-                  className={stageStatuses[1] === 'running' ? 'animate-pulse' : stageStatuses[1] === 'blocked' ? 'stroke-blink' : ''}
+                  className={stageStatuses[1] === 'running' ? 'animate-pulse' : ''}
                 />
-                <text x="220" y="55" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">AuthZ</text>
-                <text x="220" y="75" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Policy</text>
+                <text x="220" y="65" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[9px] font-black uppercase tracking-widest">Tokenizer</text>
               </g>
 
-              {/* Node 3: Jailbreak Guard */}
+              {/* Node 3: INTENT_GUARD */}
               <g>
                 <rect 
                   x="330" y="20" width="100" height="80" rx="8" 
@@ -418,11 +435,11 @@ const GuardrailPage = () => {
                   strokeWidth="2.5"
                   className={stageStatuses[2] === 'running' ? 'animate-pulse' : stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
                 />
-                <text x="380" y="55" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Jailbreak</text>
-                <text x="380" y="75" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Guard</text>
+                <text x="380" y="55" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[9px] font-black uppercase tracking-widest">Intent</text>
+                <text x="380" y="75" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[9px] font-black uppercase tracking-widest">Guard</text>
               </g>
 
-              {/* Node 4: PII Redactor */}
+              {/* Node 4: AGENT_CORE (SLM) */}
               <g>
                 <rect 
                   x="490" y="20" width="100" height="80" rx="8" 
@@ -431,82 +448,51 @@ const GuardrailPage = () => {
                   strokeWidth="2.5"
                   className={stageStatuses[3] === 'running' ? 'animate-pulse' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''}
                 />
-                <text x="540" y="55" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">PII</text>
-                <text x="540" y="75" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Redactor</text>
+                <text x="540" y="55" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[9px] font-black uppercase tracking-widest">Agent</text>
+                <text x="540" y="75" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[9px] font-black uppercase tracking-widest">Core</text>
               </g>
 
-              {/* Node 5: Egress Audit */}
+              {/* Node 5: TOOL_GATEWAY (Positioned below Node 4) */}
+              <g>
+                <rect 
+                  x="440" y="135" width="200" height="50" rx="6" 
+                  fill="#0b1329" 
+                  stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
+                  strokeWidth="2"
+                  className={stageStatuses[3] === 'running' ? 'animate-pulse' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''}
+                />
+                <text x="540" y="165" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#64748b'} className="text-[9px] font-black uppercase tracking-widest">Tool Gateway (Scope Auth)</text>
+              </g>
+
+              {/* Node 6: EGRESS_AUDITOR */}
               <g>
                 <rect 
                   x="650" y="20" width="100" height="80" rx="8" 
                   fill="#1e293b" 
-                  stroke={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#475569'} 
+                  stroke={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'warning' ? '#f59e0b' : '#475569'} 
                   strokeWidth="2.5"
                   className={stageStatuses[4] === 'running' ? 'animate-pulse' : ''}
                 />
-                <text x="700" y="55" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Egress</text>
-                <text x="700" y="75" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest">Audit</text>
+                <text x="700" y="55" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[9px] font-black uppercase tracking-widest">Egress</text>
+                <text x="700" y="75" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[9px] font-black uppercase tracking-widest">Auditor</text>
               </g>
 
-              {/* Node 6: SLM RELEASE CORE */}
+              {/* Output Released */}
               <g>
                 <rect 
                   x="810" y="20" width="150" height="80" rx="8" 
-                  fill="#0f172a" 
-                  stroke={stageStatuses[4] === 'passed' ? '#10b981' : '#475569'} 
-                  strokeWidth="2.5"
-                />
-                <text x="885" y="55" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest">Language</text>
-                <text x="885" y="75" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest">Model (SLM)</text>
-              </g>
-
-              {/* 
-                INTEGRATED FLOWCHART NODE: Protected Database & Secrets Vault
-                Positioned vertically below Node 2 (AuthZ).
-                Flashes red with blocked banners or decrypts green in real-time inside the SVG vector frame!
-              */}
-              <g>
-                <rect 
-                  x="100" y="150" width="240" height="80" rx="8" 
                   fill="#090d16" 
-                  stroke={authzTargetViolated ? '#ef4444' : selectedRole === 'executive' ? '#10b981' : '#475569'} 
+                  stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'warning' ? '#10b981' : '#475569'} 
                   strokeWidth="2.5"
-                  className={authzTargetViolated ? 'stroke-blink' : ''}
                 />
-                <text x="220" y="170" textAnchor="middle" fill={authzTargetViolated ? '#ef4444' : selectedRole === 'executive' ? '#10b981' : '#475569'} className="text-[9px] font-black uppercase tracking-widest">Secrets Vault & Database</text>
-                
-                {/* Dynamically display data states natively inside the SVG flowchart! */}
-                {authzTargetViolated ? (
-                  <>
-                    <rect x="110" y="180" width="220" height="40" fill="#7f1d1d" rx="4" />
-                    <text x="220" y="204" textAnchor="middle" fill="#fca5a5" className="text-[9px] font-black uppercase tracking-widest">🚨 403 FORBIDDEN - AuthZ Violation</text>
-                  </>
-                ) : selectedRole === 'executive' ? (
-                  <>
-                    <text x="120" y="195" fill="#10b981" className="text-[8px] font-bold">USER_01.SSN: 987-65-4321</text>
-                    <text x="120" y="215" fill="#10b981" className="text-[8px] font-bold">USER_02.SSN: 123-45-6789</text>
-                    <rect x="235" y="190" width="90" height="25" fill="#065f46" rx="4" />
-                    <text x="280" y="206" textAnchor="middle" fill="#34d399" className="text-[8px] font-black tracking-wider">[DECRYPTED]</text>
-                  </>
-                ) : selectedRole === 'employee' ? (
-                  <>
-                    <text x="120" y="195" fill="#34d399" className="text-[8px] font-bold">USER_01.SSN: 987-65-4321</text>
-                    <text x="120" y="215" fill="#64748b" className="text-[8px] font-bold blur-[2px]">USER_02.SSN: 123-45-6789</text>
-                    <text x="240" y="210" fill="#64748b" className="text-[7px] font-black">[USER_02 LOCKED]</text>
-                  </>
-                ) : (
-                  <>
-                    <text x="120" y="195" fill="#64748b" className="text-[8px] font-bold blur-[2px]">USER_01.SSN: 987-XX-XXXX</text>
-                    <text x="120" y="215" fill="#64748b" className="text-[8px] font-bold blur-[2px]">USER_02.SSN: 123-XX-XXXX</text>
-                    <text x="240" y="210" fill="#64748b" className="text-[8px] font-black">[🔒 LOCKED]</text>
-                  </>
-                )}
+                <text x="885" y="55" textAnchor="middle" fill={stageStatuses[4] === 'passed' || stageStatuses[4] === 'warning' ? '#10b981' : '#64748b'} className="text-[10px] font-black uppercase tracking-widest">Sanitised</text>
+                <text x="885" y="75" textAnchor="middle" fill={stageStatuses[4] === 'passed' || stageStatuses[4] === 'warning' ? '#10b981' : '#64748b'} className="text-[10px] font-black uppercase tracking-widest">Egress Output</text>
               </g>
 
             </svg>
           </div>
 
-          {/* Description status metrics */}
+          {/* Flowchart description metrics row */}
           <div className="flex flex-col md:flex-row justify-between gap-4 text-[11px] leading-relaxed text-base-content/70 select-none border-t border-base-300 pt-3">
             <div className="flex-1 flex justify-between md:justify-start gap-4">
               <span className="font-extrabold uppercase">Ingress State:</span>
@@ -525,18 +511,205 @@ const GuardrailPage = () => {
         </div>
 
         {/* 
-          2. CONFIGURATION & PROMPT INPUT AREA
-          Positioned below the dominant flowchart.
+          PANEL 2: MOCK DATABASE & SECRETS VAULT (Row-Level Security)
+          Displays database records, active RLS Status pills, and 403 Forbidden overlays in flashing red.
+        */}
+        <div className="w-full max-w-5xl bg-base-200 border border-base-300 p-5 rounded-xl shadow mb-6 relative">
+          <div className="flex justify-between items-center select-none border-b border-base-300 pb-2 mb-4">
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
+              PANEL 2: DATA VAULT & ACCESS CONTROL (Secrets & Database Inspector)
+            </span>
+            <span className="badge badge-sm font-black text-[9px] uppercase tracking-wider bg-slate-900 border-slate-700 text-slate-400">
+              GATEWAY DATABASE: CONCURRENT
+            </span>
+          </div>
+
+          <div className="overflow-x-auto relative rounded-lg border border-base-300 bg-base-100">
+            <table className="table table-sm w-full text-left font-mono">
+              <thead>
+                <tr className="bg-base-200 text-slate-400 text-[10px] font-black select-none">
+                  <th>USER_ID</th>
+                  <th>NAME</th>
+                  <th>ROLE / SCOPE</th>
+                  <th>SSN (Secret)</th>
+                  <th>SALARY</th>
+                  <th>ACCOUNT BALANCE</th>
+                  <th>RLS STATUS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {MOCK_DATABASE.map((row) => {
+                  const isViolated = authzTargetViolated === row.id;
+                  const isExecutive = selectedRole === 'executive';
+                  const isEmployeeSelf = selectedRole === 'employee' && row.id === 'USER_01';
+                  const hasAccess = isExecutive || isEmployeeSelf;
+
+                  return (
+                    <tr 
+                      key={row.id} 
+                      className={`relative transition-all duration-300 ${
+                        isViolated 
+                          ? 'bg-rose-950/40 text-rose-300 border-2 border-rose-500 font-extrabold' 
+                          : 'hover:bg-base-300/30'
+                      }`}
+                    >
+                      <td>
+                        <span className="font-bold text-slate-500">{row.id}</span>
+                      </td>
+                      <td className="font-bold text-base-content">{row.name}</td>
+                      <td>
+                        <span className="badge badge-neutral badge-sm uppercase text-[9px] font-black">
+                          {row.role}
+                        </span>
+                      </td>
+                      
+                      {/* SSN Column: Blur Redacted vs Decrypted */}
+                      <td className="relative">
+                        {hasAccess ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-emerald-400 font-bold">{row.ssn}</span>
+                            <span className="badge badge-success text-[8px] px-1 font-black tracking-widest uppercase select-none text-white">
+                              DECRYPTED
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 select-none">
+                            <span className="blur-[3px] text-slate-600 font-bold">987-XX-XXXX</span>
+                            <span className="badge badge-neutral text-[8px] px-1 font-black tracking-widest uppercase select-none">
+                              🔒 LOCKED
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Salary Column: Blur Redacted vs Decrypted */}
+                      <td>
+                        {hasAccess ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-emerald-400 font-bold">{row.salary}</span>
+                            <span className="badge badge-success text-[8px] px-1 font-black tracking-widest uppercase select-none text-white">
+                              KEK_OK
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 select-none">
+                            <span className="blur-[3px] text-slate-600 font-bold">$XX,XXX</span>
+                            <span className="badge badge-neutral text-[8px] px-1 font-black tracking-widest uppercase select-none">
+                              🔒 LOCKED
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Balance Column */}
+                      <td>
+                        {hasAccess ? (
+                          <span className="text-emerald-400 font-bold">{row.balance}</span>
+                        ) : (
+                          <div className="flex items-center gap-1.5 select-none">
+                            <span className="blur-[3px] text-slate-600 font-bold">$XX,XXX.XX</span>
+                            <span className="badge badge-neutral text-[8px] px-1 font-black tracking-widest uppercase select-none">
+                              🔒 LOCKED
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* RLS Status pill column */}
+                      <td>
+                        {isViolated ? (
+                          <span className="badge badge-error text-[9px] font-black tracking-widest uppercase text-white">
+                            403_DENIED
+                          </span>
+                        ) : hasAccess ? (
+                          <span className="badge badge-success text-[9px] font-black tracking-widest uppercase text-white">
+                            READ_ALLOW
+                          </span>
+                        ) : (
+                          <span className="badge badge-warning text-[9px] font-black tracking-widest uppercase text-slate-800">
+                            READ_RESTRICTED
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Row violation blocked overlay */}
+                      {isViolated && (
+                        <div className="absolute inset-0 bg-rose-950/90 flex items-center justify-center border border-rose-500 z-10 transition-all duration-300 select-none">
+                          <span className="text-xs font-black tracking-widest uppercase animate-pulse text-rose-300">
+                            🚨 [DENIED] Violation of Least Privilege Policy: Scope Denied for [${selectedRole.toUpperCase()}]
+                          </span>
+                        </div>
+                      )}
+
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 
+          PANEL 3: DUAL-STATE INSPECTION ENGINE (Input vs. Output Transformer)
+          Side-by-side comparative views of prompt sanitizations and egress verifications.
+        */}
+        {inputGuardrailTokenized && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mb-6 select-none">
+            
+            {/* Input Redaction card */}
+            <div className="card bg-base-200 border border-base-300 p-5 rounded-xl shadow relative justify-between overflow-hidden">
+              <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-2 border-b border-base-300 pb-1.5">
+                Ingress Guardrail (Tokenization Step)
+              </span>
+              <div className="flex flex-col gap-3 text-xs leading-normal">
+                <div className="flex flex-col gap-1">
+                  <span className="font-extrabold text-slate-500 uppercase text-[9px] tracking-wider">User Input (Raw Ingress):</span>
+                  <p className="font-mono bg-base-100 p-2.5 rounded-lg border border-base-300 font-bold">{inputGuardrailRaw}</p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="font-extrabold text-success uppercase text-[9px] tracking-wider">Scrubbed Context (To SLM):</span>
+                  <p className="font-mono bg-base-100 p-2.5 rounded-lg border border-base-300 font-bold text-emerald-400">{inputGuardrailTokenized}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Egress Validation card */}
+            <div className="card bg-base-200 border border-base-300 p-5 rounded-xl shadow relative justify-between overflow-hidden">
+              <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-2 border-b border-base-300 pb-1.5">
+                Egress Guardrail (SLM Interceptor Step)
+              </span>
+              <div className="flex flex-col gap-3 text-xs leading-normal">
+                <div className="flex flex-col gap-1">
+                  <span className="font-extrabold text-slate-500 uppercase text-[9px] tracking-wider">SLM Unfiltered Draft:</span>
+                  <p className="font-mono bg-base-100 p-2.5 rounded-lg border border-base-300 font-bold">{slmRawResponse || "Awaiting execution..."}</p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="font-extrabold text-success uppercase text-[9px] tracking-wider">Sanitised Final Egress:</span>
+                  <p className={`font-mono bg-base-100 p-2.5 rounded-lg border border-base-300 font-bold ${
+                    egressGuardrailResponse.includes("prevented the disclosure") ? 'text-amber-400 font-black' : 'text-emerald-400'
+                  }`}>
+                    {egressGuardrailResponse || "Awaiting execution..."}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* 
+          PANEL 4: CONFIGURATION & PROMPT INPUT AREA
+          Re-positioned below the flowchart.
         */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-5xl mb-6">
           
-          {/* Form settings and query textarea (Lg: col-5) */}
+          {/* Form settings (Lg: col-5) */}
           <form onSubmit={executePipeline} className="lg:col-span-5 flex flex-col gap-4 bg-base-200 border border-base-300 p-5 rounded-xl shadow">
             <span className="text-[10px] font-black text-primary uppercase tracking-widest block select-none border-b border-base-300 pb-1.5">
               Configuration & Prompt Ingress
             </span>
 
-            {/* User Role selector */}
+            {/* User Role dropdown */}
             <div>
               <label className="label py-1 select-none">
                 <span className="label-text text-[10px] font-black text-slate-500 uppercase tracking-wider">User authentication Role:</span>
@@ -631,7 +804,7 @@ const GuardrailPage = () => {
         </div>
 
         {/* 
-          3. SUGGESTED PILLS: Relocated below the Flowchart and Terminal, structured in a two-row left-aligned layout!
+          SUGGESTED PILLS: Relocated below the Flowchart and Terminal, structured in a two-row left-aligned layout!
         */}
         <div className="w-full max-w-5xl bg-base-200 p-5 border border-base-300 rounded-xl mb-6 shadow select-none">
           <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-3">
@@ -668,56 +841,7 @@ const GuardrailPage = () => {
         </div>
 
         {/* 
-          4. AI SAFEGUARDS & TOKENIZERS (Comparative view)
-        */}
-        {inputGuardrailTokenized && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mb-6 select-none">
-            
-            {/* Input Redaction card */}
-            <div className="card bg-base-200 border border-base-300 p-5 rounded-xl shadow relative justify-between overflow-hidden">
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-2 border-b border-base-300 pb-1.5">
-                Ingress Guardrail (Tokenization Step)
-              </span>
-              <div className="flex flex-col gap-3 text-xs leading-normal">
-                <div className="flex flex-col gap-1">
-                  <span className="font-extrabold text-slate-500 uppercase text-[9px] tracking-wider">Raw Ingress Prompt:</span>
-                  <p className="font-mono bg-base-100 p-2.5 rounded-lg border border-base-300 font-bold">{inputGuardrailRaw}</p>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-extrabold text-success uppercase text-[9px] tracking-wider">Tokenized Output Sent to SLM:</span>
-                  <p className="font-mono bg-base-100 p-2.5 rounded-lg border border-base-300 font-bold text-emerald-400">{inputGuardrailTokenized}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Egress Validation card */}
-            <div className="card bg-base-200 border border-base-300 p-5 rounded-xl shadow relative justify-between overflow-hidden">
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest block mb-2 border-b border-base-300 pb-1.5">
-                Egress Guardrail (SLM Interceptor Step)
-              </span>
-              <div className="flex flex-col gap-3 text-xs leading-normal">
-                <div className="flex flex-col gap-1">
-                  <span className="font-extrabold text-slate-500 uppercase text-[9px] tracking-wider">SLM Raw Response:</span>
-                  <p className="font-mono bg-base-100 p-2.5 rounded-lg border border-base-300 font-bold">{slmRawResponse || "Awaiting execution..."}</p>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-extrabold text-success uppercase text-[9px] tracking-wider">Egress Sanitised Response Released:</span>
-                  <p className={`font-mono bg-base-100 p-2.5 rounded-lg border border-base-300 font-bold ${
-                    egressGuardrailResponse.includes("redacted due to policy") ? 'text-amber-400' : 'text-emerald-400'
-                  }`}>
-                    {egressGuardrailResponse || "Awaiting execution..."}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {/* 
-          5. NEW COMPONENT: SYSTEM ARCHITECTURE & DATA FLOWS MAP
-          A comprehensive, monospaced design outline mapping exactly 
-          how the client browser, DNS, and GitHub CD pipelines interact.
+          SYSTEM ARCHITECTURE & DATA FLOWS MAP
         */}
         <div className="w-full max-w-5xl bg-base-200 border border-base-300 p-5 rounded-xl shadow mb-8">
           <div className="flex justify-between items-center select-none border-b border-base-300 pb-2 mb-4">
