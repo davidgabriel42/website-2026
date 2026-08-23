@@ -4,6 +4,7 @@ import MainLayout from './components/MainLayout';
 import LandingPage from './pages/LandingPage';
 import JigsawPuzzlePage from './pages/JigsawPuzzlePage';
 import GuardrailPage from './pages/GuardrailPage';
+import DemosPage from './pages/DemosPage';
 import CopilotWidget from './components/CopilotWidget';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/demos" element={<DemosPage />} />
           <Route path="/demos/jigsaw-puzzle" element={<JigsawPuzzlePage />} />
           <Route path="/demos/guardrail" element={<GuardrailPage />} />
         </Route>

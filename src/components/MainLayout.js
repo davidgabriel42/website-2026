@@ -81,7 +81,7 @@ const MainLayout = () => {
 
             <li>
               <NavLink 
-                to="/demos/jigsaw-puzzle" 
+                to="/demos" 
                 onClick={handleLinkClick}
                 className={({ isActive }) => 
                   `px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider font-extrabold transition-all ${
@@ -89,7 +89,7 @@ const MainLayout = () => {
                   }`
                 }
               >
-                3D Jigsaw Game
+                Software Demos
               </NavLink>
             </li>
 
