@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Layout from '../components/Layout';
 import Button from '../components/Button';
 
 // Mock list of 5 prompt scenarios to showcase security layers
@@ -389,13 +388,13 @@ const GuardrailPage = () => {
   };
 
   return (
-    <Layout>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       {/* 
         ERGONOMIC SINGLE SCREEN VIEWPORT CONTAINER
         Ensures all layout rows fit exactly on a 1080p screen with max-height 860px.
         Utilizes an expanded max-w-7xl px-4 grid to make all contents larger by default!
       */}
-      <div className="flex flex-col justify-between max-h-[860px] h-[85vh] w-full max-w-7xl mx-auto px-4 overflow-hidden select-none">
+      <div className="flex flex-col justify-between max-h-[860px] h-[85vh] w-full mx-auto overflow-hidden select-none">
         
         {/* 
           1. STICKY TOP HEADER (Row 1 - Height ~12%)
@@ -680,13 +679,13 @@ const GuardrailPage = () => {
               
               {inspectedNode === 2 && inputGuardrailTokenized ? (
                 <div className="flex flex-col gap-0.5 leading-none mt-1">
-                  <div className="flex justify-between text-[10px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">Raw Ingress:</span> <span className="font-mono truncate max-w-[140px] font-bold">{inputGuardrailRaw}</span></div>
-                  <div className="flex justify-between text-[10px] pt-0.5"><span className="text-success uppercase font-extrabold">Scrubbed:</span> <span className="font-mono truncate max-w-[140px] text-emerald-400 font-bold">{inputGuardrailTokenized}</span></div>
+                  <div className="flex justify-between text-[10px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">Raw Ingress:</span> <span className="font-mono truncate max-w-[120px] font-bold">{inputGuardrailRaw}</span></div>
+                  <div className="flex justify-between text-[10px] pt-0.5"><span className="text-success uppercase font-extrabold">Scrubbed:</span> <span className="font-mono truncate max-w-[120px] text-emerald-400 font-bold">{inputGuardrailTokenized}</span></div>
                 </div>
               ) : inspectedNode === 6 && egressGuardrailResponse ? (
                 <div className="flex flex-col gap-0.5 leading-none mt-1">
-                  <div className="flex justify-between text-[10px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">SLM Draft:</span> <span className="font-mono truncate max-w-[140px] font-bold">{slmRawResponse}</span></div>
-                  <div className="flex justify-between text-[10px] pt-0.5"><span className="text-success uppercase font-extrabold">Sanitised:</span> <span className="font-mono truncate max-w-[140px] text-emerald-400 font-bold">{egressGuardrailResponse}</span></div>
+                  <div className="flex justify-between text-[10px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">SLM Draft:</span> <span className="font-mono truncate max-w-[120px] font-bold">{slmRawResponse}</span></div>
+                  <div className="flex justify-between text-[10px] pt-0.5"><span className="text-success uppercase font-extrabold">Sanitised:</span> <span className="font-mono truncate max-w-[120px] text-emerald-400 font-bold">{egressGuardrailResponse}</span></div>
                 </div>
               ) : inspectedNode === 5 && authzContext.scope !== 'N/A' ? (
                 <div className="flex flex-col gap-0.5 mt-1 leading-tight font-mono text-[10px]">
@@ -855,7 +854,7 @@ const GuardrailPage = () => {
         </div>
 
       </div>
-    </Layout>
+    </div>
   );
 };
 
