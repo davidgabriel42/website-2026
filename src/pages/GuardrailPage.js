@@ -650,10 +650,10 @@ const GuardrailPage = () => {
 
               {/* 
                 ROW 2 VERTICAL CONNECTION PATHS (Y: 90 to 130) 
-                Intent Guard (Node 3 Y: 20) bottom-left (590, 90) -> Terminate (Node 7 Y: 130) top-left (590, 120)
+                Intent Guard (Node 3 Y: 20) bottom-left (462, 90) -> Terminate (Node 7 Y: 130) top-left (462, 120)
               */}
               <path 
-                d="M 590 90 L 590 120" 
+                d="M 462 90 L 462 120" 
                 stroke={stageStatuses[2] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
@@ -672,9 +672,9 @@ const GuardrailPage = () => {
                 marker-end={stageStatuses[3] === 'passed' && currentStage === 5 ? "url(#arrow-blue)" : "url(#arrow-dark)"}
               />
               
-              {/* Up Path: Tool Gateway back up via Intent Guard bottom-right (643, 130) -> (643, 110) -> (502, 110) -> (502, 95) */}
+              {/* Up Path: Tool Gateway back up via Intent Guard bottom-right (643, 130) -> (643, 110) -> (482, 110) -> (482, 95) */}
               <path 
-                d="M 643 130 L 643 110 L 502 110 L 502 95" 
+                d="M 643 130 L 643 110 L 482 110 L 482 95" 
                 stroke={stageStatuses[4] === 'passed' ? '#10b981' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
