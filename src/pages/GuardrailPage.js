@@ -601,6 +601,21 @@ const GuardrailPage = () => {
                 </marker>
               </defs>
 
+              {/* Spatially Enclosed ReAct Loop Bounding Box (Binds Node 3, 4, 5) */}
+              <rect 
+                x="400" 
+                y="10" 
+                width="360" 
+                height="200" 
+                rx="10" 
+                fill="none" 
+                stroke="#3b82f6" 
+                strokeWidth="1.5" 
+                strokeDasharray="4, 4" 
+                opacity="0.35"
+              />
+              <text x="410" y="24" fill="#3b82f6" opacity="0.65" className="text-[7.5px] font-black select-none tracking-widest uppercase font-mono">Continuous ReAct loop</text>
+
               {/* 
                 ROW 1 CONNECTION LINES (Orthogonal Happy Path Y: 55 center) 
                 M (nodeA.right, 55) L (nodeB.left, 55)
