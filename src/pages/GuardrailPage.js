@@ -420,11 +420,11 @@ const GuardrailPage = () => {
       <div className="flex flex-col justify-between max-h-[860px] h-[85vh] w-full mx-auto overflow-hidden select-none">
         
         {/* 
-          1. STICKY TOP HEADER (Row 1 - Height ~12%)
-          Expanded horizontal flex row. Playback controls and Validate buttons have no overflow clipping,
+          1. STICKY TOP HEADER (Row 1 - Height ~10%)
+          Expanded horizontal flex row. Playback controls have no overflow clipping,
           ensuring they are 100% visible and accessible.
         */}
-        <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-5 py-3 rounded-xl shadow gap-4 h-[12%] flex-shrink-0 overflow-hidden flex-nowrap">
+        <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-5 py-3 rounded-xl shadow gap-4 h-[10%] flex-shrink-0 overflow-hidden flex-nowrap">
           
           {/* Header Column 1: Title block (flex-shrink-0) */}
           <div className="flex-shrink-0">
@@ -516,12 +516,12 @@ const GuardrailPage = () => {
         </header>
 
         {/* 
-          2. MAIN WORKFLOW CANVAS (Row 2 - Height ~40%)
+          2. MAIN WORKFLOW CANVAS (Row 2 - Height ~48% - Tall scale section!)
           Taller, significantly enlarged 3-row connected orthogonal graph.
           Flowchart nodes expanded vertically (height 72px) and Y vertical grids expanded!
           Renders database and tool calls at the TOP separate from the happy path in the middle!
         */}
-        <section className="bg-base-200 border border-base-300 p-4 rounded-xl shadow h-[40%] flex flex-col justify-between flex-shrink-0 overflow-hidden">
+        <section className="bg-base-200 border border-base-300 p-4 rounded-xl shadow h-[48%] flex flex-col justify-between flex-shrink-0 overflow-hidden">
           <div className="flex justify-between items-center border-b border-base-300 pb-1 mb-1">
             <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
               PANEL 1: AGENTIC WORKFLOW & CONTROL PLANE (Visual Node Pipeline)
@@ -533,50 +533,50 @@ const GuardrailPage = () => {
 
           {/* Responsive inline SVG layout representing a clean 3-row connected security proxy */}
           <div className="bg-base-300/40 rounded-xl border border-base-300 flex items-center justify-center p-2 relative flex-1">
-            <svg viewBox="0 0 1220 310" className="w-full h-auto max-h-[290px] pointer-events-auto overflow-visible">
+            <svg viewBox="0 0 1220 360" className="w-full h-auto max-h-[340px] pointer-events-auto overflow-visible">
               
               {/* 
-                ROW 2 CONNECTION LINES (Orthogonal Happy Path Y: 158 center) 
-                M (nodeA.right, 158) L (nodeB.left, 158)
+                ROW 2 CONNECTION LINES (Orthogonal Happy Path Y: 180 center) 
+                M (nodeA.right, 180) L (nodeB.left, 180)
               */}
               {/* Prompt Box (Node 0) -> Ingress Edge (Node 1) */}
               <path 
-                d="M 150 158 L 202 158" 
+                d="M 150 180 L 202 180" 
                 stroke={isSimulating && currentStage === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#2B3548'} 
                 strokeWidth={isSimulating && currentStage === 1 ? '3.5' : '2.5'} 
                 className={isSimulating && currentStage === 1 ? 'stroke-dash' : ''} 
               />
               {/* Ingress Edge (Node 1) -> Tokenizer (Node 2) */}
               <path 
-                d="M 342 158 L 374 158" 
+                d="M 342 180 L 374 180" 
                 stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[0] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''} 
               />
               {/* Tokenizer (Node 2) -> Intent Guard (Node 3) */}
               <path 
-                d="M 514 158 L 546 158" 
+                d="M 514 180 L 546 180" 
                 stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[1] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''} 
               />
               {/* Intent Guard (Node 3) -> Agent Core (Node 4) */}
               <path 
-                d="M 686 158 L 718 158" 
+                d="M 686 180 L 718 180" 
                 stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[2] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''} 
               />
               {/* Agent Core (Node 4) -> Egress Auditor (Node 5) */}
               <path 
-                d="M 858 158 L 890 158" 
+                d="M 858 180 L 890 180" 
                 stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[3] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
               />
               {/* Egress Auditor (Node 5) -> Sanitised Output (Node 6) */}
               <path 
-                d="M 1030 158 L 1062 158" 
+                d="M 1030 180 L 1062 180" 
                 stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#2B3548'} 
                 strokeWidth="2.5" 
               />
@@ -584,11 +584,11 @@ const GuardrailPage = () => {
 
               {/* 
                 ROW 1 TOP-STACK TOOL CALL PATHS (Y: 56 center - Separation check!) 
-                Agent Core (Node 4 Y: 122) vertically UP to Tool Gateway (Node 5 Y: 20)
+                Agent Core (Node 4 Y: 144) vertically UP to Tool Gateway (Node 5 Y: 20)
               */}
-              {/* Agent Core top-center (788, 122) -> Tool Gateway bottom-center (788, 92) */}
+              {/* Agent Core top-center (788, 144) -> Tool Gateway bottom-center (788, 92) */}
               <path 
-                d="M 788 122 L 788 92" 
+                d="M 788 144 L 788 92" 
                 stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'running' || stageStatuses[4] === 'blocked' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[3] === 'passed' && currentStage === 5 ? 'stroke-dash' : ''}
@@ -604,11 +604,11 @@ const GuardrailPage = () => {
 
 
               {/* 
-                ROW 3 BOTTOM-STACK INGRESS VIOLATION DROP (Y: 194 to 224) 
-                Intent Guard (Node 3 Y: 122) bottom-center (616, 194) -> Terminate (Node 7 Y: 224) top-center (616, 224)
+                ROW 3 BOTTOM-STACK INGRESS VIOLATION DROP (Y: 216 to 268) 
+                Intent Guard (Node 3 Y: 144) bottom-center (616, 216) -> Terminate (Node 7 Y: 268) top-center (616, 268)
               */}
               <path 
-                d="M 616 194 L 616 224" 
+                d="M 616 216 L 616 268" 
                 stroke={stageStatuses[2] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
@@ -616,10 +616,10 @@ const GuardrailPage = () => {
 
 
               {/* 
-                VIOLATION OUTLET PATHWAY (Terminate bottom (616, 296) to Egress Auditor bottom (960, 194) via Y: 304 gutter) 
+                VIOLATION OUTLET PATHWAY (Terminate bottom (616, 340) to Egress Auditor bottom (960, 216) via Y: 350 gutter) 
               */}
               <path 
-                d="M 616 296 L 616 304 Q 616 310, 622 310 L 954 310 Q 960 310, 960 304 L 960 194" 
+                d="M 616 340 L 616 350 Q 616 356, 622 356 L 954 356 Q 960 356, 960 350 L 960 216" 
                 stroke={stageStatuses[6] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
@@ -627,10 +627,10 @@ const GuardrailPage = () => {
 
 
               {/* 
-                ROW 2 PRIMARY HAPPY PATH NODES (Y: 122 to 194, Height: 72) 
+                ROW 2 PRIMARY HAPPY PATH NODES (Y: 144 to 216, Height: 72) 
               */}
               {/* Node 0: USER PROMPT INGRESS (Multi-line embedded textarea) */}
-              <foreignObject x="10" y="122" width="140" height="72" className="overflow-visible">
+              <foreignObject x="10" y="144" width="140" height="72" className="overflow-visible">
                 <textarea
                   placeholder="Type multi-line prompt here..."
                   value={prompt}
@@ -641,7 +641,7 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 1: INGRESS EDGE */}
-              <foreignObject x="202" y="122" width="140" height="72" className="overflow-visible">
+              <foreignObject x="202" y="144" width="140" height="72" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(1)}
                   className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
@@ -658,7 +658,7 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 2: TOKENIZER */}
-              <foreignObject x="374" y="122" width="140" height="72" className="overflow-visible">
+              <foreignObject x="374" y="144" width="140" height="72" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(2)}
                   className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
@@ -677,7 +677,7 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 3: INTENT_GUARD */}
-              <foreignObject x="546" y="122" width="140" height="72" className="overflow-visible">
+              <foreignObject x="546" y="144" width="140" height="72" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(3)}
                   className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
@@ -696,7 +696,7 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 4: AGENT_CORE */}
-              <foreignObject x="718" y="122" width="140" height="72" className="overflow-visible">
+              <foreignObject x="718" y="144" width="140" height="72" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(4)}
                   className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
@@ -713,7 +713,7 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 5: EGRESS_AUDITOR */}
-              <foreignObject x="890" y="122" width="140" height="72" className="overflow-visible">
+              <foreignObject x="890" y="144" width="140" height="72" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(6)}
                   className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
@@ -732,7 +732,7 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 6: SANITIZED OUTPUT */}
-              <foreignObject x="1062" y="122" width="140" height="72" className="overflow-visible">
+              <foreignObject x="1062" y="144" width="140" height="72" className="overflow-visible">
                 <div className="w-full h-full border-2 border-slate-800 bg-[#090d16] rounded-lg p-2.5 flex flex-col justify-center select-none transition-all duration-300">
                   <span className="text-[12px] font-black uppercase tracking-wider text-emerald-400 leading-none">Sanitised</span>
                   <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Egress Output</span>
@@ -781,10 +781,10 @@ const GuardrailPage = () => {
 
 
               {/* 
-                ROW 3 SUB-NODES & TERMINATIONS (Y: 224, Height: 72) 
+                ROW 3 SUB-NODES & TERMINATIONS (Y: 268, Height: 72) 
               */}
               {/* Node 7: TERMINATE (403) */}
-              <foreignObject x="546" y="224" width="140" height="72" className="overflow-visible">
+              <foreignObject x="546" y="268" width="140" height="72" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(7)}
                   className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
@@ -804,10 +804,10 @@ const GuardrailPage = () => {
         </section>
 
         {/* 
-          3. STAGE DETAIL & PURPOSE PANEL (Row 3 - Height ~16%)
+          3. STAGE DETAIL & PURPOSE PANEL (Row 3 - Height ~14%)
           Displays the currently active node's purpose and its active state transformations!
         */}
-        <section className="bg-base-200 border border-base-300 p-3.5 rounded-xl shadow h-[16%] flex flex-col justify-between flex-shrink-0 overflow-hidden select-none">
+        <section className="bg-base-200 border border-base-300 p-3.5 rounded-xl shadow h-[14%] flex flex-col justify-between flex-shrink-0 overflow-hidden select-none">
           <span className="text-[10px] font-black text-primary uppercase tracking-widest block border-b border-base-300 pb-1 mb-1">
             PANEL 3: STAGE DETAIL & THREAT SPECIFICATION
           </span>
@@ -870,10 +870,10 @@ const GuardrailPage = () => {
         </section>
 
         {/* 
-          4. SPLIT VIEW: DATA VAULT & AUDIT LOGS (Row 4 - Height ~32%)
+          4. SPLIT VIEW: DATA VAULT & AUDIT LOGS (Row 4 - Height ~28%)
           Equal columns positioned side-by-side, each internally scrolling to prevent viewport breaking!
         */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[32%] flex-shrink-0 overflow-hidden mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[28%] flex-shrink-0 overflow-hidden mb-2">
           
           {/* Left Box: Protected Database & Row-Level Authorization */}
           <div className="bg-base-200 border border-base-300 p-4 rounded-xl shadow flex flex-col overflow-hidden">
