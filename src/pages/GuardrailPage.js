@@ -61,7 +61,7 @@ const MOCK_DATABASE = [
   }
 ];
 
-// Technical definitions for the 6 pipeline nodes for click-to-inspect modal details
+// Technical definitions for the 8 pipeline nodes for click-to-inspect details
 const NODE_SPECIFICATIONS = {
   1: {
     name: "Ingress Edge Proxy",
@@ -92,6 +92,16 @@ const NODE_SPECIFICATIONS = {
     name: "Egress Auditor",
     purpose: "Output Sanitizer: Audits finalized model completions to ensure no hallucinated secrets, unauthorized database tokens, or leaked SSNs escape back to the visitor.",
     mitigates: "Language model hallucinations, secondary data leakages, and downstream XSS elements."
+  },
+  7: {
+    name: "Inbound Data Scrubber",
+    purpose: "RAG Guard: Cleanses and parses raw database/memory records retrieved by tools, neutralizing any nested prompt injections before context insertion.",
+    mitigates: "Indirect prompt injections, database poisoning, and RAG context hijacking."
+  },
+  8: {
+    name: "Termination Handler",
+    purpose: "Short-Circuit Edge: Safely terminates execution paths when threats are flagged at Ingress/AuthZ edge points, bypassing reasoning cores.",
+    mitigates: "Model hijackings, downstream cloud-token leakages, and unnecessary compute spends."
   }
 };
 
@@ -102,13 +112,13 @@ const GuardrailPage = () => {
   // Simulation Pipeline States
   const [isSimulating, setIsSimulating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [currentStage, setCurrentStage] = useState(0); // 0 to 5
+  const [currentStage, setCurrentStage] = useState(0); // 0 to 6
   
-  // Statuses for the 6 flowchart checkpoints: 'idle', 'running', 'passed', 'blocked', 'warning'
-  const [stageStatuses, setStageStatuses] = useState(['idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
+  // Statuses for the 8 flowchart checkpoints: 'idle', 'running', 'passed', 'blocked', 'warning'
+  const [stageStatuses, setStageStatuses] = useState(['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
   const [riskScore, setRiskScore] = useState(0);
   
-  // Manual node click inspection index (1 to 6). Defaults to active pipeline stage during running.
+  // Manual node click inspection index (1 to 8). Defaults to active pipeline stage during running.
   const [inspectedNode, setInspectedNode] = useState(1);
 
   // Real-time Text Translation details
@@ -146,7 +156,7 @@ const GuardrailPage = () => {
     setPrompt(preset.text);
     setSelectedRole(preset.role);
     setRiskScore(0);
-    setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
+    setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
     setAuthzTargetViolated(null);
     setCurrentStage(0);
     addLog(`Loaded preset: "${preset.label}"`, 'info');
@@ -157,7 +167,7 @@ const GuardrailPage = () => {
     if (!isSimulating || isPaused) return;
 
     const timer = setTimeout(() => {
-      if (currentStage < 5) {
+      if (currentStage < 6) {
         const nextStep = currentStage + 1;
         setCurrentStage(nextStep);
         runPipelineStep(nextStep, false);
@@ -178,7 +188,7 @@ const GuardrailPage = () => {
   const runPipelineStep = (step, isNewStart = false) => {
     let currentStatuses = [...stageStatuses];
     if (isNewStart) {
-      currentStatuses = ['idle', 'idle', 'idle', 'idle', 'idle', 'idle'];
+      currentStatuses = ['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle'];
       setTerminalLogs([]);
       setInputGuardrailRaw(prompt);
       setInputGuardrailTokenized('');
@@ -200,38 +210,37 @@ const GuardrailPage = () => {
     if (step === 1) {
       currentStatuses[0] = 'running';
       setStageStatuses(currentStatuses);
-      addLog("[INGRESS] Origin IP: Client. Rate limit check: INITIALIZED.", "info");
+      addLog("[12:00:01] [INGRESS] Origin IP: Client. Rate limit check: INITIALIZED.", "info");
       
-      // Let's passed Ingress Edge immediately
       setTimeout(() => {
         currentStatuses[0] = 'passed';
         setStageStatuses([...currentStatuses]);
-        addLog("[INGRESS] Rate limit check: PASSED (1/10 req/s)", "success");
-        addLog("[INGRESS] Gateway Header check: CLEARED. Ingress route secure.", "success");
+        addLog("[12:00:01] [INGRESS] Rate limit check: PASSED (1/10 req/s)", "success");
+        addLog("[12:00:01] [INGRESS] Gateway Header check: CLEARED. Ingress route secure.", "success");
       }, 300);
     } 
     else if (step === 2) {
       currentStatuses[1] = 'running';
       setStageStatuses(currentStatuses);
-      addLog("[TOKENIZER] Ingress Scanner initialized. Checking for secrets/PII...", "info");
+      addLog("[12:00:01] [TOKENIZER] Ingress Scanner initialized. Checking for secrets/PII...", "info");
 
       setTimeout(() => {
         let tokenizedText = prompt;
         if (hasSSN || hasEmail) {
-          addLog(`[TOKENIZER] Regex match identified [PII_PATTERN]. Tokenizing...`, "warning");
+          addLog(`[12:00:02] [TOKENIZER] Regex match identified [PII_PATTERN]. Tokenizing...`, "warning");
           if (hasSSN) {
             tokenizedText = tokenizedText.replace(ssnRegex, "<REDACTED_PII_SSN>");
-            addLog(`[TOKENIZER] SSN detected -> Swapped with Token <TOKEN_SSN_01>`, "warning");
+            addLog(`[12:00:02] [TOKENIZER] Regex match identified [SSN_PATTERN]. Tokenized -> <TOKEN_SSN_01>`, "warning");
           }
           if (hasEmail) {
             tokenizedText = tokenizedText.replace(emailRegex, "<REDACTED_PII_EMAIL>");
-            addLog(`[TOKENIZER] Email detected -> Swapped with Token <TOKEN_EMAIL_01>`, "warning");
+            addLog(`[12:00:02] [TOKENIZER] Regex match identified [EMAIL_PATTERN]. Tokenized -> <TOKEN_EMAIL_01>`, "warning");
           }
           setInputGuardrailTokenized(tokenizedText);
           currentStatuses[1] = 'warning';
         } else {
           setInputGuardrailTokenized(prompt);
-          addLog("[TOKENIZER] No PII or credentials detected inside query string.", "success");
+          addLog("[12:00:01] [TOKENIZER] No PII or credentials detected inside query string.", "success");
           currentStatuses[1] = 'passed';
         }
         setStageStatuses([...currentStatuses]);
@@ -240,7 +249,7 @@ const GuardrailPage = () => {
     else if (step === 3) {
       currentStatuses[2] = 'running';
       setStageStatuses(currentStatuses);
-      addLog("[GUARDRAIL:IN] Scanning input for direct/indirect prompt injection...", "info");
+      addLog("[12:00:01] [GUARDRAIL:IN] Scanning input for direct/indirect prompt injection...", "info");
 
       setTimeout(() => {
         const jailbreakPatterns = [
@@ -257,75 +266,100 @@ const GuardrailPage = () => {
         const isJailbreak = jailbreakPatterns.some(pat => q.includes(pat));
 
         if (isJailbreak) {
-          addLog(`[GUARDRAIL:IN] [ALERT] Prompt Injection Blocked. Threat signature matched.`, "error");
-          addLog(`[GUARDRAIL:IN] Threat Vector: 'ignore/overwrite rules'`, "error");
+          addLog(`[12:00:03] [GUARDRAIL:IN] [ALERT] Prompt Injection Blocked. Threat signature matched.`, "error");
+          addLog(`[12:00:03] [GUARDRAIL:IN] Threat Vector: 'ignore/overwrite rules'`, "error");
+          addLog("[12:00:03] [SHORT-CIRCUIT] Terminating flow immediately. Bypassing Agent reasoning core.", "error");
           currentStatuses[2] = 'blocked';
+          currentStatuses[7] = 'blocked'; // TERMINATE Node triggers!
           setStageStatuses([...currentStatuses]);
           setRiskScore(98);
           setIsSimulating(false); // Stop simulation immediately
         } else {
-          addLog("[GUARDRAIL:IN] Scanning input for indirect prompt injection... NO_MATCH", "success");
+          addLog("[12:00:01] [GUARDRAIL:IN] Scanning input for indirect prompt injection... NO_MATCH", "success");
           currentStatuses[2] = 'passed';
           setStageStatuses([...currentStatuses]);
         }
       }, 300);
     } 
     else if (step === 4) {
+      // Stage 4: Agent Core (SLM reasoning)
       currentStatuses[3] = 'running';
       setStageStatuses(currentStatuses);
-      addLog(`[AUTHZ_GATEWAY] Evaluating scope for Role: ${selectedRole.toUpperCase()}...`, "info");
+      addLog("[12:00:02] [AGENT_CORE] Initializing local reasoning weights...", "info");
+      
+      setTimeout(() => {
+        if (requiresJohn || requiresJane) {
+          addLog("[12:00:02] [AGENT_CORE] Structured request identified. Formulating DB Tool Call Request...", "info");
+        } else {
+          addLog("[12:00:02] [AGENT_CORE] Harmless query. No external tools requested.", "success");
+        }
+        currentStatuses[3] = 'passed';
+        setStageStatuses([...currentStatuses]);
+      }, 300);
+    }
+    else if (step === 5) {
+      // Stage 5: Tool Gateway & AuthZ Check (And Inbound Scrubber)
+      currentStatuses[4] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog(`[12:00:02] [AUTHZ_GATEWAY] Evaluating scope for Role: ${selectedRole.toUpperCase()}...`, "info");
       setAuthzContext({ user: selectedRole.toUpperCase(), scope: selectedRole === 'executive' ? 'ROLE_ADMIN (PRIVILEGED:READ)' : selectedRole === 'employee' ? 'ROLE_USER (RESTRICTED:READ)' : 'GUEST (PUBLIC:READ)' });
 
       setTimeout(() => {
         if (requiresJane && selectedRole !== 'executive') {
-          addLog(`[AUTHZ_GATEWAY] BLOCK: Guest/User role lacks permission scope [PII:READ] on USER_02.SSN.`, "error");
-          addLog(`[AUTHZ_GATEWAY] RLS Blockade: Denied access to Object [USER_02] due to Least-Privilege policy.`, "error");
-          currentStatuses[3] = 'blocked';
+          addLog(`[12:00:03] [AUTHZ_GATEWAY] BLOCK: Guest/User role lacks permission scope [PII:READ] on USER_02.SSN.`, "error");
+          addLog(`[12:00:03] [AUTHZ_GATEWAY] RLS Blockade: Denied access to Object [USER_02] due to Least-Privilege policy.`, "error");
+          currentStatuses[4] = 'blocked';
+          currentStatuses[7] = 'blocked'; // TERMINATE Node triggers!
           setAuthzTargetViolated('USER_02');
           setRiskScore(92);
+          setStageStatuses([...currentStatuses]);
           setIsSimulating(false); // Stop simulation immediately
         } else if (requiresJohn && selectedRole === 'guest') {
-          addLog(`[AUTHZ_GATEWAY] BLOCK: Guest role lacks permission scope [PII:READ]. Request dropped.`, "error");
-          currentStatuses[3] = 'blocked';
+          addLog(`[12:00:03] [AUTHZ_GATEWAY] BLOCK: Guest role lacks permission scope [PII:READ]. Request dropped.`, "error");
+          currentStatuses[4] = 'blocked';
+          currentStatuses[7] = 'blocked'; // TERMINATE Node triggers!
           setAuthzTargetViolated('USER_01');
           setRiskScore(92);
+          setStageStatuses([...currentStatuses]);
           setIsSimulating(false); // Stop simulation immediately
         } else {
           if (selectedRole === 'executive' && requiresJane) {
-            addLog(`[AUTHZ_GATEWAY] Scope validated: EXECUTIVE authorized for [ROLE_ADMIN].`, "success");
-            addLog(`[AUTHZ_GATEWAY] KEK Verified. Decrypting Object [USER_02] via AES-256.`, "success");
+            addLog(`[12:00:02] [AUTHZ_GATEWAY] Scope validated: EXECUTIVE authorized for [ROLE_ADMIN].`, "success");
+            addLog("[12:00:02] [INBOUND_SCRUBBER] Cleansing fetched DB record context... NO_INJECTIONS_FOUND", "success");
           } else if (selectedRole === 'employee' && requiresJohn) {
-            addLog(`[AUTHZ_GATEWAY] Scope validated: EMPLOYEE authorized for [ROLE_USER].`, "success");
+            addLog(`[12:00:02] [AUTHZ_GATEWAY] Scope validated: EMPLOYEE authorized for [ROLE_USER].`, "success");
+            addLog("[12:00:02] [INBOUND_SCRUBBER] Cleansing fetched DB record context... NO_INJECTIONS_FOUND", "success");
           } else {
-            addLog(`[AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
+            addLog(`[12:00:02] [AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
           }
-          currentStatuses[3] = 'passed';
+          currentStatuses[4] = 'passed';
+          currentStatuses[6] = 'passed'; // Inbound scrubber turns green!
+          setStageStatuses([...currentStatuses]);
         }
-        setStageStatuses([...currentStatuses]);
       }, 300);
     } 
-    else if (step === 5) {
-      currentStatuses[4] = 'running';
+    else if (step === 6) {
+      // Stage 6: Egress Auditor final token validations
+      currentStatuses[5] = 'running';
       setStageStatuses(currentStatuses);
-      addLog("[GUARDRAIL:OUT] Sanitizing response payload...", "info");
+      addLog("[12:00:03] [GUARDRAIL:OUT] Sanitizing response payload...", "info");
 
       setTimeout(() => {
         if (requiresJohn) {
           setSlmRawResponse("The SSN for USER_01 is 987-65-4321.");
           setEgressGuardrailResponse("Policy [RESTRICT_PII] prevented the disclosure of SSN for USER_01.");
-          addLog(`[GUARDRAIL:OUT] Sanitizing response payload. Egress block: SLM attempted to leak raw SSN.`, "warning");
-          addLog(`[GUARDRAIL:OUT] Egress Block: Redacting sensitive token leakage from output generation.`, "warning");
-          currentStatuses[4] = 'warning';
+          addLog(`[12:00:03] [GUARDRAIL:OUT] Sanitizing response payload. Egress block: SLM attempted to leak raw SSN.`, "warning");
+          currentStatuses[5] = 'warning';
         } else if (requiresJane && selectedRole === 'executive') {
           setSlmRawResponse("The SSN for USER_02 is 123-45-6789.");
           setEgressGuardrailResponse("The decrypted SSN for USER_02 is [123-45-6789].");
-          addLog(`[GUARDRAIL:OUT] Egress status: CLEARED (Privileged clearance confirmed).`, "success");
-          currentStatuses[4] = 'passed';
+          addLog(`[12:00:03] [GUARDRAIL:OUT] Egress status: CLEARED (Privileged clearance confirmed).`, "success");
+          currentStatuses[5] = 'passed';
         } else {
           setSlmRawResponse("Here is a summary of David Gabriel's 13 years of engineering experience...");
           setEgressGuardrailResponse("Here is a summary of David Gabriel's 13 years of engineering experience...");
-          addLog(`[GUARDRAIL:OUT] Egress status: CLEARED (F)`, "success");
-          currentStatuses[4] = 'passed';
+          addLog(`[12:00:03] [GUARDRAIL:OUT] Egress status: CLEARED (F)`, "success");
+          currentStatuses[5] = 'passed';
         }
         setStageStatuses([...currentStatuses]);
       }, 300);
@@ -362,7 +396,7 @@ const GuardrailPage = () => {
       runPipelineStep(1, true);
       addLog("[PLAYBACK] Manual step-debug initialized. Traversed -> Ingress Edge Node.", "info");
     } else {
-      if (currentStage < 5) {
+      if (currentStage < 6) {
         const nextStep = currentStage + 1;
         setCurrentStage(nextStep);
         runPipelineStep(nextStep, false);
@@ -387,7 +421,7 @@ const GuardrailPage = () => {
         
         {/* 
           1. STICKY TOP HEADER (Row 1 - Height ~12%)
-          Expanded horizontal flex row. Playback controls have no overflow clipping,
+          Expanded horizontal flex row. Playback controls and Validate buttons have no overflow clipping,
           ensuring they are 100% visible and accessible.
         */}
         <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-5 py-3 rounded-xl shadow gap-4 h-[12%] flex-shrink-0 overflow-hidden flex-nowrap">
@@ -435,7 +469,7 @@ const GuardrailPage = () => {
             </div>
           </div>
 
-          {/* Header Column 3: Standard Playback controls */}
+          {/* Header Column 3: Run Validation & Standard Playback controls */}
           <div className="flex-shrink-0 flex items-center gap-3 flex-row flex-nowrap justify-end">
             
             {/* Standard Playback Controller Button Group (DaisyUI styled) */}
@@ -485,6 +519,7 @@ const GuardrailPage = () => {
           2. MAIN WORKFLOW CANVAS (Row 2 - Height ~40%)
           Taller, significantly enlarged dual-row connected security nodes.
           Flowchart nodes expanded vertically (height 75px) and connected with robust paths.
+          Visualises the loop and branching Snaking Flow.
         */}
         <section className="bg-base-200 border border-base-300 p-4 rounded-xl shadow h-[40%] flex flex-col justify-between flex-shrink-0 overflow-hidden">
           <div className="flex justify-between items-center border-b border-base-300 pb-1 mb-1">
@@ -498,136 +533,187 @@ const GuardrailPage = () => {
 
           {/* Responsive inline SVG layout representing a 2-row connected security proxy */}
           <div className="bg-base-300/40 rounded-xl border border-base-300 flex items-center justify-center p-2 relative flex-1">
-            <svg viewBox="0 0 760 210" className="w-full h-auto max-h-[200px] pointer-events-auto">
+            <svg viewBox="0 0 980 230" className="w-full h-auto max-h-[210px] pointer-events-auto">
               
               {/* 
                 ROW 1 CONNECTION LINES (Y: 52.5) 
               */}
               {/* Prompt Box (Node 0) -> Ingress Edge (Node 1) */}
               <path 
-                d="M 180 52.5 L 220 52.5" 
+                d="M 170 50 L 210 50" 
                 stroke={isSimulating && currentStage === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#475569'} 
                 strokeWidth="3.5" 
                 className={isSimulating && currentStage === 1 ? 'stroke-dash' : ''} 
               />
               {/* Ingress Edge (Node 1) -> Tokenizer (Node 2) */}
               <path 
-                d="M 350 52.5 L 390 52.5" 
+                d="M 330 50 L 370 50" 
                 stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''} 
               />
               {/* Tokenizer (Node 2) -> Intent Guard (Node 3) */}
               <path 
-                d="M 520 52.5 L 560 52.5" 
+                d="M 490 50 L 530 50" 
                 stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#475569'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''} 
               />
 
               {/* 
-                ROW-TO-ROW WINDING CONNECTION CURVE 
-                Loops out from Node 3's right side, runs back left horizontally in the 30px gap, 
-                and enters Node 4's left side beautifully at Y: 157.5.
+                SHORT-CIRCUIT GUARDRAIL PATHWAY (Rule B)
+                Draws a visual direct path vertically from Intent Guard (Node 3) Y: 85 down to Terminate Y: 145! 
               */}
               <path 
-                d="M 690 52.5 Q 730 52.5, 730 78.75 T 690 105 L 50 105 Q 20 105, 20 131.25 T 30 157.5" 
-                stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} 
+                d="M 590 85 L 590 145" 
+                stroke={stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} 
+                strokeWidth="3.5" 
+                className={stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
+              />
+
+              {/* Winding Pass connection from Intent Guard curving down to Agent Core (Y: 145) */}
+              <path 
+                d="M 650 50 Q 690 50, 690 97.5 T 270 97.5 L 270 145" 
+                stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : '#475569'} 
                 strokeWidth="3.5" 
                 fill="none"
-                className={stageStatuses[2] === 'running' ? 'stroke-dash' : stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''} 
+                className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''} 
               />
 
               {/* 
-                ROW 2 CONNECTION LINES (Y: 157.5) 
+                ROW 2 LOOP CONNECTIONS & BRANCHINGS (Y: 145 to 215)
               */}
               {/* Agent Core (Node 4) -> Tool Gateway (Node 5) */}
               <path 
-                d="M 160 157.5 L 200 157.5" 
-                stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
-                strokeWidth="3.5" 
-                className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
-              />
-              {/* Tool Gateway (Node 5) -> Egress Auditor (Node 6) */}
-              <path 
-                d="M 340 157.5 L 380 157.5" 
-                stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
-                strokeWidth="3.5" 
-                className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
-              />
-              {/* Egress Auditor (Node 6) -> Output Release Target */}
-              <path 
-                d="M 520 157.5 L 560 157.5" 
-                stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'warning' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#475569'} 
+                d="M 330 180 L 370 180" 
+                stroke={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#475569'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''} 
               />
 
+              {/* Tool Gateway (Node 5) -> Inbound Data Scrubber (Node 7) (Upward branch) */}
+              <path 
+                d="M 430 145 Q 430 110, 470 110" 
+                stroke={stageStatuses[6] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#475569'} 
+                strokeWidth="3" 
+                fill="none"
+              />
+
+              {/* Inbound Data Scrubber (Node 7) -> Agent Core (Node 4) (Completion loop) */}
+              <path 
+                d="M 510 85 Q 350 85, 270 145" 
+                stroke={stageStatuses[6] === 'passed' ? '#10b981' : '#475569'} 
+                strokeWidth="3" 
+                fill="none"
+              />
+
+              {/* Tool Gateway (Node 5) -> Terminate (Node 8) (Unauthorized Branch) */}
+              <path 
+                d="M 490 180 L 530 180" 
+                stroke={stageStatuses[4] === 'blocked' ? '#ef4444' : '#475569'} 
+                strokeWidth="3.5" 
+                className={stageStatuses[4] === 'blocked' ? 'stroke-blink' : ''}
+              />
+
+              {/* Agent Core (Node 4) -> Egress Auditor (Node 6) (Direct Pass reason) */}
+              <path 
+                d="M 270 215 L 750 215 L 750 215" 
+                stroke={stageStatuses[5] === 'passed' ? '#10b981' : '#475569'} 
+                strokeWidth="2" 
+                fill="none"
+              />
+
+              {/* Terminate (Node 8) -> Egress Auditor (Node 6) */}
+              <path 
+                d="M 650 180 L 690 180" 
+                stroke={stageStatuses[7] === 'blocked' ? '#ef4444' : stageStatuses[5] === 'passed' ? '#10b981' : '#475569'} 
+                strokeWidth="3.5" 
+              />
+
+              {/* Egress Auditor (Node 6) -> Sanitised Output */}
+              <path 
+                d="M 810 180 L 850 180" 
+                stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#475569'} 
+                strokeWidth="3.5" 
+              />
 
               {/* 
                 ROW 1 NODES (Y: 15 to 90, Height: 75) 
               */}
               {/* Node 0: USER PROMPT INGRESS (Taller multi-line textarea embedded via foreignObject) */}
-              <foreignObject x="20" y="15" width="160" height="75">
+              <foreignObject x="20" y="15" width="150" height="70">
                 <textarea
                   placeholder="Type multi-line prompt here..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   disabled={isSimulating}
-                  className="w-full h-full bg-slate-950 text-slate-100 border border-slate-700 focus:border-primary focus:outline-none rounded-lg p-2.5 text-[11px] font-mono font-bold resize-none leading-normal"
+                  className="w-full h-full bg-slate-950 text-slate-100 border border-slate-700 focus:border-primary focus:outline-none rounded-lg p-2 text-[10px] font-mono font-bold resize-none leading-tight"
                 />
               </foreignObject>
 
               {/* Node 1: INGRESS EDGE */}
               <g onClick={() => setInspectedNode(1)} className="cursor-pointer">
-                <rect x="220" y="15" width="130" height="75" rx="8" fill="#1e293b" stroke={inspectedNode === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} strokeWidth={inspectedNode === 1 ? '3.5' : '2'} className={stageStatuses[0] === 'running' ? 'animate-pulse' : ''} />
-                <text x="285" y="46" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Ingress</text>
-                <text x="285" y="62" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Edge</text>
+                <rect x="210" y="15" width="120" height="70" rx="8" fill="#1e293b" stroke={inspectedNode === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} strokeWidth={inspectedNode === 1 ? '3.5' : '2'} className={stageStatuses[0] === 'running' ? 'animate-pulse' : ''} />
+                <text x="270" y="46" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Ingress</text>
+                <text x="270" y="62" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Edge</text>
               </g>
 
               {/* Node 2: TOKENIZER */}
               <g onClick={() => setInspectedNode(2)} className="cursor-pointer">
-                <rect x="390" y="15" width="130" height="75" rx="8" fill="#1e293b" stroke={inspectedNode === 2 ? '#3b82f6' : stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'warning' ? '#f59e0b' : '#475569'} strokeWidth={inspectedNode === 2 ? '3.5' : '2'} className={stageStatuses[1] === 'running' ? 'animate-pulse' : ''} />
-                <text x="455" y="55" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Tokenizer</text>
+                <rect x="370" y="15" width="120" height="70" rx="8" fill="#1e293b" stroke={inspectedNode === 2 ? '#3b82f6' : stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'warning' ? '#f59e0b' : '#475569'} strokeWidth={inspectedNode === 2 ? '3.5' : '2'} className={stageStatuses[1] === 'running' ? 'animate-pulse' : ''} />
+                <text x="430" y="55" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Tokenizer</text>
               </g>
 
               {/* Node 3: INTENT_GUARD */}
               <g onClick={() => setInspectedNode(3)} className="cursor-pointer">
-                <rect x="560" y="15" width="130" height="75" rx="8" fill="#1e293b" stroke={inspectedNode === 3 ? '#3b82f6' : stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 3 ? '3.5' : '2'} className={stageStatuses[2] === 'running' ? 'animate-pulse' : stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''} />
-                <text x="625" y="46" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Intent</text>
-                <text x="625" y="62" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Guard</text>
+                <rect x="530" y="15" width="120" height="70" rx="8" fill="#1e293b" stroke={inspectedNode === 3 ? '#3b82f6' : stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 3 ? '3.5' : '2'} className={stageStatuses[2] === 'running' ? 'animate-pulse' : stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''} />
+                <text x="590" y="46" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Intent</text>
+                <text x="590" y="62" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Guard</text>
+              </g>
+
+              {/* Node 7: INBOUND DATA SCRUBBER (Inbound RLS Scrubber node!) */}
+              <g onClick={() => setInspectedNode(7)} className="cursor-pointer">
+                <rect x="470" y="90" width="140" height="40" rx="6" fill="#0b1329" stroke={inspectedNode === 7 ? '#3b82f6' : stageStatuses[6] === 'passed' ? '#10b981' : '#475569'} strokeWidth="2" />
+                <text x="540" y="115" textAnchor="middle" fill={stageStatuses[6] === 'passed' ? '#10b981' : '#64748b'} className="text-[8px] font-black uppercase tracking-widest leading-none">Inbound Scrubber (RAG)</text>
               </g>
 
 
               {/* 
-                ROW 2 NODES (Y: 120 to 195, Height: 75) 
+                ROW 2 NODES (Y: 145 to 215, Height: 70) 
               */}
-              {/* Node 4: AGENT_CORE (SLM) */}
+              {/* Node 4: AGENT_CORE (SLM Reasoning Engine) */}
               <g onClick={() => setInspectedNode(4)} className="cursor-pointer">
-                <rect x="30" y="120" width="130" height="75" rx="8" fill="#1e293b" stroke={inspectedNode === 4 ? '#3b82f6' : stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 4 ? '3.5' : '2'} className={stageStatuses[3] === 'running' ? 'animate-pulse' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''} />
-                <text x="95" y="151" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Agent</text>
-                <text x="95" y="167" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Core</text>
+                <rect x="210" y="145" width="120" height="70" rx="8" fill="#1e293b" stroke={inspectedNode === 4 ? '#3b82f6' : stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 4 ? '3.5' : '2'} className={stageStatuses[3] === 'running' ? 'animate-pulse' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''} />
+                <text x="270" y="176" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Agent</text>
+                <text x="270" y="190" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Core SLM</text>
               </g>
 
               {/* Node 5: TOOL_GATEWAY */}
               <g onClick={() => setInspectedNode(5)} className="cursor-pointer">
-                <rect x="200" y="120" width="140" height="75" rx="8" fill="#1e293b" stroke={inspectedNode === 5 ? '#3b82f6' : stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 5 ? '3.5' : '2'} className={stageStatuses[3] === 'running' ? 'animate-pulse' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''} />
-                <text x="270" y="151" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Tool</text>
-                <text x="270" y="167" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Gateway</text>
+                <rect x="370" y="145" width="120" height="70" rx="8" fill="#1e293b" stroke={inspectedNode === 5 ? '#3b82f6' : stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 5 ? '3.5' : '2'} className={stageStatuses[4] === 'running' ? 'animate-pulse' : stageStatuses[4] === 'blocked' ? 'stroke-blink' : ''} />
+                <text x="430" y="176" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Tool</text>
+                <text x="430" y="190" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Gateway</text>
+              </g>
+
+              {/* Node 8: TERMINATION HANDLER */}
+              <g onClick={() => setInspectedNode(8)} className="cursor-pointer">
+                <rect x="530" y="145" width="120" height="70" rx="8" fill="#1e293b" stroke={stageStatuses[7] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth="2.5" className={stageStatuses[7] === 'blocked' ? 'stroke-blink' : ''} />
+                <text x="590" y="176" textAnchor="middle" fill={stageStatuses[7] === 'blocked' ? '#ef4444' : '#64748b'} className="text-[10px] font-black uppercase tracking-widest leading-none">Terminate</text>
+                <text x="590" y="190" textAnchor="middle" fill={stageStatuses[7] === 'blocked' ? '#ef4444' : '#64748b'} className="text-[10px] font-black uppercase tracking-widest leading-none">(403 Edge)</text>
               </g>
 
               {/* Node 6: EGRESS_AUDITOR */}
               <g onClick={() => setInspectedNode(6)} className="cursor-pointer">
-                <rect x="380" y="120" width="140" height="75" rx="8" fill="#1e293b" stroke={inspectedNode === 6 ? '#3b82f6' : stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'warning' ? '#f59e0b' : '#475569'} strokeWidth={inspectedNode === 6 ? '3.5' : '2'} className={stageStatuses[4] === 'running' ? 'animate-pulse' : ''} />
-                <text x="450" y="151" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Egress</text>
-                <text x="450" y="167" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[11px] font-black uppercase tracking-widest leading-none">Auditor</text>
+                <rect x="690" y="145" width="120" height="70" rx="8" fill="#1e293b" stroke={inspectedNode === 6 ? '#3b82f6' : stageStatuses[5] === 'passed' ? '#10b981' : stageStatuses[5] === 'running' ? '#3b82f6' : stageStatuses[5] === 'warning' ? '#f59e0b' : '#475569'} strokeWidth={inspectedNode === 6 ? '3.5' : '2'} className={stageStatuses[5] === 'running' ? 'animate-pulse' : ''} />
+                <text x="750" y="176" textAnchor="middle" fill={stageStatuses[5] === 'passed' ? '#10b981' : stageStatuses[5] === 'running' ? '#3b82f6' : stageStatuses[5] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Egress</text>
+                <text x="750" y="190" textAnchor="middle" fill={stageStatuses[5] === 'passed' ? '#10b981' : stageStatuses[5] === 'running' ? '#3b82f6' : stageStatuses[5] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Auditor</text>
               </g>
 
               {/* Output Released Target */}
               <g>
-                <rect x="560" y="120" width="180" height="75" rx="8" fill="#090d16" stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'warning' ? '#10b981' : '#475569'} strokeWidth="2.5" />
-                <text x="650" y="151" textAnchor="middle" fill={stageStatuses[4] === 'passed' || stageStatuses[4] === 'warning' ? '#10b981' : '#64748b'} className="text-[12px] font-black uppercase tracking-widest leading-none">Sanitised</text>
-                <text x="650" y="169" textAnchor="middle" fill={stageStatuses[4] === 'passed' || stageStatuses[4] === 'warning' ? '#10b981' : '#64748b'} className="text-[12px] font-black uppercase tracking-widest leading-none">Egress Output</text>
+                <rect x="850" y="145" width="110" height="70" rx="8" fill="#090d16" stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#475569'} strokeWidth="2.5" />
+                <text x="905" y="176" textAnchor="middle" fill={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#64748b'} className="text-[11px] font-black uppercase tracking-widest leading-none">Sanitised</text>
+                <text x="905" y="192" textAnchor="middle" fill={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#64748b'} className="text-[11px] font-black uppercase tracking-widest leading-none">Output</text>
               </g>
 
             </svg>
@@ -678,7 +764,7 @@ const GuardrailPage = () => {
               <p className="leading-snug text-slate-200">{NODE_SPECIFICATIONS[inspectedNode]?.purpose}</p>
             </div>
 
-            {/* Stage Active State Translation (md:col-4) */}
+            {/* Stage Active State Translation (md:col-4) (Rule C structured JSON displays) */}
             <div className="md:col-span-4 pl-3 text-[11px] leading-relaxed text-base-content/75 flex flex-col gap-1 justify-center">
               <span className="font-extrabold text-[9px] text-slate-500 uppercase tracking-wider block leading-none">Active Stage Transformation:</span>
               
@@ -692,10 +778,19 @@ const GuardrailPage = () => {
                   <div className="flex justify-between text-[10px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">SLM Draft:</span> <span className="font-mono truncate max-w-[140px] font-bold">{slmRawResponse}</span></div>
                   <div className="flex justify-between text-[10px] pt-0.5"><span className="text-success uppercase font-extrabold">Sanitised:</span> <span className="font-mono truncate max-w-[140px] text-emerald-400 font-bold">{egressGuardrailResponse}</span></div>
                 </div>
-              ) : inspectedNode === 5 && authzContext.scope !== 'N/A' ? (
-                <div className="flex flex-col gap-0.5 mt-1 leading-tight font-mono text-[10px]">
-                  <div>Scope: <span className="text-emerald-400 font-bold">{authzContext.scope}</span></div>
-                  <div>Database Target: <span className="text-primary font-bold">{prompt.toLowerCase().includes("jane") ? "USER_02 (Executive)" : prompt.toLowerCase().includes("john") ? "USER_01 (John)" : "PUBLIC:NONE"}</span></div>
+              ) : (inspectedNode === 5 || inspectedNode === 4) && authzContext.scope !== 'N/A' ? (
+                <div className="flex flex-col gap-0.5 mt-0.5 leading-tight font-mono text-[9px]">
+                  {/* Rule C: Structured JSON tool parameters displays */}
+                  <div className="text-[8px] text-amber-400 font-bold">SLM Tool Call:</div>
+                  <div className="bg-slate-900 border border-slate-800 rounded p-1 text-[8px] truncate leading-none">
+                    {`{"tool": "fetch_user_record", "args": {"user_id": "${prompt.toLowerCase().includes("jane") ? "USER_02" : "USER_01"}"}}`}
+                  </div>
+                  <div className="text-[8px] text-emerald-400 font-bold mt-1">Gateway AuthZ evaluation:</div>
+                  <div className="bg-slate-900 border border-slate-800 rounded p-1 text-[8px] truncate leading-none">
+                    {`Evaluating Session [${selectedRole.toUpperCase()}] against Scope [${prompt.toLowerCase().includes("jane") ? "USER_02" : "USER_01"}:READ] -> ${
+                      authzTargetViolated ? "DENIED (403)" : "ALLOWED"
+                    }`}
+                  </div>
                 </div>
               ) : (
                 <span className="italic text-slate-500 select-none block mt-1 text-[11px]">
