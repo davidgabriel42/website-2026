@@ -624,10 +624,10 @@ const GuardrailPage = () => {
 
               {/* 
                 ROW 2 VERTICAL CONNECTION PATHS (Y: 90 to 130) 
-                Intent Guard (Node 3 Y: 20) bottom-center (616, 90) -> Terminate (Node 7 Y: 130) top-center (616, 130)
+                Intent Guard (Node 3 Y: 20) bottom-center (612, 90) -> Terminate (Node 7 Y: 130) top-center (612, 130)
               */}
               <path 
-                d="M 616 90 L 616 130" 
+                d="M 612 90 L 612 130" 
                 stroke={stageStatuses[2] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
@@ -677,10 +677,10 @@ const GuardrailPage = () => {
 
 
               {/* 
-                AUTHZ VIOLATION HORIZONTAL BLOCK PATH (Gateway left-center (718, 165) to Terminate right-center (686, 165)) 
+                AUTHZ VIOLATION HORIZONTAL BLOCK PATH (Gateway left-center (718, 165) to Terminate right-center (682, 165)) 
               */}
               <path 
-                d="M 718 165 L 686 165" 
+                d="M 718 165 L 682 165" 
                 stroke={stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[4] === 'blocked' ? 'stroke-blink' : ''}
@@ -691,18 +691,18 @@ const GuardrailPage = () => {
                 ROW 1 PRIMARY HAPPY PATH NODES (Y: 20 to 90, Height: 70) 
               */}
               {/* Node 0: USER PROMPT INGRESS (Multi-line embedded textarea) */}
-              <foreignObject x="10" y="20" width="140" height="70" className="overflow-visible">
+              <foreignObject x="10" y="20" width="180" height="70" className="overflow-visible">
                 <textarea
                   placeholder="Type prompt here..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   disabled={isSimulating}
-                  className="w-full h-full bg-slate-950 text-slate-100 border-2 border-slate-700 focus:border-primary focus:outline-none rounded-lg p-2 text-[10px] font-mono font-bold resize-none leading-tight"
+                  className="w-full h-full bg-slate-950 text-slate-100 border-2 border-slate-700 focus:border-primary focus:outline-none rounded-lg p-2.5 text-xs font-mono font-extrabold resize-none leading-normal"
                 />
               </foreignObject>
 
               {/* Node 1: INGRESS EDGE */}
-              <foreignObject x="202" y="20" width="140" height="70" className="overflow-visible">
+              <foreignObject x="214" y="20" width="140" height="70" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(1)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
@@ -719,7 +719,7 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 2: TOKENIZER */}
-              <foreignObject x="374" y="20" width="140" height="70" className="overflow-visible">
+              <foreignObject x="378" y="20" width="140" height="70" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(2)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
@@ -738,7 +738,7 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 3: INTENT_GUARD */}
-              <foreignObject x="546" y="20" width="140" height="70" className="overflow-visible">
+              <foreignObject x="542" y="20" width="140" height="70" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(3)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
@@ -805,7 +805,7 @@ const GuardrailPage = () => {
                 ROW 2 SUB-NODES (Y: 130 to 200, Height: 70) 
               */}
               {/* Node 7: TERMINATE (403 Sink Node) */}
-              <foreignObject x="546" y="130" width="140" height="70" className="overflow-visible">
+              <foreignObject x="542" y="130" width="140" height="70" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(7)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
