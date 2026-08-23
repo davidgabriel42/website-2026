@@ -348,6 +348,10 @@ const GuardrailPage = () => {
             currentStatuses[7] = 'passed'; // Relational DB green!
           } else {
             addLog(`[12:00:02] [AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
+            addLog("[REACT_LOOP_1] Action: Tool call request sent to TOOL GATEWAY.", "info");
+            addLog("[REACT_LOOP_1] Observation: Retrieved context from Vector DB (2,048 tokens).", "success");
+            addLog("[INTENT_GUARD] Re-scanning updated context payload... NO_INDIRECT_INJECTION_DETECTED.", "success");
+            addLog("[REACT_LOOP_2] Agent proceeding with next thought step.", "info");
             currentStatuses[8] = 'passed'; // Vector DB green!
           }
           currentStatuses[4] = 'passed';
@@ -645,14 +649,15 @@ const GuardrailPage = () => {
               />
               <text x="748" y="112" textAnchor="end" fill="#64748b" className="text-[8px] font-black select-none tracking-wider uppercase font-mono">Action: Tool Call</text>
               
-              {/* Up Path: Tool Gateway back up to Agent Core right-half (823, 130) -> (823, 90) */}
+              {/* Up Path: Tool Gateway back up via Intent Guard (823, 130) -> (823, 110) -> (650, 110) -> (650, 90) */}
               <path 
-                d="M 823 130 L 823 90" 
+                d="M 823 130 L 823 110 L 650 110 L 650 90" 
                 stroke={stageStatuses[4] === 'passed' ? '#10b981' : '#2B3548'} 
                 strokeWidth="3.5" 
+                fill="none"
                 className={stageStatuses[4] === 'passed' ? 'stroke-dash' : ''}
               />
-              <text x="828" y="112" textAnchor="start" fill="#64748b" className="text-[8px] font-black select-none tracking-wider uppercase font-mono">Observation: Payload</text>
+              <text x="736" y="106" textAnchor="middle" fill="#64748b" className="text-[8px] font-black select-none tracking-wider uppercase font-mono">Observation: Payload</text>
 
 
               {/* 
@@ -753,6 +758,9 @@ const GuardrailPage = () => {
                 >
                   <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Intent Guard</span>
                   <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Injection Filter</span>
+                  <span className="text-[7px] text-primary font-black uppercase tracking-widest mt-1 leading-none bg-primary/10 border border-primary/20 rounded px-1 py-0.5 select-none self-center animate-pulse">
+                    [Evaluated Per Turn]
+                  </span>
                 </div>
               </foreignObject>
 
