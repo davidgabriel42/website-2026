@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Button from '../components/Button';
 
 // Mock list of 5 prompt scenarios to showcase security layers
 const PRESET_PROMPTS = [
@@ -377,16 +376,6 @@ const GuardrailPage = () => {
     }
   };
 
-  // Trigger continuous run (Validate button)
-  const handleStartContinuous = (e) => {
-    if (e) e.preventDefault();
-    if (!prompt.trim() || isSimulating) return;
-    setIsSimulating(true);
-    setIsPaused(false);
-    setCurrentStage(1);
-    runPipelineStep(1, true);
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       {/* 
@@ -398,7 +387,7 @@ const GuardrailPage = () => {
         
         {/* 
           1. STICKY TOP HEADER (Row 1 - Height ~12%)
-          Expanded horizontal flex row. Playback controls and Validate buttons have no overflow clipping,
+          Expanded horizontal flex row. Playback controls have no overflow clipping,
           ensuring they are 100% visible and accessible.
         */}
         <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-5 py-3 rounded-xl shadow gap-4 h-[12%] flex-shrink-0 overflow-hidden flex-nowrap">
@@ -446,7 +435,7 @@ const GuardrailPage = () => {
             </div>
           </div>
 
-          {/* Header Column 3: Run Validation & Standard Playback controls */}
+          {/* Header Column 3: Standard Playback controls */}
           <div className="flex-shrink-0 flex items-center gap-3 flex-row flex-nowrap justify-end">
             
             {/* Standard Playback Controller Button Group (DaisyUI styled) */}
@@ -488,13 +477,6 @@ const GuardrailPage = () => {
 
             </div>
 
-            <Button
-              onClick={(e) => handleStartContinuous(e)}
-              disabled={isSimulating || !prompt.trim()}
-              className="flex-shrink-0 btn-sm text-[11px] font-black uppercase tracking-wider px-4"
-            >
-              {isSimulating ? "Running..." : "Validate Ingress"}
-            </Button>
           </div>
 
         </header>
