@@ -333,7 +333,7 @@ const GuardrailPage = () => {
             addLog(`[12:00:02] [AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
           }
           currentStatuses[4] = 'passed';
-          currentStatuses[7] = 'passed'; // Vault DB node flashes green!
+          currentStatuses[7] = 'passed'; // Secrets DB node green!
           setStageStatuses([...currentStatuses]);
         }
       }, 300);
@@ -421,7 +421,7 @@ const GuardrailPage = () => {
         
         {/* 
           1. STICKY TOP HEADER (Row 1 - Height ~12%)
-          Expanded horizontal flex row. Playback controls and Validate buttons have no overflow clipping,
+          Expanded horizontal flex row. Playback controls have no overflow clipping,
           ensuring they are 100% visible and accessible.
         */}
         <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-5 py-3 rounded-xl shadow gap-4 h-[12%] flex-shrink-0 overflow-hidden flex-nowrap">
@@ -518,7 +518,7 @@ const GuardrailPage = () => {
         {/* 
           2. MAIN WORKFLOW CANVAS (Row 2 - Height ~40%)
           Taller, significantly enlarged 3-row connected orthogonal graph.
-          Flowchart nodes expanded vertically (height 50px) and connected with right-angle paths.
+          All nodes expanded exactly to width: 140px; height: 72px; under strict responsive HTML.
         */}
         <section className="bg-base-200 border border-base-300 p-4 rounded-xl shadow h-[40%] flex flex-col justify-between flex-shrink-0 overflow-hidden">
           <div className="flex justify-between items-center border-b border-base-300 pb-1 mb-1">
@@ -532,200 +532,267 @@ const GuardrailPage = () => {
 
           {/* Responsive inline SVG layout representing a clean 3-row connected security proxy */}
           <div className="bg-base-300/40 rounded-xl border border-base-300 flex items-center justify-center p-2 relative flex-1">
-            <svg viewBox="0 0 924 235" className="w-full h-auto max-h-[200px] pointer-events-auto">
+            <svg viewBox="0 0 1220 280" className="w-full h-auto max-h-[260px] pointer-events-auto overflow-visible">
               
               {/* 
-                ROW 1 CONNECTION LINES (Orthogonal Happy Path at Y: 40) 
+                ROW 1 CONNECTION LINES (Orthogonal Happy Path at Y: 56) 
+                M (nodeA.right, 56) L (nodeB.left, 56)
               */}
-              {/* Prompt Box (Node 0) -> Ingress Edge (Node 1) */}
               <path 
-                d="M 150 40 L 174 40" 
-                stroke={isSimulating && currentStage === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#2A324B'} 
-                strokeWidth="3.5" 
+                d="M 150 56 L 202 56" 
+                stroke={isSimulating && currentStage === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#2B3548'} 
+                strokeWidth={isSimulating && currentStage === 1 ? '3.5' : '2.5'} 
                 className={isSimulating && currentStage === 1 ? 'stroke-dash' : ''} 
               />
-              {/* Ingress Edge (Node 1) -> Tokenizer (Node 2) */}
               <path 
-                d="M 274 40 L 298 40" 
-                stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#2A324B'} 
-                strokeWidth="3.5" 
+                d="M 342 56 L 374 56" 
+                stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#2B3548'} 
+                strokeWidth={stageStatuses[0] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Tokenizer (Node 2) -> Intent Guard (Node 3) */}
               <path 
-                d="M 398 40 L 422 40" 
-                stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#2A324B'} 
-                strokeWidth="3.5" 
+                d="M 514 56 L 546 56" 
+                stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#2B3548'} 
+                strokeWidth={stageStatuses[1] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Intent Guard (Node 3) -> Agent Core (Node 4) */}
               <path 
-                d="M 522 40 L 546 40" 
-                stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : '#2A324B'} 
-                strokeWidth="3.5" 
+                d="M 686 56 L 718 56" 
+                stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : '#2B3548'} 
+                strokeWidth={stageStatuses[2] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Agent Core (Node 4) -> Egress Auditor (Node 5) */}
               <path 
-                d="M 646 40 L 670 40" 
-                stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : '#2A324B'} 
-                strokeWidth="3.5" 
+                d="M 858 56 L 890 56" 
+                stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : '#2B3548'} 
+                strokeWidth={stageStatuses[3] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Egress Auditor (Node 5) -> Sanitised Output (Node 6) */}
               <path 
-                d="M 770 40 L 794 40" 
-                stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#2A324B'} 
-                strokeWidth="3.5" 
+                d="M 1030 56 L 1062 56" 
+                stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#2B3548'} 
+                strokeWidth="2.5" 
               />
 
 
               {/* 
-                ROW 2 VERTICAL CONNECTION PATHS (Y: 65 to 95) 
+                ROW 2 VERTICAL CONNECTION PATHS (Y: 92 to 116) 
+                Intent Guard (Node 3) bottom-center (616, 92) -> Terminate (Node 7) top-center (616, 116)
               */}
-              {/* Intent Guard (Node 3) -> Terminate (Node 7) (Jailbreak Violation Drop) */}
               <path 
-                d="M 472 65 L 472 95" 
-                stroke={stageStatuses[2] === 'blocked' ? '#ef4444' : '#2A324B'} 
+                d="M 616 92 L 616 116" 
+                stroke={stageStatuses[2] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
               />
-              {/* Agent Core (Node 4) -> Tool Gateway (Node 6) (Tool Request Drop) */}
+              
+              {/* Agent Core (Node 4) bottom-center (788, 92) -> Tool Gateway (Node 5) top-center (788, 116) */}
               <path 
-                d="M 596 65 L 596 95" 
-                stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'running' || stageStatuses[4] === 'blocked' ? '#3b82f6' : '#2A324B'} 
+                d="M 788 92 L 788 116" 
+                stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'running' || stageStatuses[4] === 'blocked' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[3] === 'passed' && currentStage === 5 ? 'stroke-dash' : ''}
               />
 
 
               {/* 
-                ROW 3 VERTICAL VAULT CONNECTION (Y: 145 to 175) 
+                ROW 3 VERTICAL VAULT CONNECTION (Y: 188 to 208) 
+                Tool Gateway (Node 5) bottom-center (788, 188) -> Secrets Vault DB (Node 8) top-center (788, 208)
               */}
-              {/* Tool Gateway (Node 6) -> Secrets Vault DB (Node 8) */}
               <path 
-                d="M 596 145 L 596 175" 
-                stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#2A324B'} 
+                d="M 788 188 L 788 208" 
+                stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
               />
 
 
               {/* 
-                VIOLATION OUTLET PATHWAY (Terminate to Egress via gutter Y: 155, rx: 6px) 
+                VIOLATION OUTLET PATHWAY (Terminate bottom (616, 188) to Egress Auditor bottom (960, 92) via Y: 200 gutter) 
               */}
               <path 
-                d="M 472 145 L 472 155 Q 472 161, 478 161 L 714 161 Q 720 161, 720 155 L 720 65" 
-                stroke={stageStatuses[6] === 'blocked' ? '#ef4444' : '#2A324B'} 
+                d="M 616 188 L 616 198 Q 616 204, 622 204 L 954 204 Q 960 204, 960 198 L 960 92" 
+                stroke={stageStatuses[6] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
               />
 
 
               {/* 
-                ROW 1 NODES (Y: 15 to 65, Height: 50) 
+                ROW 1 NODES: Expanded size: 140px width, 72px height 
               */}
-              {/* Node 0: USER PROMPT INGRESS (Taller multi-line textarea embedded via foreignObject) */}
-              <foreignObject x="10" y="15" width="140" height="50">
+              {/* Node 0: USER PROMPT INGRESS (Multi-line embedded textarea) */}
+              <foreignObject x="10" y="20" width="140" height="72" className="overflow-visible">
                 <textarea
                   placeholder="Type multi-line prompt here..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   disabled={isSimulating}
-                  className="w-full h-full bg-slate-950 text-slate-100 border border-slate-700 focus:border-primary focus:outline-none rounded-lg p-2 text-[10px] font-mono font-bold resize-none leading-tight"
+                  className="w-full h-full bg-slate-950 text-slate-100 border-2 border-slate-700 focus:border-primary focus:outline-none rounded-lg p-2.5 text-[11px] font-mono font-bold resize-none leading-tight"
                 />
               </foreignObject>
 
               {/* Node 1: INGRESS EDGE */}
-              <g onClick={() => setInspectedNode(1)} className="cursor-pointer">
-                <rect x="174" y="15" width="100" height="50" rx="6" fill="#1e293b" stroke={inspectedNode === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} strokeWidth={inspectedNode === 1 ? '3.5' : '2'} className={stageStatuses[0] === 'running' ? 'animate-pulse' : ''} />
-                <text x="224" y="32" textAnchor="middle" fill={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Ingress Edge</text>
-                <text x="224" y="46" textAnchor="middle" fill="#64748b" className="text-[8px] font-bold tracking-wider leading-none">Rate Limit / IP</text>
-              </g>
+              <foreignObject x="202" y="20" width="140" height="72" className="overflow-visible">
+                <div 
+                  onClick={() => setInspectedNode(1)}
+                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                    currentStage === 1 
+                      ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
+                      : stageStatuses[0] === 'passed' 
+                        ? 'border-emerald-500 bg-emerald-500/10' 
+                        : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Ingress Edge</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Rate Limit / IP</span>
+                </div>
+              </foreignObject>
 
               {/* Node 2: TOKENIZER */}
-              <g onClick={() => setInspectedNode(2)} className="cursor-pointer">
-                <rect x="298" y="15" width="100" height="50" rx="6" fill="#1e293b" stroke={inspectedNode === 2 ? '#3b82f6' : stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'warning' ? '#f59e0b' : '#475569'} strokeWidth={inspectedNode === 2 ? '3.5' : '2'} className={stageStatuses[1] === 'running' ? 'animate-pulse' : ''} />
-                <text x="348" y="32" textAnchor="middle" fill={stageStatuses[1] === 'passed' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : stageStatuses[1] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Tokenizer</text>
-                <text x="348" y="46" textAnchor="middle" fill="#64748b" className="text-[8px] font-bold tracking-wider leading-none">PII Scrubbing</text>
-              </g>
+              <foreignObject x="374" y="20" width="140" height="72" className="overflow-visible">
+                <div 
+                  onClick={() => setInspectedNode(2)}
+                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                    currentStage === 2 
+                      ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
+                      : stageStatuses[1] === 'warning'
+                        ? 'border-amber-500 bg-amber-500/10'
+                        : stageStatuses[1] === 'passed'
+                          ? 'border-emerald-500 bg-emerald-500/10'
+                          : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Tokenizer</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">PII Scrubbing</span>
+                </div>
+              </foreignObject>
 
               {/* Node 3: INTENT_GUARD */}
-              <g onClick={() => setInspectedNode(3)} className="cursor-pointer">
-                <rect x="422" y="15" width="100" height="50" rx="6" fill="#1e293b" stroke={inspectedNode === 3 ? '#3b82f6' : stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 3 ? '3.5' : '2'} className={stageStatuses[2] === 'running' ? 'animate-pulse' : stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''} />
-                <text x="472" y="32" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Intent Guard</text>
-                <text x="472" y="46" textAnchor="middle" fill="#64748b" className="text-[8px] font-bold tracking-wider leading-none">Injection Filter</text>
-              </g>
+              <foreignObject x="546" y="20" width="140" height="72" className="overflow-visible">
+                <div 
+                  onClick={() => setInspectedNode(3)}
+                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                    currentStage === 3 
+                      ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
+                      : stageStatuses[2] === 'blocked'
+                        ? 'border-rose-500 bg-rose-500/10 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
+                        : stageStatuses[2] === 'passed'
+                          ? 'border-emerald-500 bg-emerald-500/10'
+                          : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Intent Guard</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Injection Filter</span>
+                </div>
+              </foreignObject>
 
-              {/* Node 4: AGENT_CORE (SLM Reasoning Engine) */}
-              <g onClick={() => setInspectedNode(4)} className="cursor-pointer">
-                <rect x="546" y="15" width="100" height="50" rx="6" fill="#1e293b" stroke={inspectedNode === 4 ? '#3b82f6' : stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 4 ? '3.5' : '2'} className={stageStatuses[3] === 'running' ? 'animate-pulse' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''} />
-                <text x="596" y="32" textAnchor="middle" fill={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Agent Core</text>
-                <text x="596" y="46" textAnchor="middle" fill="#64748b" className="text-[8px] font-bold tracking-wider leading-none">SLM Engine</text>
-              </g>
+              {/* Node 4: AGENT_CORE */}
+              <foreignObject x="718" y="20" width="140" height="72" className="overflow-visible">
+                <div 
+                  onClick={() => setInspectedNode(4)}
+                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                    currentStage === 4 
+                      ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
+                      : stageStatuses[3] === 'passed' 
+                        ? 'border-emerald-500 bg-emerald-500/10' 
+                        : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Agent Core</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">SLM Engine</span>
+                </div>
+              </foreignObject>
 
               {/* Node 5: EGRESS_AUDITOR */}
-              <g onClick={() => setInspectedNode(6)} className="cursor-pointer">
-                <rect x="670" y="15" width="100" height="50" rx="6" fill="#1e293b" stroke={inspectedNode === 6 ? '#3b82f6' : stageStatuses[5] === 'passed' ? '#10b981' : stageStatuses[5] === 'running' ? '#3b82f6' : stageStatuses[5] === 'warning' ? '#f59e0b' : '#475569'} strokeWidth={inspectedNode === 6 ? '3.5' : '2'} className={stageStatuses[5] === 'running' ? 'animate-pulse' : ''} />
-                <text x="720" y="32" textAnchor="middle" fill={stageStatuses[5] === 'passed' ? '#10b981' : stageStatuses[5] === 'running' ? '#3b82f6' : stageStatuses[5] === 'warning' ? '#f59e0b' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Egress Auditor</text>
-                <text x="720" y="46" textAnchor="middle" fill="#64748b" className="text-[8px] font-bold tracking-wider leading-none">Output Verify</text>
-              </g>
+              <foreignObject x="890" y="20" width="140" height="72" className="overflow-visible">
+                <div 
+                  onClick={() => setInspectedNode(6)}
+                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                    currentStage === 6 
+                      ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
+                      : stageStatuses[5] === 'warning'
+                        ? 'border-amber-500 bg-amber-500/10'
+                        : stageStatuses[5] === 'passed'
+                          ? 'border-emerald-500 bg-emerald-500/10'
+                          : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Egress Auditor</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Output Verify</span>
+                </div>
+              </foreignObject>
 
-              {/* Output Released Target */}
-              <g>
-                <rect x="794" y="15" width="120" height="50" rx="6" fill="#090d16" stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#475569'} strokeWidth="2.5" />
-                <text x="854" y="35" textAnchor="middle" fill={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#64748b'} className="text-[11px] font-black uppercase tracking-widest leading-none">Sanitised</text>
-                <text x="854" y="49" textAnchor="middle" fill={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#64748b'} className="text-[9px] font-black uppercase tracking-wider leading-none">Output</text>
-              </g>
-
-
-              {/* 
-                ROW 2 NODES (Y: 95 to 145, Height: 50) 
-              */}
-              {/* Node 7: TERMINATION HANDLER (Clean Terminate) */}
-              <g onClick={() => setInspectedNode(7)} className="cursor-pointer">
-                <rect x="422" y="95" width="100" height="50" rx="6" fill="#1e293b" stroke={stageStatuses[6] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth="2.5" className={stageStatuses[6] === 'blocked' ? 'stroke-blink' : ''} />
-                <text x="472" y="112" textAnchor="middle" fill={stageStatuses[6] === 'blocked' ? '#ef4444' : '#64748b'} className="text-[10px] font-black uppercase tracking-widest leading-none">Terminate</text>
-                <text x="472" y="126" textAnchor="middle" fill="#64748b" className="text-[8px] font-bold tracking-wider leading-none">403 / Drop</text>
-              </g>
-
-              {/* Node 6: TOOL_GATEWAY (Clean Tool Gateway) */}
-              <g onClick={() => setInspectedNode(5)} className="cursor-pointer">
-                <rect x="546" y="95" width="100" height="50" rx="6" fill="#1e293b" stroke={inspectedNode === 5 ? '#3b82f6' : stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 5 ? '3.5' : '2'} className={stageStatuses[4] === 'running' ? 'animate-pulse' : stageStatuses[4] === 'blocked' ? 'stroke-blink' : ''} />
-                <text x="596" y="112" textAnchor="middle" fill={stageStatuses[4] === 'passed' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Tool Gateway</text>
-                <text x="596" y="126" textAnchor="middle" fill="#64748b" className="text-[8px] font-bold tracking-wider leading-none">AuthZ Check</text>
-              </g>
+              {/* Node 6: SANITIZED OUTPUT */}
+              <foreignObject x="1062" y="20" width="140" height="72" className="overflow-visible">
+                <div className="w-full h-full border-2 border-slate-800 bg-[#090d16] rounded-lg p-2.5 flex flex-col justify-center select-none transition-all duration-300">
+                  <span className="text-[12px] font-black uppercase tracking-wider text-emerald-400 leading-none">Sanitised</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Egress Output</span>
+                </div>
+              </foreignObject>
 
 
               {/* 
-                ROW 3 NODES (Y: 175 to 225, Height: 50) 
+                ROW 2 SUB-NODES (Y: 116, Height: 72) 
               */}
-              {/* Node 8: SECRETS VAULT DB (Data Infrastructure) */}
-              <g onClick={() => setInspectedNode(8)} className="cursor-pointer">
-                <rect x="546" y="175" width="100" height="50" rx="6" fill="#0b1329" stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth="2" className={stageStatuses[4] === 'running' ? 'animate-pulse' : ''} />
-                <text x="596" y="195" textAnchor="middle" fill={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#64748b'} className="text-[9px] font-black uppercase tracking-widest leading-none">Secrets Vault DB</text>
-                <text x="596" y="209" textAnchor="middle" fill="#64748b" className="text-[8px] font-bold tracking-wider leading-none">Concurrent DB</text>
-              </g>
+              {/* Node 7: TERMINATE (403) */}
+              <foreignObject x="546" y="116" width="140" height="72" className="overflow-visible">
+                <div 
+                  onClick={() => setInspectedNode(7)}
+                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                    stageStatuses[6] === 'blocked'
+                      ? 'border-rose-500 bg-rose-500/10 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
+                      : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Terminate</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">403 / Drop</span>
+                </div>
+              </foreignObject>
+
+              {/* Node 5: TOOL GATEWAY */}
+              <foreignObject x="718" y="116" width="140" height="72" className="overflow-visible">
+                <div 
+                  onClick={() => setInspectedNode(5)}
+                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                    currentStage === 5 
+                      ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
+                      : stageStatuses[4] === 'blocked'
+                        ? 'border-rose-500 bg-rose-500/10 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
+                        : stageStatuses[4] === 'passed'
+                          ? 'border-emerald-500 bg-emerald-500/10'
+                          : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Tool Gateway</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">AuthZ Check</span>
+                </div>
+              </foreignObject>
+
+
+              {/* 
+                ROW 3 INFRASTRUCTURE (Y: 208, Height: 72) 
+              */}
+              {/* Node 8: SECRETS VAULT DB */}
+              <foreignObject x="718" y="208" width="140" height="72" className="overflow-visible">
+                <div 
+                  onClick={() => setInspectedNode(8)}
+                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                    stageStatuses[7] === 'passed'
+                      ? 'border-emerald-500 bg-emerald-500/10'
+                      : stageStatuses[4] === 'blocked'
+                        ? 'border-rose-500 bg-rose-500/10'
+                        : 'border-[#2B3548] bg-[#0b1329] hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Secrets Vault DB</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Concurrent DB</span>
+                </div>
+              </foreignObject>
 
             </svg>
           </div>
 
-          <style dangerouslySetInnerHTML={{__html: `
-            .stroke-dash {
-              stroke-dasharray: 6, 6;
-              animation: flowDash 0.8s linear infinite;
-            }
-            .stroke-blink {
-              animation: blinkStroke 0.6s ease-in-out infinite alternate;
-            }
-            @keyframes flowDash {
-              to { stroke-dashoffset: -12; }
-            }
-            @keyframes blinkStroke {
-              from { stroke: #ef4444; stroke-opacity: 0.4; }
-              to { stroke: #b91c1c; stroke-opacity: 1; }
-            }
-          `}} />
         </section>
 
         {/* 
