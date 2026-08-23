@@ -810,10 +810,10 @@ const GuardrailPage = () => {
 
           {/* 
             4. MERGED ACTIVE STAGE INSPECTOR BAR
-            Translucent slate container with blur filters, pinned directly at the bottom inside this card!
-            Expanded physical size to h-[75px] with stacked column details to prevent cutoffs.
+            Translucent container with blur filters, pinned directly at the bottom inside this card!
+            Fully compliant with global light/dark theme toggles.
           */}
-          <div className="absolute bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-700/80 py-2.5 px-5 flex flex-row items-center justify-between gap-6 h-[75px] flex-shrink-0 select-none text-xs font-sans">
+          <div className="absolute bottom-0 inset-x-0 bg-base-300/95 backdrop-blur-md border-t border-base-content/10 py-2.5 px-5 flex flex-row items-center justify-between gap-6 h-[75px] flex-shrink-0 select-none text-xs font-sans">
             
             {/* Inspector Left Column: Active Observability Stage Info (Stacked 2-row layout) */}
             <div className="flex flex-col justify-center gap-1.5 w-[55%]">
@@ -821,51 +821,51 @@ const GuardrailPage = () => {
                 <span className="bg-primary/20 text-primary border border-primary/30 rounded px-1.5 py-0.5 text-[9px] font-black tracking-widest uppercase flex-shrink-0">
                   Active Node: {NODE_SPECIFICATIONS[inspectedNode]?.name}
                 </span>
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                <span className="text-[9px] text-base-content/60 font-bold uppercase tracking-wider">
                   State: {isSimulating && currentStage === inspectedNode ? "ACTIVE SCANNING" : "MONITORING"}
                 </span>
               </div>
-              <p className="text-slate-300 font-semibold leading-tight text-[11px] line-clamp-2">
-                <span className="text-slate-500 uppercase font-black tracking-wider text-[9px] mr-1">Purpose:</span> 
+              <p className="text-base-content/90 font-semibold leading-tight text-[11px] line-clamp-2">
+                <span className="text-base-content/50 uppercase font-black tracking-wider text-[9px] mr-1">Purpose:</span> 
                 {NODE_SPECIFICATIONS[inspectedNode]?.purpose}
               </p>
             </div>
 
             {/* Inspector Right Column: Live Node Transformations Payload (Stacked 2-row layout with border divider) */}
-            <div className="flex flex-col justify-center gap-1.5 w-[45%] text-right font-mono text-[10px] pl-4 border-l border-slate-700/50">
-              <span className="font-extrabold text-[9px] text-slate-500 uppercase tracking-wider block text-right leading-none">Live State Transformation:</span>
+            <div className="flex flex-col justify-center gap-1.5 w-[45%] text-right font-mono text-[10px] pl-4 border-l border-base-content/10">
+              <span className="font-extrabold text-[9px] text-base-content/50 uppercase tracking-wider block text-right leading-none">Live State Transformation:</span>
               <div className="flex justify-end items-center">
                 {inspectedNode === 2 && inputGuardrailTokenized ? (
                   <div className="flex flex-row items-center gap-2 max-w-full truncate leading-none">
-                    <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">Raw:</span>
-                    <span className="bg-slate-905 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-slate-400 truncate max-w-[80px] font-bold mr-1">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">Raw:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-base-content/85 truncate max-w-[80px] font-bold mr-1">
                       {inputGuardrailRaw}
                     </span>
-                    <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">Scrubbed:</span>
-                    <span className="bg-slate-905 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-emerald-400 truncate max-w-[80px] font-bold">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">Scrubbed:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-success truncate max-w-[80px] font-bold">
                       {inputGuardrailTokenized}
                     </span>
                   </div>
                 ) : inspectedNode === 6 && egressGuardrailResponse ? (
                   <div className="flex flex-row items-center gap-2 max-w-full truncate leading-none">
-                    <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">SLM Draft:</span>
-                    <span className="bg-slate-905 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-slate-400 truncate max-w-[80px] font-bold mr-1">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">SLM Draft:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-base-content/85 truncate max-w-[80px] font-bold mr-1">
                       {slmRawResponse}
                     </span>
-                    <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">Sanitised:</span>
-                    <span className="bg-slate-905 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-emerald-400 truncate max-w-[80px] font-bold">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">Sanitised:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-success truncate max-w-[80px] font-bold">
                       {egressGuardrailResponse}
                     </span>
                   </div>
                 ) : (inspectedNode === 5 || inspectedNode === 4) && authzContext.scope !== 'N/A' ? (
                   <div className="flex flex-row items-center gap-2 max-w-full truncate leading-none">
-                    <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">Active Payload:</span>
-                    <span className="bg-slate-905 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-amber-400 truncate max-w-[200px] font-bold">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">Active Payload:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-warning truncate max-w-[200px] font-bold">
                       {`{"tool": "fetch_user_record", "args": {"user_id": "${prompt.toLowerCase().includes("jane") ? "USER_02" : "USER_01"}"}}`}
                     </span>
                   </div>
                 ) : (
-                  <span className="italic text-slate-500 text-[10px] select-none block truncate">
+                  <span className="italic text-base-content/40 text-[10px] select-none block truncate">
                     No transformations active at this node. Mitigating baseline threat signatures...
                   </span>
                 )}
