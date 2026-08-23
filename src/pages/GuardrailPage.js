@@ -516,12 +516,12 @@ const GuardrailPage = () => {
         </header>
 
         {/* 
-          2. MAIN WORKFLOW CANVAS (Row 2 - Height ~48% - Tall scale section!)
+          2. MAIN WORKFLOW CANVAS (Row 2 - Height ~46% - Large aspect ratio scaling!)
           Taller, significantly enlarged 3-row connected orthogonal graph.
-          Flowchart nodes expanded vertically (height 72px) and Y vertical grids expanded!
-          Renders database and tool calls at the TOP separate from the happy path in the middle!
+          All nodes expanded exactly to width: 140px; height: 65px; under a highly wide aspect ratio!
+          This mathematically guarantees that the boxes are giant but never cut off physically.
         */}
-        <section className="bg-base-200 border border-base-300 p-4 rounded-xl shadow h-[48%] flex flex-col justify-between flex-shrink-0 overflow-hidden">
+        <section className="bg-base-200 border border-base-300 p-4 rounded-xl shadow h-[46%] flex flex-col justify-between flex-shrink-0 overflow-hidden">
           <div className="flex justify-between items-center border-b border-base-300 pb-1 mb-1">
             <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
               PANEL 1: AGENTIC WORKFLOW & CONTROL PLANE (Visual Node Pipeline)
@@ -533,70 +533,70 @@ const GuardrailPage = () => {
 
           {/* Responsive inline SVG layout representing a clean 3-row connected security proxy */}
           <div className="bg-base-300/40 rounded-xl border border-base-300 flex items-center justify-center p-2 relative flex-1">
-            <svg viewBox="0 0 1220 360" className="w-full h-auto max-h-[340px] pointer-events-auto overflow-visible">
+            <svg viewBox="0 0 1220 250" className="w-full h-auto max-h-[230px] pointer-events-auto overflow-visible">
               
               {/* 
-                ROW 2 CONNECTION LINES (Orthogonal Happy Path Y: 180 center) 
-                M (nodeA.right, 180) L (nodeB.left, 180)
+                ROW 2 CONNECTION LINES (Orthogonal Happy Path Y: 122.5 center) 
+                M (nodeA.right, 122.5) L (nodeB.left, 122.5)
               */}
               {/* Prompt Box (Node 0) -> Ingress Edge (Node 1) */}
               <path 
-                d="M 150 180 L 202 180" 
+                d="M 150 122.5 L 202 122.5" 
                 stroke={isSimulating && currentStage === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#2B3548'} 
                 strokeWidth={isSimulating && currentStage === 1 ? '3.5' : '2.5'} 
                 className={isSimulating && currentStage === 1 ? 'stroke-dash' : ''} 
               />
               {/* Ingress Edge (Node 1) -> Tokenizer (Node 2) */}
               <path 
-                d="M 342 180 L 374 180" 
+                d="M 342 122.5 L 374 122.5" 
                 stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[0] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''} 
               />
               {/* Tokenizer (Node 2) -> Intent Guard (Node 3) */}
               <path 
-                d="M 514 180 L 546 180" 
+                d="M 514 122.5 L 546 122.5" 
                 stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[1] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''} 
               />
               {/* Intent Guard (Node 3) -> Agent Core (Node 4) */}
               <path 
-                d="M 686 180 L 718 180" 
+                d="M 686 122.5 L 718 122.5" 
                 stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[2] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''} 
               />
               {/* Agent Core (Node 4) -> Egress Auditor (Node 5) */}
               <path 
-                d="M 858 180 L 890 180" 
+                d="M 858 122.5 L 890 122.5" 
                 stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[3] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
               />
               {/* Egress Auditor (Node 5) -> Sanitised Output (Node 6) */}
               <path 
-                d="M 1030 180 L 1062 180" 
+                d="M 1030 122.5 L 1062 122.5" 
                 stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#2B3548'} 
                 strokeWidth="2.5" 
               />
 
 
               {/* 
-                ROW 1 TOP-STACK TOOL CALL PATHS (Y: 56 center - Separation check!) 
-                Agent Core (Node 4 Y: 144) vertically UP to Tool Gateway (Node 5 Y: 20)
+                ROW 1 TOP-STACK TOOL CALL PATHS (Y: 42.5 center - Separation check!) 
+                Agent Core (Node 4 Y: 90) vertically UP to Tool Gateway (Node 5 Y: 10)
               */}
-              {/* Agent Core top-center (788, 144) -> Tool Gateway bottom-center (788, 92) */}
+              {/* Agent Core top-center (788, 90) -> Tool Gateway bottom-center (788, 75) */}
               <path 
-                d="M 788 144 L 788 92" 
+                d="M 788 90 L 788 75" 
                 stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'running' || stageStatuses[4] === 'blocked' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[3] === 'passed' && currentStage === 5 ? 'stroke-dash' : ''}
               />
               
-              {/* Tool Gateway (Node 5 Y: 20) horizontally right to Secrets Vault DB (Node 8 Y: 20) */}
+              {/* Tool Gateway (Node 5 Y: 10) horizontally right to Secrets Vault DB (Node 8 Y: 10) */}
               <path 
-                d="M 858 56 L 890 56" 
+                d="M 858 42.5 L 890 42.5" 
                 stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
@@ -604,11 +604,11 @@ const GuardrailPage = () => {
 
 
               {/* 
-                ROW 3 BOTTOM-STACK INGRESS VIOLATION DROP (Y: 216 to 268) 
-                Intent Guard (Node 3 Y: 144) bottom-center (616, 216) -> Terminate (Node 7 Y: 268) top-center (616, 268)
+                ROW 3 BOTTOM-STACK INGRESS VIOLATION DROP (Y: 155 to 170) 
+                Intent Guard (Node 3 Y: 90) bottom-center (616, 155) -> Terminate (Node 7 Y: 170) top-center (616, 170)
               */}
               <path 
-                d="M 616 216 L 616 268" 
+                d="M 616 155 L 616 170" 
                 stroke={stageStatuses[2] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
@@ -616,10 +616,10 @@ const GuardrailPage = () => {
 
 
               {/* 
-                VIOLATION OUTLET PATHWAY (Terminate bottom (616, 340) to Egress Auditor bottom (960, 216) via Y: 350 gutter) 
+                VIOLATION OUTLET PATHWAY (Terminate bottom (616, 235) to Egress Auditor bottom (960, 155) via Y: 245 gutter) 
               */}
               <path 
-                d="M 616 340 L 616 350 Q 616 356, 622 356 L 954 356 Q 960 356, 960 350 L 960 216" 
+                d="M 616 235 L 616 245 Q 616 249, 622 249 L 954 249 Q 960 249, 960 245 L 960 155" 
                 stroke={stageStatuses[6] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
@@ -627,24 +627,24 @@ const GuardrailPage = () => {
 
 
               {/* 
-                ROW 2 PRIMARY HAPPY PATH NODES (Y: 144 to 216, Height: 72) 
+                ROW 2 PRIMARY HAPPY PATH NODES (Y: 90 to 155, Height: 65) 
               */}
               {/* Node 0: USER PROMPT INGRESS (Multi-line embedded textarea) */}
-              <foreignObject x="10" y="144" width="140" height="72" className="overflow-visible">
+              <foreignObject x="10" y="90" width="140" height="65" className="overflow-visible">
                 <textarea
-                  placeholder="Type multi-line prompt here..."
+                  placeholder="Type prompt here..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   disabled={isSimulating}
-                  className="w-full h-full bg-slate-950 text-slate-100 border-2 border-slate-700 focus:border-primary focus:outline-none rounded-lg p-2.5 text-[11px] font-mono font-bold resize-none leading-tight"
+                  className="w-full h-full bg-slate-950 text-slate-100 border-2 border-slate-700 focus:border-primary focus:outline-none rounded-lg p-2 text-[10px] font-mono font-bold resize-none leading-tight"
                 />
               </foreignObject>
 
               {/* Node 1: INGRESS EDGE */}
-              <foreignObject x="202" y="144" width="140" height="72" className="overflow-visible">
+              <foreignObject x="202" y="90" width="140" height="65" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(1)}
-                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                  className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
                     currentStage === 1 
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
                       : stageStatuses[0] === 'passed' 
@@ -658,10 +658,10 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 2: TOKENIZER */}
-              <foreignObject x="374" y="144" width="140" height="72" className="overflow-visible">
+              <foreignObject x="374" y="90" width="140" height="65" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(2)}
-                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                  className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
                     currentStage === 2 
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
                       : stageStatuses[1] === 'warning'
@@ -677,10 +677,10 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 3: INTENT_GUARD */}
-              <foreignObject x="546" y="144" width="140" height="72" className="overflow-visible">
+              <foreignObject x="546" y="90" width="140" height="65" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(3)}
-                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                  className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
                     currentStage === 3 
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
                       : stageStatuses[2] === 'blocked'
@@ -696,10 +696,10 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 4: AGENT_CORE */}
-              <foreignObject x="718" y="144" width="140" height="72" className="overflow-visible">
+              <foreignObject x="718" y="90" width="140" height="65" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(4)}
-                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                  className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
                     currentStage === 4 
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
                       : stageStatuses[3] === 'passed' 
@@ -713,10 +713,10 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 5: EGRESS_AUDITOR */}
-              <foreignObject x="890" y="144" width="140" height="72" className="overflow-visible">
+              <foreignObject x="890" y="90" width="140" height="65" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(6)}
-                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                  className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
                     currentStage === 6 
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
                       : stageStatuses[5] === 'warning'
@@ -732,8 +732,8 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 6: SANITIZED OUTPUT */}
-              <foreignObject x="1062" y="144" width="140" height="72" className="overflow-visible">
-                <div className="w-full h-full border-2 border-slate-800 bg-[#090d16] rounded-lg p-2.5 flex flex-col justify-center select-none transition-all duration-300">
+              <foreignObject x="1062" y="90" width="140" height="65" className="overflow-visible">
+                <div className="w-full h-full border-2 border-slate-800 bg-[#090d16] rounded-lg p-2 flex flex-col justify-center select-none transition-all duration-300">
                   <span className="text-[12px] font-black uppercase tracking-wider text-emerald-400 leading-none">Sanitised</span>
                   <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Egress Output</span>
                 </div>
@@ -741,13 +741,13 @@ const GuardrailPage = () => {
 
 
               {/* 
-                ROW 1 DATA INFRASTRUCTURE & TOOLS (Y: 20, Height: 72 - Separated tool check!) 
+                ROW 1 DATA INFRASTRUCTURE & TOOLS (Y: 10, Height: 65 - Separated tool check!) 
               */}
               {/* Node 5: TOOL GATEWAY */}
-              <foreignObject x="718" y="20" width="140" height="72" className="overflow-visible">
+              <foreignObject x="718" y="10" width="140" height="65" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(5)}
-                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                  className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
                     currentStage === 5 
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
                       : stageStatuses[4] === 'blocked'
@@ -763,10 +763,10 @@ const GuardrailPage = () => {
               </foreignObject>
 
               {/* Node 8: SECRETS VAULT DB */}
-              <foreignObject x="890" y="20" width="140" height="72" className="overflow-visible">
+              <foreignObject x="890" y="10" width="140" height="65" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(8)}
-                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                  className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
                     stageStatuses[7] === 'passed'
                       ? 'border-emerald-500 bg-emerald-500/10'
                       : stageStatuses[4] === 'blocked'
@@ -781,13 +781,13 @@ const GuardrailPage = () => {
 
 
               {/* 
-                ROW 3 SUB-NODES & TERMINATIONS (Y: 268, Height: 72) 
+                ROW 3 SUB-NODES & TERMINATIONS (Y: 170, Height: 65) 
               */}
               {/* Node 7: TERMINATE (403) */}
-              <foreignObject x="546" y="268" width="140" height="72" className="overflow-visible">
+              <foreignObject x="546" y="170" width="140" height="65" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(7)}
-                  className={`w-full h-full border-2 rounded-lg p-2.5 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                  className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
                     stageStatuses[6] === 'blocked'
                       ? 'border-rose-500 bg-rose-500/10 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
                       : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
