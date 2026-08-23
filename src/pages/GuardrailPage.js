@@ -170,8 +170,18 @@ const GuardrailPage = () => {
     setRiskScore(0);
     setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
     setAuthzTargetViolated(null);
-    setCurrentStage(0);
-    addLog(`Loaded preset: "${preset.label}"`, 'info');
+    
+    // Auto Play Trigger!
+    setIsSimulating(true);
+    setIsPaused(false);
+    setCurrentStage(1);
+    
+    addLog(`Loaded preset: "${preset.label}" - Triggering Automated Sandbox Run...`, 'info');
+    
+    // Asynchronous state synchronization delay to allow React states to flush
+    setTimeout(() => {
+      runPipelineStep(1, true);
+    }, 50);
   };
 
   // State-driven step manager watching isSimulating, isPaused, and currentStage
@@ -483,31 +493,40 @@ const GuardrailPage = () => {
             </h1>
           </div>
 
-          {/* Header Column 2: Scenario preset pills (flex-shrink-0, strict two-row grid) */}
-          <div className="flex flex-col gap-1 items-start flex-shrink-0">
-            <div className="flex gap-1 flex-nowrap">
-              {PRESET_PROMPTS.slice(0, 3).map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => handleLoadPreset(preset)}
-                  disabled={isSimulating}
-                  className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2.5 py-1 h-auto leading-none select-none flex-shrink-0"
-                >
-                  {preset.preset_label || preset.label}
-                </button>
-              ))}
+          {/* Header Column 2: Scenario preset pills with click-here visual pointer arrow */}
+          <div className="flex flex-row items-center gap-3 flex-shrink-0">
+            
+            {/* Click Here Arrow Pointer Badge */}
+            <div className="text-[10px] text-primary font-black uppercase tracking-widest animate-pulse flex items-center gap-1 select-none">
+              <span>Click preset here</span>
+              <span className="text-xs font-sans font-black leading-none">&rarr;</span>
             </div>
-            <div className="flex gap-1 flex-nowrap">
-              {PRESET_PROMPTS.slice(3).map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => handleLoadPreset(preset)}
-                  disabled={isSimulating}
-                  className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2.5 py-1 h-auto leading-none select-none flex-shrink-0"
-                >
-                  {preset.preset_label || preset.label}
-                </button>
-              ))}
+
+            <div className="flex flex-col gap-1 items-start flex-shrink-0">
+              <div className="flex gap-1 flex-nowrap">
+                {PRESET_PROMPTS.slice(0, 3).map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => handleLoadPreset(preset)}
+                    disabled={isSimulating}
+                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2.5 py-1 h-auto leading-none select-none flex-shrink-0"
+                  >
+                    {preset.preset_label || preset.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-1 flex-nowrap">
+                {PRESET_PROMPTS.slice(3).map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => handleLoadPreset(preset)}
+                    disabled={isSimulating}
+                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2.5 py-1 h-auto leading-none select-none flex-shrink-0"
+                  >
+                    {preset.preset_label || preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
