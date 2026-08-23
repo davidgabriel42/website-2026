@@ -99,7 +99,7 @@ const NODE_SPECIFICATIONS = {
     mitigates: "Model hijackings, downstream cloud-token leakages, and unnecessary compute spends."
   },
   8: {
-    name: "Secrets Vault DB",
+    name: "DB",
     purpose: "Secure Secrets Database: Holds row-level encrypted mock records under strict identity authorization bindings.",
     mitigates: "Broken Row-Level Security (BRLS), unauthenticated lookup leakages, and data breaches."
   }
@@ -800,7 +800,7 @@ const GuardrailPage = () => {
                         : 'border-[#2B3548] bg-[#0b1329] hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Secrets Vault DB</span>
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">DB</span>
                   <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Concurrent DB</span>
                 </div>
               </foreignObject>
