@@ -244,5 +244,54 @@
       "documentation_enhancement": "Performs code architecture analysis, build process documentation, README assessment, and generates improved documentation templates.",
       "test_coverage_improvement": "Identifies untested functions, assesses business risk, generates runnable test cases, and delivers integration-ready ticketing payloads."
     }
-  ]
+  ],
+  "agentic_react_guardrails": {
+    "name": "Agentic ReAct Guardrails (Explainable AI Security Proxy)",
+    "description": "An interactive, full-screen explainable security visualization representing a 5-layer Zero-Trust AI proxy architecture. It demonstrates how autonomous language model agents validate ingress prompt strings, enforce Least-Privilege authorizations, execute secure ReAct reasoning loops, and audit egress payload completions in real-time.",
+    "key_features": [
+      "Orthogonal 3-Row Pipeline: Clean horizontal layout with zero connector intersections, displaying prompt, ingress, tokenizer, intent guard, agent core, egress auditor, and sanitised output.",
+      "Bidirectional ReAct Loop: Visualizes the reasoning and tool execution cycle with a dual-path loop between Agent Core and Tool Gateway ('Action: Tool Call' vs 'Observation: Payload').",
+      "Short-Circuit Jailbreak Termination: Demonstrates OWASP threat blocks by instantly terminating adversarial prompts at the Intent Guard, drop-routing them to Terminate HTTP 403 REJECT.",
+      "Dual Databases (Relational + Vector DB): Simulates real-world data infrastructure stack. Queries structured credentials from a Relational DB vs semantic handbook embeddings from a Vector DB RAG memory.",
+      "OWASP LLM06 Egress Interception: Showcase of a sensitive info leak where the SLM improperly exfiltrates encryption canary keys in a draft. The Egress Auditor node intercepts the leak, lights up in warning amber, redacts the canary, and outputs sanitized aggregate metrics safely."
+    ],
+    "pipeline_stages": [
+      {
+        "stage": "node-1 (Ingress Edge)",
+        "purpose": "Validates headers, applies SLA token bucket rate-limiting, and screens IP reputations."
+      },
+      {
+        "stage": "node-2 (Tokenizer)",
+        "purpose": "Scans raw inputs for PII pattern matches (SSNs, emails) and deterministically tokenizes/redacts them."
+      },
+      {
+        "stage": "node-3 (Intent Guard)",
+        "purpose": "Filters adversarial exploits, prompt injections, and system prompt exfiltrations."
+      },
+      {
+        "stage": "node-4 (Agent Core SLM)",
+        "purpose": "Local reasoning core executing model completions over tokenized sanitised query contexts."
+      },
+      {
+        "stage": "node-5 (Tool Gateway)",
+        "purpose": "Privilege gatekeeper validating identity scopes against Row-Level Security database rules."
+      },
+      {
+        "stage": "node-6 (Egress Auditor)",
+        "purpose": "Sanitizes final model completions to prevent hallucinated canary leaks or secret exfiltrations."
+      },
+      {
+        "stage": "node-7 (Terminate)",
+        "purpose": "A dead-end Sink Node dropping blocked queries with an HTTP 403 Reject."
+      },
+      {
+        "stage": "node-8 (Relational DB)",
+        "purpose": "Secure SQL employee database subject to strict row-level authorization scopes."
+      },
+      {
+        "stage": "node-9 (Vector DB)",
+        "purpose": "Houses knowledge handbooks, company holidays, and document embeddings for semantic RAG lookup loops."
+      }
+    ]
+  }
 }
