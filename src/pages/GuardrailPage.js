@@ -71,49 +71,49 @@ const MOCK_DATABASE = [
 // Technical definitions for the 8 pipeline nodes for click-to-inspect details
 const NODE_SPECIFICATIONS = {
   1: {
-    name: "Ingress Edge Proxy",
-    purpose: "Ingress Gateway: Validates client headers, applies token bucket rate-limiting (SLA compliance), and screens for malicious IP reputations before request staging.",
-    mitigates: "DDoS vectors, API abuse, header injection threats, and rogue bot traversals."
+    name: "Ingress Edge",
+    purpose: "API Gateway: Validates incoming request headers, enforces rate limits, authenticates client credentials, and inspects network metadata before staging.",
+    mitigates: "DDoS vectors, API abuse, unauthorized access attempts, and network-level threats."
   },
   2: {
-    name: "PII Scrubbing Tokenizer",
-    purpose: "NER & Regex Engine: Scans raw ingress strings using regular expressions and Named Entity Recognition to swap private data (SSN, emails) with deterministic placeholders.",
-    mitigates: "Private data leakage, credential stuffing leaks, and accidental memory context contamination."
+    name: "PII Tokenizer",
+    purpose: "Sanitization Engine: Scans prompts using Named Entity Recognition (NER) and regex patterns to redact sensitive personal data (SSN, emails) and swap them with secure cryptographic tokens.",
+    mitigates: "Data leakage to third-party models, regulatory compliance violations (GDPR/HIPAA), and credentials exposure."
   },
   3: {
-    name: "Intent & Jailbreak Guard",
-    purpose: "Security Interceptor: Evaluates query semantics and keyword signatures against known prompt injections, adversarial exploits, and jailbreak templates.",
-    mitigates: "Direct/indirect prompt injection, rule-overwriting jailbreaks, and DAN exploits."
+    name: "Intent Guard",
+    purpose: "Semantic Firewall: Analyzes query intent, semantic embeddings, and behavioral signatures to intercept jailbreak attempts, adversarial overrides, and prompt injections.",
+    mitigates: "Model hijackings, alignment bypasses, and system prompt exfiltration attempts."
   },
   4: {
-    name: "Agent Core SLM",
-    purpose: "Reasoning Core: Executes local, in-browser language model completions over tokenized, sanitized query context, ensuring absolute data boundaries.",
-    mitigates: "Outbound cloud-leakage risks, privacy compliance breaches, and latency spikes."
+    name: "Agent Core",
+    purpose: "Reasoning Engine: Orchestrates planning, tool execution loops, and context assembly using targeted foundation models to resolve complex user requests.",
+    mitigates: "Incorrect tool execution, context window bloating, and reasoning divergence."
   },
   5: {
-    name: "Tool Gateway & AuthZ",
-    purpose: "Privilege Gatekeeper: Intercepts downstream model API/tool queries and evaluates identity clearance against Database Row-Level Security (RLS) policies.",
-    mitigates: "Privilege escalation, unauthorized database queries, and broken row-level data access."
+    name: "Tool Gateway",
+    purpose: "Authorization Broker: Intercepts downstream model tool requests, parsing parameters to enforce Least-Privilege access and evaluate query identity clearance against database Row-Level Security (RLS) policies.",
+    mitigates: "Privilege escalation, unauthorized database queries, and indirect prompt injection exposures."
   },
   6: {
     name: "Egress Auditor",
-    purpose: "Output Sanitizer: Audits finalized model completions to ensure no hallucinated secrets, unauthorized database tokens, or leaked SSNs escape back to the visitor.",
-    mitigates: "Language model hallucinations, secondary data leakages, and downstream XSS elements."
+    purpose: "Content Filter: Scans model completions before client release to inspect for hallucinated credentials, raw database schema dumps, toxic outputs, or leaked canary tokens.",
+    mitigates: "Accidental sensitive information disclosure, malicious system context exfiltrations, and model hallucinations."
   },
   7: {
-    name: "Termination Handler",
-    purpose: "Short-Circuit Edge: Safely terminates execution paths when threats are flagged at Ingress/AuthZ edge points, bypassing reasoning cores.",
-    mitigates: "Model hijackings, downstream cloud-token leakages, and unnecessary compute spends."
+    name: "Terminate",
+    purpose: "Safety Sink: Safely terminates request execution when security violations or injection attempts are flagged at any pipeline checkpoint, preventing downstream compute consumption.",
+    mitigates: "Compute resource depletion, backend exploitation vectors, and unauthorized system access."
   },
   8: {
     name: "Relational DB",
-    purpose: "SQL Database: Stores structured employee records and row-level encrypted mock credentials under strict identity bindings.",
-    mitigates: "SQL injections, broken row-level security (BRLS), and unauthenticated access leaks."
+    purpose: "Enterprise Database: Holds structured business data records under strict relational constraint schemas and row-level access controls.",
+    mitigates: "Mismatched records, SQL injections, and horizontal data visibility breaches."
   },
   9: {
     name: "Vector DB",
-    purpose: "Semantic Vector Database: Houses company holidays, handbooks, and knowledge embeddings for semantic RAG lookups.",
-    mitigates: "Hallucinations, context poisoning, and out-of-boundary cloud lookups."
+    purpose: "Semantic Store: Indexes and retrieves high-dimensional document embeddings, providing contextually relevant facts for Retrieval-Augmented Generation (RAG) pipelines.",
+    mitigates: "Semantic hallucinations, outdated knowledge retrieval, and data grounding issues."
   }
 };
 
