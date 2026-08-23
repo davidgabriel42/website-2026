@@ -516,65 +516,58 @@ const GuardrailPage = () => {
         </header>
 
         {/* 
-          2. MAIN WORKFLOW CANVAS (Row 2 - Height ~46% - Large aspect ratio scaling!)
-          Taller, significantly enlarged 3-row connected orthogonal graph.
-          All nodes expanded exactly to width: 140px; height: 70px; under a highly wide aspect ratio!
-          This mathematically guarantees that the boxes are giant but never cut off physically.
+          2. MAIN WORKFLOW CANVAS (Row 2 - Height ~57% - Giant merged Canvas!)
+          Hosts the full AGENT CONTROL FLOW STATE MACHINE with the merged Translucent Active Node Inspector
+          pinned directly at the bottom inside this card container!
         */}
-        <section className="bg-base-200 border border-base-300 p-4 rounded-xl shadow h-[46%] flex flex-col justify-between flex-shrink-0 overflow-hidden">
-          <div className="flex justify-between items-center border-b border-base-300 pb-1 mb-1">
-            <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
-              PANEL 1: AGENTIC WORKFLOW & CONTROL PLANE (Visual Node Pipeline)
+        <section className="bg-base-200 border border-base-300 rounded-xl shadow h-[57%] flex flex-col justify-between flex-shrink-0 overflow-hidden relative">
+          <div className="flex justify-between items-center border-b border-base-300 p-4 pb-2 mb-1 flex-shrink-0 select-none">
+            <span className="text-[10.5px] font-black text-primary uppercase tracking-widest block">
+              AGENT CONTROL FLOW STATE MACHINE
             </span>
             <span className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold select-none">
               Click nodes below to inspect security specifications
             </span>
           </div>
 
-          {/* Responsive inline SVG layout representing a clean 3-row connected security proxy */}
-          <div className="bg-base-300/40 rounded-xl border border-base-300 flex items-center justify-center p-2 relative flex-1">
-            <svg viewBox="0 0 1220 320" className="w-full h-auto max-h-[300px] pointer-events-auto overflow-visible">
+          {/* SVG Flowchart viewport (Expanded to 320 coordinate view, completely collision-free!) */}
+          <div className="flex-1 bg-base-300/40 flex items-center justify-center p-3 relative overflow-hidden">
+            <svg viewBox="0 0 1220 320" className="w-full h-auto max-h-[260px] pointer-events-auto overflow-visible mb-6">
               
               {/* 
                 ROW 1 CONNECTION LINES (Orthogonal Happy Path Y: 55 center) 
                 M (nodeA.right, 55) L (nodeB.left, 55)
               */}
-              {/* Prompt Box (Node 0) -> Ingress Edge (Node 1) */}
               <path 
                 d="M 150 55 L 202 55" 
                 stroke={isSimulating && currentStage === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#2B3548'} 
                 strokeWidth={isSimulating && currentStage === 1 ? '3.5' : '2.5'} 
                 className={isSimulating && currentStage === 1 ? 'stroke-dash' : ''} 
               />
-              {/* Ingress Edge (Node 1) -> Tokenizer (Node 2) */}
               <path 
                 d="M 342 55 L 374 55" 
                 stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[0] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Tokenizer (Node 2) -> Intent Guard (Node 3) */}
               <path 
                 d="M 514 55 L 546 55" 
                 stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[1] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Intent Guard (Node 3) -> Agent Core (Node 4) */}
               <path 
                 d="M 686 55 L 718 55" 
                 stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[2] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Agent Core (Node 4) -> Egress Auditor (Node 5) */}
               <path 
                 d="M 858 55 L 890 55" 
                 stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth={stageStatuses[3] === 'running' ? '3.5' : '2.5'} 
                 className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Egress Auditor (Node 5) -> Sanitised Output (Node 6) */}
               <path 
                 d="M 1030 55 L 1062 55" 
                 stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#2B3548'} 
@@ -593,13 +586,26 @@ const GuardrailPage = () => {
                 className={stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
               />
               
-              {/* Agent Core (Node 4 Y: 20) bottom-center (788, 90) -> Tool Gateway (Node 5 Y: 130) top-center (788, 130) */}
+              {/* 
+                RE-ACT BIDIRECTIONAL DUAL-PATH LOOP (Node 4 to Node 5 Y: 90 to 130) 
+                Down Path: Agent Core to Tool Gateway left-half (753, 90) -> (753, 130)
+              */}
               <path 
-                d="M 788 90 L 788 130" 
+                d="M 753 90 L 753 130" 
                 stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'running' || stageStatuses[4] === 'blocked' ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 className={stageStatuses[3] === 'passed' && currentStage === 5 ? 'stroke-dash' : ''}
               />
+              <text x="748" y="112" textAnchor="end" fill="#64748b" className="text-[8px] font-black select-none tracking-wider uppercase font-mono">Action: Tool Call</text>
+              
+              {/* Up Path: Tool Gateway back up to Agent Core right-half (823, 130) -> (823, 90) */}
+              <path 
+                d="M 823 130 L 823 90" 
+                stroke={stageStatuses[4] === 'passed' ? '#10b981' : '#2B3548'} 
+                strokeWidth="3.5" 
+                className={stageStatuses[4] === 'passed' ? 'stroke-dash' : ''}
+              />
+              <text x="828" y="112" textAnchor="start" fill="#64748b" className="text-[8px] font-black select-none tracking-wider uppercase font-mono">Observation: Payload</text>
 
 
               {/* 
@@ -802,65 +808,57 @@ const GuardrailPage = () => {
             </svg>
           </div>
 
-        </section>
-
-        {/* 
-          3. STAGE DETAIL & PURPOSE PANEL (Row 3 - Height ~14%)
-          Displays the currently active node's purpose and its active state transformations!
-        */}
-        <section className="bg-base-200 border border-base-300 p-3.5 rounded-xl shadow h-[14%] flex flex-col justify-between flex-shrink-0 overflow-hidden select-none">
-          <span className="text-[10px] font-black text-primary uppercase tracking-widest block border-b border-base-300 pb-1 mb-1">
-            PANEL 3: STAGE DETAIL & THREAT SPECIFICATION
-          </span>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1 items-center">
+          {/* 
+            4. MERGED ACTIVE STAGE INSPECTOR BAR
+            Translucent slate container with blur filters, pinned directly at the bottom inside this card!
+          */}
+          <div className="absolute bottom-0 inset-x-0 bg-slate-900/90 backdrop-blur-md border-t border-slate-700/80 p-3 flex flex-row items-center justify-between gap-4 h-[55px] flex-shrink-0 select-none text-xs font-sans">
             
-            {/* Stage Name Block (md:col-3) */}
-            <div className="md:col-span-3 border-r border-base-300 pr-4 flex flex-col gap-1">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-none">Active Observability Node:</span>
-              <span className="text-sm font-black text-primary uppercase leading-tight">
-                {NODE_SPECIFICATIONS[inspectedNode]?.name}
+            {/* Inspector Left Column: Active Observability Stage Info */}
+            <div className="flex flex-row items-center gap-3 w-[60%]">
+              <span className="bg-primary/20 text-primary border border-primary/30 rounded px-1.5 py-0.5 text-[9px] font-black tracking-widest uppercase flex-shrink-0">
+                Active Node: {NODE_SPECIFICATIONS[inspectedNode]?.name}
               </span>
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none">
-                State: {isSimulating && currentStage === inspectedNode ? "ACTIVE SCANNING" : "MONITORING"}
-              </span>
+              <p className="text-slate-300 truncate font-semibold leading-none text-[11px]">
+                <span className="text-slate-500 uppercase font-black tracking-wider text-[9px] mr-1">Purpose:</span> 
+                {NODE_SPECIFICATIONS[inspectedNode]?.purpose.split(':')[1]?.trim() || NODE_SPECIFICATIONS[inspectedNode]?.purpose}
+              </p>
             </div>
 
-            {/* Stage Purpose Block (md:col-5) */}
-            <div className="md:col-span-5 border-r border-base-300 pr-4 px-3 text-xs leading-relaxed text-base-content/85 font-semibold">
-              <p className="font-extrabold text-[9px] text-slate-500 uppercase tracking-wider mb-0.5 leading-none">Mitigation Purpose:</p>
-              <p className="leading-snug text-slate-200">{NODE_SPECIFICATIONS[inspectedNode]?.purpose}</p>
-            </div>
-
-            {/* Stage Active State Translation (md:col-4) (Rule C structured JSON displays) */}
-            <div className="md:col-span-4 pl-3 text-[11px] leading-relaxed text-base-content/75 flex flex-col gap-1 justify-center">
-              <span className="font-extrabold text-[9px] text-slate-500 uppercase tracking-wider block leading-none">Active Stage Transformation:</span>
+            {/* Inspector Right Column: Live Node Transformations Payload */}
+            <div className="flex flex-row items-center justify-end gap-3 w-[40%] text-right font-mono text-[10px]">
               
               {inspectedNode === 2 && inputGuardrailTokenized ? (
-                <div className="flex flex-col gap-0.5 leading-none mt-1">
-                  <div className="flex justify-between text-[10px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">Raw Ingress:</span> <span className="font-mono truncate max-w-[140px] font-bold">{inputGuardrailRaw}</span></div>
-                  <div className="flex justify-between text-[10px] pt-0.5"><span className="text-success uppercase font-extrabold">Scrubbed:</span> <span className="font-mono truncate max-w-[140px] text-emerald-400 font-bold">{inputGuardrailTokenized}</span></div>
+                <div className="flex flex-row items-center gap-2 max-w-full truncate leading-none">
+                  <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">Raw Ingress:</span>
+                  <span className="bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-slate-400 truncate max-w-[80px] font-bold mr-1">
+                    {inputGuardrailRaw}
+                  </span>
+                  <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">Scrubbed:</span>
+                  <span className="bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-emerald-400 truncate max-w-[80px] font-bold">
+                    {inputGuardrailTokenized}
+                  </span>
                 </div>
               ) : inspectedNode === 6 && egressGuardrailResponse ? (
-                <div className="flex flex-col gap-0.5 leading-none mt-1">
-                  <div className="flex justify-between text-[10px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">SLM Draft:</span> <span className="font-mono truncate max-w-[140px] font-bold">{slmRawResponse}</span></div>
-                  <div className="flex justify-between text-[10px] pt-0.5"><span className="text-success uppercase font-extrabold">Sanitised:</span> <span className="font-mono truncate max-w-[140px] text-emerald-400 font-bold">{egressGuardrailResponse}</span></div>
+                <div className="flex flex-row items-center gap-2 max-w-full truncate leading-none">
+                  <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">SLM Draft:</span>
+                  <span className="bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-slate-400 truncate max-w-[80px] font-bold mr-1">
+                    {slmRawResponse}
+                  </span>
+                  <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">Sanitised:</span>
+                  <span className="bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-emerald-400 truncate max-w-[80px] font-bold">
+                    {egressGuardrailResponse}
+                  </span>
                 </div>
               ) : (inspectedNode === 5 || inspectedNode === 4) && authzContext.scope !== 'N/A' ? (
-                <div className="flex flex-col gap-0.5 mt-0.5 leading-tight font-mono text-[9px]">
-                  {/* Rule C: Structured JSON tool parameters displays */}
-                  <div className="text-[8px] text-amber-400 font-bold">SLM Tool Call:</div>
-                  <div className="bg-slate-900 border border-slate-800 rounded p-1 text-[8px] truncate leading-none">
+                <div className="flex flex-row items-center gap-2 max-w-full truncate leading-none">
+                  <span className="text-slate-500 font-extrabold uppercase text-[8px] tracking-wider">Active Payload:</span>
+                  <span className="bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-amber-400 truncate max-w-[200px] font-bold">
                     {`{"tool": "fetch_user_record", "args": {"user_id": "${prompt.toLowerCase().includes("jane") ? "USER_02" : "USER_01"}"}}`}
-                  </div>
-                  <div className="text-[8px] text-emerald-400 font-bold mt-1">Gateway AuthZ Check:</div>
-                  <div className="bg-slate-900 border border-slate-800 rounded p-1 text-[8px] truncate leading-none">
-                    {`Evaluating Guest Session against Scope [${prompt.toLowerCase().includes("jane") ? "USER_02" : "USER_01"}:READ] -> ${
-                      authzTargetViolated ? "DENIED" : "ALLOWED"
-                    }`}
-                  </div>
+                  </span>
                 </div>
               ) : (
-                <span className="italic text-slate-500 select-none block mt-1 text-[11px]">
+                <span className="italic text-slate-500 text-[10px] select-none block truncate">
                   No transformations active at this node. Mitigating baseline threat signatures...
                 </span>
               )}
@@ -868,19 +866,20 @@ const GuardrailPage = () => {
             </div>
 
           </div>
+
         </section>
 
         {/* 
-          4. SPLIT VIEW: DATA VAULT & AUDIT LOGS (Row 4 - Height ~28%)
-          Equal columns positioned side-by-side, each internally scrolling to prevent viewport breaking!
+          5. SPLIT BOTTOM CONTAINER (Row 3 - Height ~30% - Equal columns positioned side-by-side)
+          Holds Left secrets database vault and Right terminal syslog stream.
         */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[28%] flex-shrink-0 overflow-hidden mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[30%] flex-shrink-0 overflow-hidden mb-2">
           
-          {/* Left Box: Protected Database & Row-Level Authorization */}
+          {/* Left Box: Protected Database & Row-Level Authorization (Secrets Vault DB) */}
           <div className="bg-base-200 border border-base-300 p-4 rounded-xl shadow flex flex-col overflow-hidden">
-            <div className="flex justify-between items-center select-none border-b border-base-300 pb-1.5 mb-2">
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
-                PANEL 2: DATA VAULT & ACCESS CONTROL (Secrets Database Vault)
+            <div className="flex justify-between items-center select-none border-b border-base-300 pb-1.5 mb-2 flex-shrink-0">
+              <span className="text-[10.5px] font-black text-primary uppercase tracking-widest block">
+                SECRETS VAULT & ACCESS CONTROL
               </span>
               <span className="badge badge-neutral badge-xs font-bold tracking-wider px-2 py-0.5">
                 ROW_LEVEL_SECURITY: ON
@@ -983,11 +982,11 @@ const GuardrailPage = () => {
             </div>
           </div>
 
-          {/* Right Box: Streamed Zero-Trust Syslog */}
+          {/* Right Box: Streamed Zero-Trust Syslog (Console Log) */}
           <div className="bg-black/90 border border-slate-800 p-4 rounded-xl shadow-2xl flex flex-col overflow-hidden font-mono text-xs">
-            <div className="bg-slate-900 border-b border-slate-800 px-4 py-1.5 flex justify-between items-center select-none mb-2">
+            <div className="bg-slate-900 border-b border-slate-800 px-4 py-1.5 flex justify-between items-center select-none mb-2 flex-shrink-0">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                PANEL 4: REAL-TIME ZERO-TRUST AUDIT STREAM
+                CONSOLE LOG
               </span>
               <span className="badge badge-neutral text-[8px] font-bold tracking-wider select-none px-2 py-0.5">SYSLOG // FEED</span>
             </div>
