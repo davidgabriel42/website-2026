@@ -375,9 +375,9 @@ const GuardrailPage = () => {
         {/* 
           1. STICKY TOP HEADER (Row 1 - Height ~14%)
           Strict, horizontal, non-wrapping row containing Title, Scenario Pills, and Input Form.
-          All three items have flex-shrink-0 to prevent horizontal wrapping or squishing.
+          The input forms and buttons are fully flexible and auto-scalable to prevent clipping!
         */}
-        <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-4 py-3 rounded-xl shadow gap-4 h-[14%] flex-shrink-0 overflow-hidden flex-nowrap">
+        <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-4 py-3 rounded-xl shadow gap-4 h-[14%] flex-shrink-0 flex-nowrap">
           
           {/* Header Column 1: Title block (flex-shrink-0) */}
           <div className="flex-shrink-0">
@@ -422,15 +422,15 @@ const GuardrailPage = () => {
             </div>
           </div>
 
-          {/* Header Column 3: Ingress Query & Run (flex-shrink-0, strict flex-row) */}
-          <form onSubmit={executePipeline} className="flex-shrink-0 flex items-center gap-2 flex-row flex-nowrap">
+          {/* Header Column 3: Ingress Query & Run (Highly responsive flex, auto-shrinks query box) */}
+          <form onSubmit={executePipeline} className="flex-shrink flex-1 flex items-center gap-2 flex-row flex-nowrap justify-end min-w-[150px]">
             <input
               type="text"
               placeholder="Query input string..."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               disabled={isSimulating}
-              className="input input-bordered input-sm bg-base-100 text-xs font-bold w-48 md:w-64 focus:outline-none focus:border-primary flex-shrink-0"
+              className="input input-bordered input-sm bg-base-100 text-xs font-bold w-full max-w-[240px] focus:outline-none focus:border-primary flex-shrink min-w-[70px]"
             />
             <Button
               type="submit"
