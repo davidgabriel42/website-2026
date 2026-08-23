@@ -5,7 +5,7 @@ const PRESET_PROMPTS = [
   {
     id: 'benign',
     label: "🟢 Benign Query",
-    text: "Summarize David Gabriel's software experience.",
+    text: "when are the company holidays",
     role: "guest",
     desc: "A harmless biography search that completely clears all layers."
   },
@@ -99,9 +99,14 @@ const NODE_SPECIFICATIONS = {
     mitigates: "Model hijackings, downstream cloud-token leakages, and unnecessary compute spends."
   },
   8: {
-    name: "DB",
-    purpose: "Secure Secrets Database: Holds row-level encrypted mock records under strict identity authorization bindings.",
-    mitigates: "Broken Row-Level Security (BRLS), unauthenticated lookup leakages, and data breaches."
+    name: "Relational DB",
+    purpose: "SQL Database: Stores structured employee records and row-level encrypted mock credentials under strict identity bindings.",
+    mitigates: "SQL injections, broken row-level security (BRLS), and unauthenticated access leaks."
+  },
+  9: {
+    name: "Vector DB",
+    purpose: "Semantic Vector Database: Houses company holidays, handbooks, and knowledge embeddings for semantic RAG lookups.",
+    mitigates: "Hallucinations, context poisoning, and out-of-boundary cloud lookups."
   }
 };
 
@@ -114,8 +119,8 @@ const GuardrailPage = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [currentStage, setCurrentStage] = useState(0); // 0 to 6
   
-  // Statuses for the 8 flowchart checkpoints: 'idle', 'running', 'passed', 'blocked', 'warning'
-  const [stageStatuses, setStageStatuses] = useState(['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
+  // Statuses for the 9 flowchart checkpoints: 'idle', 'running', 'passed', 'blocked', 'warning'
+  const [stageStatuses, setStageStatuses] = useState(['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
   const [riskScore, setRiskScore] = useState(0);
   
   // Manual node click inspection index (1 to 8). Defaults to active pipeline stage during running.
@@ -156,7 +161,7 @@ const GuardrailPage = () => {
     setPrompt(preset.text);
     setSelectedRole(preset.role);
     setRiskScore(0);
-    setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
+    setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
     setAuthzTargetViolated(null);
     setCurrentStage(0);
     addLog(`Loaded preset: "${preset.label}"`, 'info');
@@ -188,7 +193,7 @@ const GuardrailPage = () => {
   const runPipelineStep = (step, isNewStart = false) => {
     let currentStatuses = [...stageStatuses];
     if (isNewStart) {
-      currentStatuses = ['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle'];
+      currentStatuses = ['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle'];
       setTerminalLogs([]);
       setInputGuardrailRaw(prompt);
       setInputGuardrailTokenized('');
@@ -309,6 +314,7 @@ const GuardrailPage = () => {
           addLog(`[12:00:03] [AUTHZ_GATEWAY] BLOCK: Guest/User role lacks permission scope [PII:READ] on USER_02.SSN.`, "error");
           addLog(`[12:00:03] [AUTHZ_GATEWAY] RLS Blockade: Denied access to Object [USER_02] due to Least-Privilege policy.`, "error");
           currentStatuses[4] = 'blocked';
+          currentStatuses[7] = 'blocked'; // Relational DB blocked!
           currentStatuses[6] = 'blocked'; // TERMINATE Node triggers!
           setAuthzTargetViolated('USER_02');
           setRiskScore(92);
@@ -317,6 +323,7 @@ const GuardrailPage = () => {
         } else if (requiresJohn && selectedRole === 'guest') {
           addLog(`[12:00:03] [AUTHZ_GATEWAY] BLOCK: Guest role lacks permission scope [PII:READ]. Request dropped.`, "error");
           currentStatuses[4] = 'blocked';
+          currentStatuses[7] = 'blocked'; // Relational DB blocked!
           currentStatuses[6] = 'blocked'; // TERMINATE Node triggers!
           setAuthzTargetViolated('USER_01');
           setRiskScore(92);
@@ -326,14 +333,16 @@ const GuardrailPage = () => {
           if (selectedRole === 'executive' && requiresJane) {
             addLog(`[12:00:02] [AUTHZ_GATEWAY] Scope validated: EXECUTIVE authorized for [ROLE_ADMIN].`, "success");
             addLog("[12:00:02] [INBOUND_SCRUBBER] Cleansing fetched DB record context... NO_INJECTIONS_FOUND", "success");
+            currentStatuses[7] = 'passed'; // Relational DB green!
           } else if (selectedRole === 'employee' && requiresJohn) {
             addLog(`[12:00:02] [AUTHZ_GATEWAY] Scope validated: EMPLOYEE authorized for [ROLE_USER].`, "success");
             addLog("[12:00:02] [INBOUND_SCRUBBER] Cleansing fetched DB record context... NO_INJECTIONS_FOUND", "success");
+            currentStatuses[7] = 'passed'; // Relational DB green!
           } else {
             addLog(`[12:00:02] [AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
+            currentStatuses[8] = 'passed'; // Vector DB green!
           }
           currentStatuses[4] = 'passed';
-          currentStatuses[7] = 'passed'; // Secrets DB node green!
           setStageStatuses([...currentStatuses]);
         }
       }, 300);
@@ -356,8 +365,8 @@ const GuardrailPage = () => {
           addLog(`[12:00:03] [GUARDRAIL:OUT] Egress status: CLEARED (Privileged clearance confirmed).`, "success");
           currentStatuses[5] = 'passed';
         } else {
-          setSlmRawResponse("Here is a summary of David Gabriel's 13 years of engineering experience...");
-          setEgressGuardrailResponse("Here is a summary of David Gabriel's 13 years of engineering experience...");
+          setSlmRawResponse("The company holidays for 2026 are New Year's Day, Memorial Day, Independence Day, Labor Day, Thanksgiving, and Christmas.");
+          setEgressGuardrailResponse("The company holidays for 2026 are New Year's Day, Memorial Day, Independence Day, Labor Day, Thanksgiving, and Christmas.");
           addLog(`[12:00:03] [GUARDRAIL:OUT] Egress status: CLEARED (F)`, "success");
           currentStatuses[5] = 'passed';
         }
@@ -609,13 +618,22 @@ const GuardrailPage = () => {
 
 
               {/* 
-                ROW 3 VERTICAL VAULT CONNECTION (Y: 200 to 240) 
-                Tool Gateway (Node 5 Y: 130) bottom-center (788, 200) -> Secrets Vault DB (Node 8 Y: 240) top-center (788, 240)
+                ROW 3 SPLIT DATABASE CONNECTIONS (Y: 200 to 240 - Split Tool Gateway to Dual DBs!) 
               */}
+              {/* Left Path: Tool Gateway bottom-center (788, 200) -> Relational DB top-center (700, 240) */}
               <path 
-                d="M 788 200 L 788 240" 
+                d="M 788 200 L 788 215 L 700 215 L 700 240" 
                 stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
                 strokeWidth="3.5" 
+                fill="none"
+                className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
+              />
+              {/* Right Path: Tool Gateway bottom-center (788, 200) -> Vector DB top-center (872, 240) */}
+              <path 
+                d="M 788 200 L 788 215 L 872 215 L 872 240" 
+                stroke={stageStatuses[8] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
+                strokeWidth="3.5" 
+                fill="none"
                 className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
               />
 
@@ -788,20 +806,41 @@ const GuardrailPage = () => {
               {/* 
                 ROW 3 DATA INFRASTRUCTURE (Y: 240 to 310, Height: 70) 
               */}
-              {/* Node 8: SECRETS VAULT DB */}
-              <foreignObject x="718" y="240" width="140" height="70" className="overflow-visible">
+              {/* Node 8: Relational DB */}
+              <foreignObject x="630" y="240" width="140" height="70" className="overflow-visible">
                 <div 
                   onClick={() => setInspectedNode(8)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
-                    stageStatuses[7] === 'passed'
-                      ? 'border-emerald-500 bg-emerald-500/10'
-                      : stageStatuses[4] === 'blocked'
-                        ? 'border-rose-500 bg-rose-500/10'
-                        : 'border-[#2B3548] bg-[#0b1329] hover:border-slate-500'
+                    inspectedNode === 8
+                      ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]'
+                      : stageStatuses[7] === 'passed'
+                        ? 'border-emerald-500 bg-emerald-500/10'
+                        : stageStatuses[4] === 'blocked'
+                          ? 'border-rose-500 bg-rose-500/10'
+                          : 'border-[#2B3548] bg-[#0b1329] hover:border-slate-500 text-slate-200'
                   }`}
                 >
-                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">DB</span>
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Relational DB</span>
                   <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Concurrent DB</span>
+                </div>
+              </foreignObject>
+
+              {/* Node 9: Vector DB */}
+              <foreignObject x="802" y="240" width="140" height="70" className="overflow-visible">
+                <div 
+                  onClick={() => setInspectedNode(9)}
+                  className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
+                    inspectedNode === 9
+                      ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]'
+                      : stageStatuses[8] === 'passed'
+                        ? 'border-emerald-500 bg-emerald-500/10'
+                        : stageStatuses[4] === 'blocked'
+                          ? 'border-rose-500 bg-rose-500/10'
+                          : 'border-[#2B3548] bg-[#0b1329] hover:border-slate-500 text-slate-200'
+                  }`}
+                >
+                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Vector DB</span>
+                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">RAG Memory</span>
                 </div>
               </foreignObject>
 
