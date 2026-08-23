@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// Mock list of 5 prompt scenarios to showcase security layers
+// Mock list of 6 prompt scenarios to showcase security layers
 const PRESET_PROMPTS = [
   {
     id: 'benign',
@@ -15,6 +15,13 @@ const PRESET_PROMPTS = [
     text: "What is John Doe's social security number?",
     role: "employee",
     desc: "Restricted Employee requesting restricted access, triggering redactors."
+  },
+  {
+    id: 'egress_leak',
+    label: "⚠️ Egress Data Leak",
+    text: "Write a summary of the quarterly HR budget report for the engineering team.",
+    role: "employee",
+    desc: "Vulnerability OWASP LLM06: Model improperly attends to system prompts and leaks secrets at Egress."
   },
   {
     id: 'authz_violation',
@@ -211,6 +218,7 @@ const GuardrailPage = () => {
     const hasEmail = emailRegex.test(prompt);
     const requiresJane = q.includes("jane") || q.includes("smith") || q.includes("user_02");
     const requiresJohn = q.includes("john") || q.includes("doe") || q.includes("user_01");
+    const requiresEgressLeak = q.includes("budget") || q.includes("hr");
 
     if (step === 1) {
       currentStatuses[0] = 'running';
@@ -334,7 +342,7 @@ const GuardrailPage = () => {
             addLog(`[12:00:02] [AUTHZ_GATEWAY] Scope validated: EXECUTIVE authorized for [ROLE_ADMIN].`, "success");
             addLog("[12:00:02] [INBOUND_SCRUBBER] Cleansing fetched DB record context... NO_INJECTIONS_FOUND", "success");
             currentStatuses[7] = 'passed'; // Relational DB green!
-          } else if (selectedRole === 'employee' && requiresJohn) {
+          } else if (selectedRole === 'employee' && (requiresJohn || requiresEgressLeak)) {
             addLog(`[12:00:02] [AUTHZ_GATEWAY] Scope validated: EMPLOYEE authorized for [ROLE_USER].`, "success");
             addLog("[12:00:02] [INBOUND_SCRUBBER] Cleansing fetched DB record context... NO_INJECTIONS_FOUND", "success");
             currentStatuses[7] = 'passed'; // Relational DB green!
@@ -364,6 +372,14 @@ const GuardrailPage = () => {
           setEgressGuardrailResponse("The decrypted SSN for USER_02 is [123-45-6789].");
           addLog(`[12:00:03] [GUARDRAIL:OUT] Egress status: CLEARED (Privileged clearance confirmed).`, "success");
           currentStatuses[5] = 'passed';
+        } else if (requiresEgressLeak) {
+          setSlmRawResponse("The engineering budget is $1.2M. Internal trace: sk_live_99823_x7z");
+          setEgressGuardrailResponse("The engineering team's quarterly budget is $1.2M across 12 headcount. [REDACTED: Output contained internal system secret signature].");
+          addLog("[12:00:04] [AGENT_CORE] ReAct Loop Complete. Draft completion sent to Egress.", "info");
+          addLog("[12:00:05] [EGRESS_AUDITOR] Scanning completion payload (Entropy Analysis + Regex Rules)...", "info");
+          addLog("[12:00:05] [EGRESS_AUDITOR] 🚨 BLOCK: Detected API Secret Pattern [sk_live_***] in model output.", "error");
+          addLog("[12:00:05] [EGRESS_AUDITOR] Payload Sanitized. Stripped 1 secret token. Egress Status: REDACTED (200 OK)", "warning");
+          currentStatuses[5] = 'warning'; // Egress Auditor lights up amber!
         } else {
           setSlmRawResponse("The company holidays for 2026 are New Year's Day, Memorial Day, Independence Day, Labor Day, Thanksgiving, and Christmas.");
           setEgressGuardrailResponse("The company holidays for 2026 are New Year's Day, Memorial Day, Independence Day, Labor Day, Thanksgiving, and Christmas.");
@@ -466,7 +482,7 @@ const GuardrailPage = () => {
           {/* Header Column 2: Scenario preset pills (flex-shrink-0, strict two-row grid) */}
           <div className="flex flex-col gap-1 items-start flex-shrink-0">
             <div className="flex gap-1 flex-nowrap">
-              {PRESET_PROMPTS.slice(0, 2).map((preset) => (
+              {PRESET_PROMPTS.slice(0, 3).map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => handleLoadPreset(preset)}
@@ -478,7 +494,7 @@ const GuardrailPage = () => {
               ))}
             </div>
             <div className="flex gap-1 flex-nowrap">
-              {PRESET_PROMPTS.slice(2).map((preset) => (
+              {PRESET_PROMPTS.slice(3).map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => handleLoadPreset(preset)}
