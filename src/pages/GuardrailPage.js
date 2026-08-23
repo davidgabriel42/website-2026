@@ -100,10 +100,10 @@ const NODE_SPECIFICATIONS = {
 const GuardrailPage = () => {
   const [prompt, setPrompt] = useState('');
   const [selectedRole, setSelectedRole] = useState('guest'); // guest vs employee vs executive
-  const piiPolicy = 'redact'; // static policy evaluation
   
   // Simulation Pipeline States
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [currentStage, setCurrentStage] = useState(0); // 0 to 5
   
   // Statuses for the 6 flowchart checkpoints: 'idle', 'running', 'passed', 'blocked', 'warning'
@@ -147,220 +147,245 @@ const GuardrailPage = () => {
     if (isSimulating) return;
     setPrompt(preset.text);
     setSelectedRole(preset.role);
+    setRiskScore(0);
+    setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
+    setAuthzTargetViolated(null);
+    setCurrentStage(0);
     addLog(`Loaded preset: "${preset.label}"`, 'info');
   };
 
-  const executePipeline = async (e) => {
-    if (e) e.preventDefault();
-    if (!prompt.trim() || isSimulating) return;
+  // State-driven step manager watching isSimulating, isPaused, and currentStage
+  useEffect(() => {
+    if (!isSimulating || isPaused) return;
 
-    setIsSimulating(true);
-    setCurrentStage(0);
-    setRiskScore(0);
-    setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
-    setTerminalLogs([]);
-    
-    setInputGuardrailRaw('');
-    setInputGuardrailTokenized('');
-    setSlmRawResponse('');
-    setEgressGuardrailResponse('');
-    setAuthzContext({ user: 'N/A', scope: 'N/A' });
-    setAuthzTargetViolated(null);
+    const timer = setTimeout(() => {
+      if (currentStage < 5) {
+        const nextStep = currentStage + 1;
+        setCurrentStage(nextStep);
+        runPipelineStep(nextStep, false);
+      } else {
+        // Complete!
+        setIsSimulating(false);
+        addLog("[AUDIT_LEDGER] Writing finalized transaction log to Audit Ledger.", "success");
+        const txHash = "0x" + Math.random().toString(16).substring(2, 10).toUpperCase() + "..." + Math.random().toString(16).substring(2, 6).toUpperCase();
+        addLog(`[AUDIT_LEDGER] Ledger transaction hashed successfully: ${txHash}`, "success");
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSimulating, isPaused, currentStage]);
+
+  // Executes side effects, logging, and evaluations for a single step
+  const runPipelineStep = (step, isNewStart = false) => {
+    let currentStatuses = [...stageStatuses];
+    if (isNewStart) {
+      currentStatuses = ['idle', 'idle', 'idle', 'idle', 'idle', 'idle'];
+      setTerminalLogs([]);
+      setInputGuardrailRaw(prompt);
+      setInputGuardrailTokenized('');
+      setSlmRawResponse('');
+      setEgressGuardrailResponse('');
+      setAuthzContext({ user: 'N/A', scope: 'N/A' });
+      setAuthzTargetViolated(null);
+      setRiskScore(0);
+    }
 
     const q = prompt.toLowerCase();
-    let failed = false;
-
-    // Helper sleep utility (1.5s delay per stage for complete visual observability!)
-    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-    // ==============================================================================
-    // STAGE 1: INGRESS_EDGE (Rate Limiting & Ingress Checks) - AST03
-    // ==============================================================================
-    setCurrentStage(1);
-    setStageStatuses(['running', 'idle', 'idle', 'idle', 'idle', 'idle']);
-    addLog("[INGRESS] Origin IP: Client. Rate limit check: INITIALIZED.", "info");
-    await sleep(1500);
-
-    addLog("[INGRESS] Rate limit check: PASSED (1/10 req/s)", "success");
-    addLog("[INGRESS] Gateway Header check: CLEARED. Ingress route secure.", "success");
-    setStageStatuses(['passed', 'idle', 'idle', 'idle', 'idle', 'idle']);
-    await sleep(400);
-
-    // ==============================================================================
-    // STAGE 2: TOKENIZER (PII & Secret Tokenization) - AST03
-    // ==============================================================================
-    setCurrentStage(2);
-    setStageStatuses(['passed', 'running', 'idle', 'idle', 'idle', 'idle']);
-    addLog("[TOKENIZER] Ingress Scanner initialized. Checking for secrets/PII...", "info");
-    setInputGuardrailRaw(prompt);
-    await sleep(1500);
-
     const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
-
     const hasSSN = ssnRegex.test(prompt);
     const hasEmail = emailRegex.test(prompt);
-
-    let tokenizedText = prompt;
-
-    if (hasSSN || hasEmail) {
-      if (piiPolicy === 'block') {
-        addLog(`[TOKENIZER] BLOCK: Ingress PII leakage policy set to "BLOCK REQUEST". Halting.`, "error");
-        setStageStatuses(['passed', 'blocked', 'idle', 'idle', 'idle', 'idle']);
-        setRiskScore(75);
-        failed = true;
-      } else {
-        addLog(`[TOKENIZER] Regex match identified [SSN_PATTERN]. Tokenizing...`, "warning");
-        
-        if (hasSSN) {
-          tokenizedText = tokenizedText.replace(ssnRegex, "<REDACTED_PII_SSN>");
-          addLog(`[TOKENIZER] SSN detected -> Swapped with Token <TOKEN_SSN_01>`, "warning");
-        }
-        if (hasEmail) {
-          tokenizedText = tokenizedText.replace(emailRegex, "<REDACTED_PII_EMAIL>");
-          addLog(`[TOKENIZER] Email detected -> Swapped with Token <TOKEN_EMAIL_01>`, "warning");
-        }
-
-        setInputGuardrailTokenized(tokenizedText);
-        setStageStatuses(['passed', 'warning', 'idle', 'idle', 'idle', 'idle']); // Yellow for tokenized
-      }
-    } else {
-      setInputGuardrailTokenized(prompt);
-      addLog("[TOKENIZER] No PII or credentials detected inside query string.", "success");
-      setStageStatuses(['passed', 'passed', 'idle', 'idle', 'idle', 'idle']);
-    }
-
-    if (failed) {
-      setIsSimulating(false);
-      return;
-    }
-    await sleep(400);
-
-    // ==============================================================================
-    // STAGE 3: INTENT_GUARD (Jailbreak & Prompt Injection Filter) - OWASP 1st Pillar
-    // ==============================================================================
-    setCurrentStage(3);
-    setStageStatuses([
-      stageStatuses[1], // Maintain tokenizer status (green or yellow)
-      stageStatuses[1],
-      'running',
-      'idle',
-      'idle',
-      'idle'
-    ]);
-    addLog("[GUARDRAIL:IN] Scanning input for direct/indirect prompt injection...", "info");
-    await sleep(1500);
-
-    const jailbreakPatterns = [
-      "ignore previous instructions",
-      "ignore all previous",
-      "overwrite rules",
-      "bypass instructions",
-      "master administrator",
-      "admin api key",
-      "system prompt",
-      "jailbreak",
-      "output code instead"
-    ];
-
-    const isJailbreak = jailbreakPatterns.some(pat => q.includes(pat));
-
-    if (isJailbreak) {
-      addLog(`[GUARDRAIL:IN] [ALERT] Prompt Injection Blocked. Threat signature matched.`, "error");
-      addLog(`[GUARDRAIL:IN] Threat Vector: "ignore/overwrite rules"`, "error");
-      setStageStatuses(['passed', stageStatuses[1], 'blocked', 'idle', 'idle', 'idle']);
-      setRiskScore(98);
-      failed = true;
-    } else {
-      addLog("[GUARDRAIL:IN] Scanning input for indirect prompt injection... NO_MATCH", "success");
-      setStageStatuses(['passed', stageStatuses[1], 'passed', 'idle', 'idle', 'idle']);
-    }
-
-    if (failed) {
-      setIsSimulating(false);
-      return;
-    }
-    await sleep(400);
-
-    // ==============================================================================
-    // STAGE 4: AGENT_CORE & TOOL_GATEWAY (SLM Reasoning & Database RBAC) - AST03
-    // ==============================================================================
-    setCurrentStage(4);
-    setStageStatuses(['passed', stageStatuses[1], 'passed', 'running', 'idle', 'idle']);
-    addLog(`[AUTHZ_GATEWAY] Evaluating scope for Role: ${selectedRole.toUpperCase()}...`, "info");
-    setAuthzContext({ user: selectedRole.toUpperCase(), scope: selectedRole === 'executive' ? 'ROLE_ADMIN (PRIVILEGED:READ)' : selectedRole === 'employee' ? 'ROLE_USER (RESTRICTED:READ)' : 'GUEST (PUBLIC:READ)' });
-    await sleep(1500);
-
     const requiresJane = q.includes("jane") || q.includes("smith") || q.includes("user_02");
     const requiresJohn = q.includes("john") || q.includes("doe") || q.includes("user_01");
 
-    if (requiresJane && selectedRole !== 'executive') {
-      // 403 Forbidden Access Violation targeting Jane Smith
-      addLog(`[AUTHZ_GATEWAY] BLOCK: Guest/User role lacks permission scope [PII:READ] on USER_02.SSN.`, "error");
-      addLog(`[AUTHZ_GATEWAY] RLS Blockade: Denied access to Object [USER_02] due to Least-Privilege policy.`, "error");
-      setStageStatuses(['passed', stageStatuses[1], 'passed', 'blocked', 'idle', 'idle']);
-      setRiskScore(92);
-      setAuthzTargetViolated('USER_02'); // Highlights USER_02 in red with a 403 overlay!
-      failed = true;
-    } else if (requiresJohn && selectedRole === 'guest') {
-      // Guest trying to read restricted employee John Doe
-      addLog(`[AUTHZ_GATEWAY] BLOCK: Guest role lacks permission scope [PII:READ]. Request dropped.`, "error");
-      setStageStatuses(['passed', stageStatuses[1], 'passed', 'blocked', 'idle', 'idle']);
-      setRiskScore(92);
-      setAuthzTargetViolated('USER_01'); // Highlights USER_01 in red with a 403 overlay!
-      failed = true;
+    if (step === 1) {
+      currentStatuses[0] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog("[INGRESS] Origin IP: Client. Rate limit check: INITIALIZED.", "info");
+      
+      // Let's passed Ingress Edge immediately
+      setTimeout(() => {
+        currentStatuses[0] = 'passed';
+        setStageStatuses([...currentStatuses]);
+        addLog("[INGRESS] Rate limit check: PASSED (1/10 req/s)", "success");
+        addLog("[INGRESS] Gateway Header check: CLEARED. Ingress route secure.", "success");
+      }, 300);
+    } 
+    else if (step === 2) {
+      currentStatuses[1] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog("[TOKENIZER] Ingress Scanner initialized. Checking for secrets/PII...", "info");
+
+      setTimeout(() => {
+        let tokenizedText = prompt;
+        if (hasSSN || hasEmail) {
+          addLog(`[TOKENIZER] Regex match identified [PII_PATTERN]. Tokenizing...`, "warning");
+          if (hasSSN) {
+            tokenizedText = tokenizedText.replace(ssnRegex, "<REDACTED_PII_SSN>");
+            addLog(`[TOKENIZER] SSN detected -> Swapped with Token <TOKEN_SSN_01>`, "warning");
+          }
+          if (hasEmail) {
+            tokenizedText = tokenizedText.replace(emailRegex, "<REDACTED_PII_EMAIL>");
+            addLog(`[TOKENIZER] Email detected -> Swapped with Token <TOKEN_EMAIL_01>`, "warning");
+          }
+          setInputGuardrailTokenized(tokenizedText);
+          currentStatuses[1] = 'warning';
+        } else {
+          setInputGuardrailTokenized(prompt);
+          addLog("[TOKENIZER] No PII or credentials detected inside query string.", "success");
+          currentStatuses[1] = 'passed';
+        }
+        setStageStatuses([...currentStatuses]);
+      }, 300);
+    } 
+    else if (step === 3) {
+      currentStatuses[2] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog("[GUARDRAIL:IN] Scanning input for direct/indirect prompt injection...", "info");
+
+      setTimeout(() => {
+        const jailbreakPatterns = [
+          "ignore previous instructions",
+          "ignore all previous",
+          "overwrite rules",
+          "bypass instructions",
+          "master administrator",
+          "admin api key",
+          "system prompt",
+          "jailbreak",
+          "output code instead"
+        ];
+        const isJailbreak = jailbreakPatterns.some(pat => q.includes(pat));
+
+        if (isJailbreak) {
+          addLog(`[GUARDRAIL:IN] [ALERT] Prompt Injection Blocked. Threat signature matched.`, "error");
+          addLog(`[GUARDRAIL:IN] Threat Vector: 'ignore/overwrite rules'`, "error");
+          currentStatuses[2] = 'blocked';
+          setStageStatuses([...currentStatuses]);
+          setRiskScore(98);
+          setIsSimulating(false); // Stop simulation immediately
+        } else {
+          addLog("[GUARDRAIL:IN] Scanning input for indirect prompt injection... NO_MATCH", "success");
+          currentStatuses[2] = 'passed';
+          setStageStatuses([...currentStatuses]);
+        }
+      }, 300);
+    } 
+    else if (step === 4) {
+      currentStatuses[3] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog(`[AUTHZ_GATEWAY] Evaluating scope for Role: ${selectedRole.toUpperCase()}...`, "info");
+      setAuthzContext({ user: selectedRole.toUpperCase(), scope: selectedRole === 'executive' ? 'ROLE_ADMIN (PRIVILEGED:READ)' : selectedRole === 'employee' ? 'ROLE_USER (RESTRICTED:READ)' : 'GUEST (PUBLIC:READ)' });
+
+      setTimeout(() => {
+        if (requiresJane && selectedRole !== 'executive') {
+          addLog(`[AUTHZ_GATEWAY] BLOCK: Guest/User role lacks permission scope [PII:READ] on USER_02.SSN.`, "error");
+          addLog(`[AUTHZ_GATEWAY] RLS Blockade: Denied access to Object [USER_02] due to Least-Privilege policy.`, "error");
+          currentStatuses[3] = 'blocked';
+          setAuthzTargetViolated('USER_02');
+          setRiskScore(92);
+          setIsSimulating(false); // Stop simulation immediately
+        } else if (requiresJohn && selectedRole === 'guest') {
+          addLog(`[AUTHZ_GATEWAY] BLOCK: Guest role lacks permission scope [PII:READ]. Request dropped.`, "error");
+          currentStatuses[3] = 'blocked';
+          setAuthzTargetViolated('USER_01');
+          setRiskScore(92);
+          setIsSimulating(false); // Stop simulation immediately
+        } else {
+          if (selectedRole === 'executive' && requiresJane) {
+            addLog(`[AUTHZ_GATEWAY] Scope validated: EXECUTIVE authorized for [ROLE_ADMIN].`, "success");
+            addLog(`[AUTHZ_GATEWAY] KEK Verified. Decrypting Object [USER_02] via AES-256.`, "success");
+          } else if (selectedRole === 'employee' && requiresJohn) {
+            addLog(`[AUTHZ_GATEWAY] Scope validated: EMPLOYEE authorized for [ROLE_USER].`, "success");
+          } else {
+            addLog(`[AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
+          }
+          currentStatuses[3] = 'passed';
+        }
+        setStageStatuses([...currentStatuses]);
+      }, 300);
+    } 
+    else if (step === 5) {
+      currentStatuses[4] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog("[GUARDRAIL:OUT] Sanitizing response payload...", "info");
+
+      setTimeout(() => {
+        if (requiresJohn) {
+          setSlmRawResponse("The SSN for USER_01 is 987-65-4321.");
+          setEgressGuardrailResponse("Policy [RESTRICT_PII] prevented the disclosure of SSN for USER_01.");
+          addLog(`[GUARDRAIL:OUT] Sanitizing response payload. Egress block: SLM attempted to leak raw SSN.`, "warning");
+          addLog(`[GUARDRAIL:OUT] Egress Block: Redacting sensitive token leakage from output generation.`, "warning");
+          currentStatuses[4] = 'warning';
+        } else if (requiresJane && selectedRole === 'executive') {
+          setSlmRawResponse("The SSN for USER_02 is 123-45-6789.");
+          setEgressGuardrailResponse("The decrypted SSN for USER_02 is [123-45-6789].");
+          addLog(`[GUARDRAIL:OUT] Egress status: CLEARED (Privileged clearance confirmed).`, "success");
+          currentStatuses[4] = 'passed';
+        } else {
+          setSlmRawResponse("Here is a summary of David Gabriel's 13 years of engineering experience...");
+          setEgressGuardrailResponse("Here is a summary of David Gabriel's 13 years of engineering experience...");
+          addLog(`[GUARDRAIL:OUT] Egress status: CLEARED (F)`, "success");
+          currentStatuses[4] = 'passed';
+        }
+        setStageStatuses([...currentStatuses]);
+      }, 300);
+    }
+  };
+
+  // Play button handler (Auto advance loop)
+  const handlePlay = () => {
+    if (!prompt.trim()) return;
+    if (!isSimulating) {
+      setIsSimulating(true);
+      setIsPaused(false);
+      setCurrentStage(1);
+      runPipelineStep(1, true);
     } else {
-      // Access granted (either Executive accessing Jane, Employee accessing John, or benign search)
-      if (selectedRole === 'executive' && requiresJane) {
-        addLog(`[AUTHZ_GATEWAY] Scope validated: EXECUTIVE authorized for [ROLE_ADMIN].`, "success");
-        addLog(`[AUTHZ_GATEWAY] KEK Verified. Decrypting Object [USER_02] via AES-256.`, "success");
-      } else if (selectedRole === 'employee' && requiresJohn) {
-        addLog(`[AUTHZ_GATEWAY] Scope validated: EMPLOYEE authorized for [ROLE_USER].`, "success");
+      setIsPaused(false);
+    }
+    addLog("[PLAYBACK] Play initialized. Auto-advancing pipeline at 1.5s intervals.", "info");
+  };
+
+  // Pause button handler
+  const handlePause = () => {
+    setIsPaused(true);
+    addLog("[PLAYBACK] Paused. Sandbox simulation suspended.", "warning");
+  };
+
+  // Next step handler (manual debugger stepper)
+  const handleNextStep = () => {
+    if (!prompt.trim()) return;
+    if (!isSimulating) {
+      setIsSimulating(true);
+      setIsPaused(true);
+      setCurrentStage(1);
+      runPipelineStep(1, true);
+      addLog("[PLAYBACK] Manual step-debug initialized. Traversed -> Ingress Edge Node.", "info");
+    } else {
+      if (currentStage < 5) {
+        const nextStep = currentStage + 1;
+        setCurrentStage(nextStep);
+        runPipelineStep(nextStep, false);
+        addLog(`[PLAYBACK] Debugger step -> Advanced to Stage ${nextStep}.`, "info");
       } else {
-        addLog(`[AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
+        setIsSimulating(false);
+        addLog("[AUDIT_LEDGER] Writing finalized transaction log to Audit Ledger.", "success");
+        const txHash = "0x" + Math.random().toString(16).substring(2, 10).toUpperCase() + "..." + Math.random().toString(16).substring(2, 6).toUpperCase();
+        addLog(`[AUDIT_LEDGER] Ledger transaction hashed successfully: ${txHash}`, "success");
       }
-      setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'idle', 'idle']);
     }
+  };
 
-    if (failed) {
-      setIsSimulating(false);
-      return;
-    }
-    await sleep(400);
-
-    // ==============================================================================
-    // STAGE 5: EGRESS_AUDITOR (Hallucination & Leakage Filter) - OWASP 2nd Pillar
-    // ==============================================================================
-    setCurrentStage(5);
-    setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'running', 'idle']);
-    addLog("[GUARDRAIL:OUT] Sanitizing response payload...", "info");
-    await sleep(1500);
-
-    // Mock SLM generation and Egress Redaction responses
-    if (requiresJohn) {
-      setSlmRawResponse("The SSN for USER_01 is 987-65-4321.");
-      setEgressGuardrailResponse("Policy [RESTRICT_PII] prevented the disclosure of SSN for USER_01.");
-      addLog(`[GUARDRAIL:OUT] Sanitizing response payload. Egress block: SLM attempted to leak raw SSN.`, "warning");
-      addLog(`[GUARDRAIL:OUT] Egress Block: Redacting sensitive token leakage from output generation.`, "warning");
-      setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'warning', 'passed']); // Yellow alert for redacted egress
-    } else if (requiresJane && selectedRole === 'executive') {
-      setSlmRawResponse("The SSN for USER_02 is 123-45-6789.");
-      setEgressGuardrailResponse("The decrypted SSN for USER_02 is [123-45-6789].");
-      addLog(`[GUARDRAIL:OUT] Egress status: CLEARED (Privileged clearance confirmed).`, "success");
-      setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'passed', 'passed']);
-    } else {
-      setSlmRawResponse("Here is a summary of David Gabriel's 13 years of full-stack engineering experience...");
-      setEgressGuardrailResponse("Here is a summary of David Gabriel's 13 years of full-stack engineering experience...");
-      addLog(`[GUARDRAIL:OUT] Egress status: CLEARED (F)`, "success");
-      setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'passed', 'passed']);
-    }
-
-    addLog("[AUDIT_LEDGER] Writing finalized transaction log to Audit Ledger.", "success");
-    const txHash = "0x" + Math.random().toString(16).substring(2, 10).toUpperCase() + "..." + Math.random().toString(16).substring(2, 6).toUpperCase();
-    addLog(`[AUDIT_LEDGER] Ledger transaction hashed successfully: ${txHash}`, "success");
-
-    setStageStatuses(['passed', stageStatuses[1], 'passed', 'passed', 'passed', 'passed']);
-    setIsSimulating(false);
+  // Trigger continuous run (Validate button)
+  const handleStartContinuous = (e) => {
+    if (e) e.preventDefault();
+    if (!prompt.trim() || isSimulating) return;
+    setIsSimulating(true);
+    setIsPaused(false);
+    setCurrentStage(1);
+    runPipelineStep(1, true);
   };
 
   return (
@@ -374,8 +399,7 @@ const GuardrailPage = () => {
         
         {/* 
           1. STICKY TOP HEADER (Row 1 - Height ~12%)
-          Strict, horizontal, non-wrapping row containing Title, Scenario Pills, and Validate Button.
-          The prompt input is moved out of here entirely to make the header perfectly clean!
+          Strict, horizontal, non-wrapping row containing Title, Scenario Pills, and Validate/Playback Controls.
         */}
         <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-4 py-3 rounded-xl shadow gap-4 h-[12%] flex-shrink-0 overflow-hidden flex-nowrap">
           
@@ -422,13 +446,54 @@ const GuardrailPage = () => {
             </div>
           </div>
 
-          {/* Header Column 3: Run Validation Action button (flex-shrink-0) */}
-          <div className="flex-shrink-0">
+          {/* Header Column 3: Run Validation & Playback Stepper controls */}
+          <div className="flex-shrink-0 flex items-center gap-3 flex-row flex-nowrap justify-end">
+            
+            {/* Retro Playback Controller Button Group */}
+            <div className="join border border-base-300 rounded-lg overflow-hidden bg-base-100 flex-shrink-0 select-none">
+              
+              {/* Play Button label |> */}
+              <button
+                onClick={handlePlay}
+                disabled={!prompt.trim() || (isSimulating && !isPaused)}
+                className={`btn btn-xs join-item px-3 font-mono text-[10px] font-black ${
+                  isSimulating && !isPaused ? 'btn-active btn-success text-white' : 'btn-ghost'
+                }`}
+                title="Play (Auto-Advance)"
+              >
+                |&gt;
+              </button>
+
+              {/* Pause Button label || */}
+              <button
+                onClick={handlePause}
+                disabled={!isSimulating || isPaused}
+                className={`btn btn-xs join-item px-3 font-mono text-[10px] font-black ${
+                  isSimulating && isPaused ? 'btn-active btn-warning text-slate-800' : 'btn-ghost'
+                }`}
+                title="Pause"
+              >
+                ||
+              </button>
+
+              {/* Next Step Button label -> */}
+              <button
+                onClick={handleNextStep}
+                disabled={!prompt.trim() || (isSimulating && !isPaused)}
+                className="btn btn-xs btn-ghost join-item px-3 font-mono text-[10px] font-black"
+                title="Next Step"
+              >
+                -&gt;
+              </button>
+
+            </div>
+
             <Button
-              onClick={() => executePipeline()}
+              onClick={(e) => handleStartContinuous(e)}
               disabled={isSimulating || !prompt.trim()}
+              className="flex-shrink-0"
             >
-              {isSimulating ? "Verifying..." : "Validate Ingress"}
+              {isSimulating ? "Running..." : "Validate Ingress"}
             </Button>
           </div>
 
