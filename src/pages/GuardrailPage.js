@@ -419,6 +419,22 @@ const GuardrailPage = () => {
     }
   };
 
+  const handleReset = () => {
+    setIsSimulating(false);
+    setIsPaused(false);
+    setCurrentStage(0);
+    setStageStatuses(['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle']);
+    setAuthzTargetViolated(null);
+    setRiskScore(0);
+    setTerminalLogs([]);
+    setInputGuardrailRaw('');
+    setInputGuardrailTokenized('');
+    setSlmRawResponse('');
+    setEgressGuardrailResponse('');
+    setAuthzContext({ user: 'N/A', scope: 'N/A' });
+    addLog("[PLAYBACK] Sandbox reset successfully. All metrics cleared.", "info");
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       {/* 
@@ -438,16 +454,13 @@ const GuardrailPage = () => {
           {/* Header Column 1: Title block (flex-shrink-0) */}
           <div className="flex-shrink-0">
             <h1 className="text-lg font-black text-base-content uppercase tracking-widest leading-none flex items-center gap-2">
-              Security Guardrail Visualiser
+              Agentic ReAct Guardrails
               {riskScore > 0 && (
                 <span className="badge badge-sm font-bold uppercase tracking-wider badge-error text-white animate-pulse">
                   Risk: {riskScore}%
                 </span>
               )}
             </h1>
-            <span className="text-[10px] text-primary font-bold uppercase tracking-widest block mt-1">
-              Zero-Trust AI Sandbox Proxy
-            </span>
           </div>
 
           {/* Header Column 2: Scenario preset pills (flex-shrink-0, strict two-row grid) */}
@@ -516,6 +529,15 @@ const GuardrailPage = () => {
                 title="Next Step"
               >
                 ⏭ Step
+              </button>
+
+              {/* Reset Button: standard Reset with label */}
+              <button
+                onClick={handleReset}
+                className="btn btn-xs btn-ghost join-item px-3 font-sans text-[10px] font-extrabold"
+                title="Reset to beginning"
+              >
+                ↺ Reset
               </button>
 
             </div>
