@@ -817,7 +817,7 @@ const GuardrailPage = () => {
                         ? 'border-emerald-500 bg-emerald-500/10'
                         : stageStatuses[4] === 'blocked'
                           ? 'border-rose-500 bg-rose-500/10'
-                          : 'border-[#2B3548] bg-[#0b1329] hover:border-slate-500 text-slate-200'
+                          : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
                   <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Relational DB</span>
@@ -836,7 +836,7 @@ const GuardrailPage = () => {
                         ? 'border-emerald-500 bg-emerald-500/10'
                         : stageStatuses[4] === 'blocked'
                           ? 'border-rose-500 bg-rose-500/10'
-                          : 'border-[#2B3548] bg-[#0b1329] hover:border-slate-500 text-slate-200'
+                          : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
                   <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Vector DB</span>
