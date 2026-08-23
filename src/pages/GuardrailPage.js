@@ -392,20 +392,21 @@ const GuardrailPage = () => {
     <Layout>
       {/* 
         ERGONOMIC SINGLE SCREEN VIEWPORT CONTAINER
-        Ensures all layout rows fit exactly on a 1080p screen with max-height 860px, 
-        completely eliminating page scrolling and maintaining static observability.
+        Ensures all layout rows fit exactly on a 1080p screen with max-height 860px.
+        Utilizes an expanded max-w-7xl px-4 grid to make all contents larger by default!
       */}
-      <div className="flex flex-col justify-between max-h-[860px] h-[85vh] w-full max-w-5xl mx-auto px-2 overflow-hidden select-none">
+      <div className="flex flex-col justify-between max-h-[860px] h-[85vh] w-full max-w-7xl mx-auto px-4 overflow-hidden select-none">
         
         {/* 
           1. STICKY TOP HEADER (Row 1 - Height ~12%)
-          Strict, horizontal, non-wrapping row containing Title, Scenario Pills, and Validate/Playback Controls.
+          Expanded horizontal flex row. Playback controls and Validate buttons have no overflow clipping,
+          ensuring they are 100% visible and accessible.
         */}
-        <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-4 py-3 rounded-xl shadow gap-4 h-[12%] flex-shrink-0 overflow-hidden flex-nowrap">
+        <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-5 py-3 rounded-xl shadow gap-4 h-[12%] flex-shrink-0 flex-nowrap">
           
           {/* Header Column 1: Title block (flex-shrink-0) */}
           <div className="flex-shrink-0">
-            <h1 className="text-base font-black text-base-content uppercase tracking-widest leading-none flex items-center gap-2">
+            <h1 className="text-lg font-black text-base-content uppercase tracking-widest leading-none flex items-center gap-2">
               Security Guardrail Visualiser
               {riskScore > 0 && (
                 <span className="badge badge-sm font-bold uppercase tracking-wider badge-error text-white animate-pulse">
@@ -413,7 +414,7 @@ const GuardrailPage = () => {
                 </span>
               )}
             </h1>
-            <span className="text-[9px] text-primary font-bold uppercase tracking-widest block mt-1">
+            <span className="text-[10px] text-primary font-bold uppercase tracking-widest block mt-1">
               Zero-Trust AI Sandbox Proxy
             </span>
           </div>
@@ -426,7 +427,7 @@ const GuardrailPage = () => {
                   key={preset.id}
                   onClick={() => handleLoadPreset(preset)}
                   disabled={isSimulating}
-                  className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2 py-0.5 h-auto leading-none select-none flex-shrink-0"
+                  className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2.5 py-1 h-auto leading-none select-none flex-shrink-0"
                 >
                   {preset.label}
                 </button>
@@ -438,7 +439,7 @@ const GuardrailPage = () => {
                   key={preset.id}
                   onClick={() => handleLoadPreset(preset)}
                   disabled={isSimulating}
-                  className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2 py-0.5 h-auto leading-none select-none flex-shrink-0"
+                  className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2.5 py-1 h-auto leading-none select-none flex-shrink-0"
                 >
                   {preset.label}
                 </button>
@@ -446,17 +447,17 @@ const GuardrailPage = () => {
             </div>
           </div>
 
-          {/* Header Column 3: Run Validation & Playback Stepper controls */}
+          {/* Header Column 3: Run Validation & Retro Playback controls (Always fully visible!) */}
           <div className="flex-shrink-0 flex items-center gap-3 flex-row flex-nowrap justify-end">
             
-            {/* Retro Playback Controller Button Group */}
+            {/* Retro Playback Controller Button Group (renders exact text symbols requested) */}
             <div className="join border border-base-300 rounded-lg overflow-hidden bg-base-100 flex-shrink-0 select-none">
               
-              {/* Play Button label |> */}
+              {/* Play Button: |> */}
               <button
                 onClick={handlePlay}
                 disabled={!prompt.trim() || (isSimulating && !isPaused)}
-                className={`btn btn-xs join-item px-3 font-mono text-[10px] font-black ${
+                className={`btn btn-xs join-item px-3.5 font-mono text-[10px] font-black ${
                   isSimulating && !isPaused ? 'btn-active btn-success text-white' : 'btn-ghost'
                 }`}
                 title="Play (Auto-Advance)"
@@ -464,11 +465,11 @@ const GuardrailPage = () => {
                 |&gt;
               </button>
 
-              {/* Pause Button label || */}
+              {/* Pause Button: || */}
               <button
                 onClick={handlePause}
                 disabled={!isSimulating || isPaused}
-                className={`btn btn-xs join-item px-3 font-mono text-[10px] font-black ${
+                className={`btn btn-xs join-item px-3.5 font-mono text-[10px] font-black ${
                   isSimulating && isPaused ? 'btn-active btn-warning text-slate-800' : 'btn-ghost'
                 }`}
                 title="Pause"
@@ -476,11 +477,11 @@ const GuardrailPage = () => {
                 ||
               </button>
 
-              {/* Next Step Button label -> */}
+              {/* Next Step Button: -> */}
               <button
                 onClick={handleNextStep}
                 disabled={!prompt.trim() || (isSimulating && !isPaused)}
-                className="btn btn-xs btn-ghost join-item px-3 font-mono text-[10px] font-black"
+                className="btn btn-xs btn-ghost join-item px-3.5 font-mono text-[10px] font-black"
                 title="Next Step"
               >
                 -&gt;
@@ -491,7 +492,7 @@ const GuardrailPage = () => {
             <Button
               onClick={(e) => handleStartContinuous(e)}
               disabled={isSimulating || !prompt.trim()}
-              className="flex-shrink-0"
+              className="flex-shrink-0 btn-sm text-[11px] font-black uppercase tracking-wider px-4"
             >
               {isSimulating ? "Running..." : "Validate Ingress"}
             </Button>
@@ -501,15 +502,14 @@ const GuardrailPage = () => {
 
         {/* 
           2. MAIN WORKFLOW CANVAS (Row 2 - Height ~40%)
-          Taller, dual-row parallel grid pipeline. 
-          Double the size of each node box for extreme readability and visual premium flow!
+          Taller, enlarged dual-row parallel grid pipeline. Renders the double-row connected security nodes.
         */}
-        <section className="bg-base-200 border border-base-300 p-3 rounded-xl shadow h-[40%] flex flex-col justify-between flex-shrink-0 overflow-hidden">
+        <section className="bg-base-200 border border-base-300 p-4 rounded-xl shadow h-[40%] flex flex-col justify-between flex-shrink-0 overflow-hidden">
           <div className="flex justify-between items-center border-b border-base-300 pb-1 mb-1">
-            <span className="text-[9px] font-black text-primary uppercase tracking-widest block">
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
               PANEL 1: AGENTIC WORKFLOW & CONTROL PLANE (Visual Node Pipeline)
             </span>
-            <span className="text-[8px] text-slate-500 uppercase tracking-wider font-extrabold select-none">
+            <span className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold select-none">
               Click nodes below to inspect security specifications
             </span>
           </div>
@@ -518,24 +518,19 @@ const GuardrailPage = () => {
           <div className="bg-base-300/40 rounded-xl border border-base-300 flex items-center justify-center p-2 relative flex-1">
             <svg viewBox="0 0 760 180" className="w-full h-auto max-h-[170px] pointer-events-auto">
               
-              {/* 
-                ROW 1 CONNECTION LINES (Y: 42.5) 
-              */}
-              {/* Prompt Box (Node 0) -> Ingress Edge (Node 1) */}
+              {/* ROW 1 CONNECTION LINES (Y: 42.5) */}
               <path 
                 d="M 160 42.5 L 200 42.5" 
                 stroke={isSimulating && currentStage === 1 ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#475569'} 
                 strokeWidth="3" 
                 className={isSimulating && currentStage === 1 ? 'stroke-dash' : ''} 
               />
-              {/* Ingress Edge (Node 1) -> Tokenizer (Node 2) */}
               <path 
                 d="M 320 42.5 L 360 42.5" 
                 stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#475569'} 
                 strokeWidth="3" 
                 className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Tokenizer (Node 2) -> Intent Guard (Node 3) */}
               <path 
                 d="M 480 42.5 L 520 42.5" 
                 stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#475569'} 
@@ -543,11 +538,7 @@ const GuardrailPage = () => {
                 className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''} 
               />
 
-              {/* 
-                ROW-TO-ROW WINDING CONNECTION CURVE 
-                Loops out from Node 3's right side, runs back left horizontally in the 25px gap, 
-                and enters Node 4's left side beautifully. 
-              */}
+              {/* ROW-TO-ROW WINDING CONNECTION CURVE */}
               <path 
                 d="M 640 42.5 Q 680 42.5, 680 67.5 T 640 92.5 L 40 92.5 Q 10 92.5, 10 112.5 T 20 132.5" 
                 stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#475569'} 
@@ -556,24 +547,19 @@ const GuardrailPage = () => {
                 className={stageStatuses[2] === 'running' ? 'stroke-dash' : stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''} 
               />
 
-              {/* 
-                ROW 2 CONNECTION LINES (Y: 132.5) 
-              */}
-              {/* Agent Core (Node 4) -> Tool Gateway (Node 5) */}
+              {/* ROW 2 CONNECTION LINES (Y: 132.5) */}
               <path 
                 d="M 140 132.5 L 200 132.5" 
                 stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
                 strokeWidth="3" 
                 className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Tool Gateway (Node 5) -> Egress Auditor (Node 6) */}
               <path 
                 d="M 340 132.5 L 380 132.5" 
                 stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} 
                 strokeWidth="3" 
                 className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
               />
-              {/* Egress Auditor (Node 6) -> Output Release Target */}
               <path 
                 d="M 520 132.5 L 560 132.5" 
                 stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'warning' ? '#10b981' : stageStatuses[4] === 'running' ? '#3b82f6' : '#475569'} 
@@ -581,10 +567,6 @@ const GuardrailPage = () => {
                 className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''} 
               />
 
-
-              {/* 
-                ROW 1 NODES (Y: 10 to 75, Height: 65) 
-              */}
               {/* Node 0: USER PROMPT INGRESS (Taller multi-line textarea embedded via foreignObject) */}
               <foreignObject x="20" y="10" width="140" height="65">
                 <textarea
@@ -616,10 +598,6 @@ const GuardrailPage = () => {
                 <text x="580" y="52" textAnchor="middle" fill={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : stageStatuses[2] === 'blocked' ? '#ef4444' : '#94a3b8'} className="text-[10px] font-black uppercase tracking-widest leading-none">Guard</text>
               </g>
 
-
-              {/* 
-                ROW 2 NODES (Y: 100 to 165, Height: 65) 
-              */}
               {/* Node 4: AGENT_CORE (SLM) */}
               <g onClick={() => setInspectedNode(4)} className="cursor-pointer">
                 <rect x="20" y="100" width="120" height="65" rx="8" fill="#1e293b" stroke={inspectedNode === 4 ? '#3b82f6' : stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : stageStatuses[3] === 'blocked' ? '#ef4444' : '#475569'} strokeWidth={inspectedNode === 4 ? '3.5' : '2'} className={stageStatuses[3] === 'running' ? 'animate-pulse' : stageStatuses[3] === 'blocked' ? 'stroke-blink' : ''} />
@@ -673,8 +651,8 @@ const GuardrailPage = () => {
           3. STAGE DETAIL & PURPOSE PANEL (Row 3 - Height ~16%)
           Displays the currently active node's purpose and its active state transformations!
         */}
-        <section className="bg-base-200 border border-base-300 p-3 rounded-xl shadow h-[16%] flex flex-col justify-between flex-shrink-0 overflow-hidden select-none">
-          <span className="text-[9px] font-black text-primary uppercase tracking-widest block border-b border-base-300 pb-1 mb-1">
+        <section className="bg-base-200 border border-base-300 p-3.5 rounded-xl shadow h-[16%] flex flex-col justify-between flex-shrink-0 overflow-hidden select-none">
+          <span className="text-[10px] font-black text-primary uppercase tracking-widest block border-b border-base-300 pb-1 mb-1">
             PANEL 3: STAGE DETAIL & THREAT SPECIFICATION
           </span>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1 items-center">
@@ -685,39 +663,39 @@ const GuardrailPage = () => {
               <span className="text-sm font-black text-primary uppercase leading-tight">
                 {NODE_SPECIFICATIONS[inspectedNode]?.name}
               </span>
-              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none">
                 State: {isSimulating && currentStage === inspectedNode ? "ACTIVE SCANNING" : "MONITORING"}
               </span>
             </div>
 
             {/* Stage Purpose Block (md:col-5) */}
-            <div className="md:col-span-5 border-r border-base-300 pr-4 px-2 text-[11px] leading-relaxed text-base-content/85 font-semibold">
+            <div className="md:col-span-5 border-r border-base-300 pr-4 px-3 text-xs leading-relaxed text-base-content/85 font-semibold">
               <p className="font-extrabold text-[9px] text-slate-500 uppercase tracking-wider mb-0.5 leading-none">Mitigation Purpose:</p>
-              <p className="leading-snug">{NODE_SPECIFICATIONS[inspectedNode]?.purpose}</p>
+              <p className="leading-snug text-slate-200">{NODE_SPECIFICATIONS[inspectedNode]?.purpose}</p>
             </div>
 
             {/* Stage Active State Translation (md:col-4) */}
-            <div className="md:col-span-4 pl-2 text-[10px] leading-relaxed text-base-content/75 flex flex-col gap-1 justify-center">
+            <div className="md:col-span-4 pl-3 text-[11px] leading-relaxed text-base-content/75 flex flex-col gap-1 justify-center">
               <span className="font-extrabold text-[9px] text-slate-500 uppercase tracking-wider block leading-none">Active Stage Transformation:</span>
               
               {inspectedNode === 2 && inputGuardrailTokenized ? (
                 <div className="flex flex-col gap-0.5 leading-none mt-1">
-                  <div className="flex justify-between text-[9px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">Raw Ingress:</span> <span className="font-mono truncate max-w-[120px] font-bold">{inputGuardrailRaw}</span></div>
-                  <div className="flex justify-between text-[9px] pt-0.5"><span className="text-success uppercase font-extrabold">Scrubbed:</span> <span className="font-mono truncate max-w-[120px] text-emerald-400 font-bold">{inputGuardrailTokenized}</span></div>
+                  <div className="flex justify-between text-[10px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">Raw Ingress:</span> <span className="font-mono truncate max-w-[140px] font-bold">{inputGuardrailRaw}</span></div>
+                  <div className="flex justify-between text-[10px] pt-0.5"><span className="text-success uppercase font-extrabold">Scrubbed:</span> <span className="font-mono truncate max-w-[140px] text-emerald-400 font-bold">{inputGuardrailTokenized}</span></div>
                 </div>
               ) : inspectedNode === 6 && egressGuardrailResponse ? (
                 <div className="flex flex-col gap-0.5 leading-none mt-1">
-                  <div className="flex justify-between text-[9px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">SLM Draft:</span> <span className="font-mono truncate max-w-[120px] font-bold">{slmRawResponse}</span></div>
-                  <div className="flex justify-between text-[9px] pt-0.5"><span className="text-success uppercase font-extrabold">Sanitised:</span> <span className="font-mono truncate max-w-[120px] text-emerald-400 font-bold">{egressGuardrailResponse}</span></div>
+                  <div className="flex justify-between text-[10px] border-b border-base-300/40 pb-0.5"><span className="text-slate-500 uppercase font-extrabold">SLM Draft:</span> <span className="font-mono truncate max-w-[140px] font-bold">{slmRawResponse}</span></div>
+                  <div className="flex justify-between text-[10px] pt-0.5"><span className="text-success uppercase font-extrabold">Sanitised:</span> <span className="font-mono truncate max-w-[140px] text-emerald-400 font-bold">{egressGuardrailResponse}</span></div>
                 </div>
               ) : inspectedNode === 5 && authzContext.scope !== 'N/A' ? (
-                <div className="flex flex-col gap-0.5 mt-1 leading-tight font-mono text-[9px]">
+                <div className="flex flex-col gap-0.5 mt-1 leading-tight font-mono text-[10px]">
                   <div>Scope: <span className="text-emerald-400 font-bold">{authzContext.scope}</span></div>
                   <div>Database Target: <span className="text-primary font-bold">{prompt.toLowerCase().includes("jane") ? "USER_02 (Executive)" : prompt.toLowerCase().includes("john") ? "USER_01 (John)" : "PUBLIC:NONE"}</span></div>
                 </div>
               ) : (
-                <span className="italic text-slate-500 select-none block mt-1">
-                  No transformations active at this node. Mitigating baseline threat signatures...
+                <span className="italic text-slate-500 select-none block mt-1 text-[11px]">
+                  No transformations active at this node. Mitigating baseline thread signatures...
                 </span>
               )}
 
@@ -733,20 +711,20 @@ const GuardrailPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[32%] flex-shrink-0 overflow-hidden mb-2">
           
           {/* Left Box: Protected Database & Row-Level Authorization */}
-          <div className="bg-base-200 border border-base-300 p-3.5 rounded-xl shadow flex flex-col overflow-hidden">
-            <div className="flex justify-between items-center select-none border-b border-base-300 pb-1 mb-2">
-              <span className="text-[9px] font-black text-primary uppercase tracking-widest block">
+          <div className="bg-base-200 border border-base-300 p-4 rounded-xl shadow flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center select-none border-b border-base-300 pb-1.5 mb-2">
+              <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
                 PANEL 2: DATA VAULT & ACCESS CONTROL (Secrets Database Vault)
               </span>
-              <span className="badge badge-neutral text-[8px] font-bold tracking-wider">
+              <span className="badge badge-neutral badge-xs font-bold tracking-wider px-2 py-0.5">
                 ROW_LEVEL_SECURITY: ON
               </span>
             </div>
 
-            <div className="flex-1 overflow-y-auto rounded-lg border border-base-300 bg-base-100 p-1">
-              <table className="table table-xs table-compact w-full text-left font-mono text-[10px]">
+            <div className="flex-1 overflow-y-auto rounded-lg border border-base-300 bg-base-100 p-1.5">
+              <table className="table table-xs table-compact w-full text-left font-mono text-xs">
                 <thead>
-                  <tr className="bg-base-200 text-slate-400 text-[8px] font-black select-none border-b border-base-300">
+                  <tr className="bg-base-200 text-slate-400 text-[9px] font-black select-none border-b border-base-300">
                     <th>USER_ID</th>
                     <th>NAME</th>
                     <th>CLEARANCE</th>
@@ -776,7 +754,7 @@ const GuardrailPage = () => {
                         </td>
                         <td className="font-bold text-base-content">{row.name}</td>
                         <td>
-                          <span className="badge badge-neutral badge-xs uppercase text-[8px] font-black select-none">
+                          <span className="badge badge-neutral badge-xs uppercase text-[8px] font-black select-none px-1.5">
                             {row.role.split(' ')[0]}
                           </span>
                         </td>
@@ -788,7 +766,7 @@ const GuardrailPage = () => {
                           ) : (
                             <div className="flex items-center gap-1 select-none">
                               <span className="blur-[2px] text-slate-600 font-bold">987-XX</span>
-                              <span className="text-[8px] text-slate-500 font-extrabold">🔒 LOCK</span>
+                              <span className="text-[8px] text-slate-500 font-extrabold px-1 border border-slate-700 rounded bg-slate-900 leading-none">🔒 LOCK</span>
                             </div>
                           )}
                         </td>
@@ -800,7 +778,7 @@ const GuardrailPage = () => {
                           ) : (
                             <div className="flex items-center gap-1 select-none">
                               <span className="blur-[2px] text-slate-600 font-bold">$XX,XXX</span>
-                              <span className="text-[8px] text-slate-500 font-extrabold">🔒 LOCK</span>
+                              <span className="text-[8px] text-slate-500 font-extrabold px-1 border border-slate-700 rounded bg-slate-900 leading-none">🔒 LOCK</span>
                             </div>
                           )}
                         </td>
@@ -808,15 +786,15 @@ const GuardrailPage = () => {
                         {/* RLS Status */}
                         <td>
                           {isViolated ? (
-                            <span className="badge badge-error text-[8px] font-black tracking-widest uppercase text-white select-none">
+                            <span className="badge badge-error text-[9px] font-black tracking-widest uppercase text-white select-none px-2">
                               403_DENIED
                             </span>
                           ) : hasAccess ? (
-                            <span className="badge badge-success text-[8px] font-black tracking-widest uppercase text-white select-none">
+                            <span className="badge badge-success text-[9px] font-black tracking-widest uppercase text-white select-none px-2">
                               READ_ALLOW
                             </span>
                           ) : (
-                            <span className="badge badge-warning text-[8px] font-black tracking-widest uppercase text-slate-800 select-none">
+                            <span className="badge badge-warning text-[9px] font-black tracking-widest uppercase text-slate-800 select-none px-2">
                               RESTRICT
                             </span>
                           )}
@@ -825,7 +803,7 @@ const GuardrailPage = () => {
                         {/* Row level 403 blockade overlay */}
                         {isViolated && (
                           <div className="absolute inset-0 bg-rose-950/95 flex items-center justify-center border border-rose-500 z-10 select-none">
-                            <span className="text-[8px] font-black tracking-wider uppercase animate-pulse text-rose-300">
+                            <span className="text-[10px] font-black tracking-wider uppercase animate-pulse text-rose-300">
                               🚨 [DENIED] Violation of Least Privilege Policy: Role scope missing.
                             </span>
                           </div>
@@ -840,15 +818,15 @@ const GuardrailPage = () => {
           </div>
 
           {/* Right Box: Streamed Zero-Trust Syslog */}
-          <div className="bg-black/90 border border-slate-800 p-3.5 rounded-xl shadow-2xl flex flex-col overflow-hidden font-mono text-xs">
-            <div className="bg-slate-900 border-b border-slate-800 px-4 py-1 flex justify-between items-center select-none mb-2">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+          <div className="bg-black/90 border border-slate-800 p-4 rounded-xl shadow-2xl flex flex-col overflow-hidden font-mono text-xs">
+            <div className="bg-slate-900 border-b border-slate-800 px-4 py-1.5 flex justify-between items-center select-none mb-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 PANEL 4: REAL-TIME ZERO-TRUST AUDIT STREAM
               </span>
-              <span className="badge badge-neutral text-[8px] font-bold tracking-wider select-none">SYSLOG // FEED</span>
+              <span className="badge badge-neutral text-[8px] font-bold tracking-wider select-none px-2 py-0.5">SYSLOG // FEED</span>
             </div>
 
-            <div ref={terminalContainerRef} className="flex-1 overflow-y-auto flex flex-col gap-1 leading-relaxed text-[11px] p-1">
+            <div ref={terminalContainerRef} className="flex-1 overflow-y-auto flex flex-col gap-1 leading-relaxed text-[12px] p-1 text-slate-200">
               {terminalLogs.length === 0 ? (
                 <span className="text-slate-600 italic select-none">
                   Console idle. Awaiting ingress prompt validation trigger...
