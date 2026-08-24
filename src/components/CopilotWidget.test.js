@@ -39,7 +39,7 @@ describe('CopilotWidget UI Component', () => {
     expect(screen.queryByText('Portfolio Copilot')).not.toBeInTheDocument();
 
     // Click the text-based FAB button to re-open
-    const openBtn = screen.getByRole('button', { name: 'Copilot Chat' });
+    const openBtn = screen.getByRole('button', { name: 'Chat' });
     fireEvent.click(openBtn);
 
     // Verify chat is open again

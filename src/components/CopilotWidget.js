@@ -275,7 +275,7 @@ const CopilotWidget = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="btn btn-primary px-5 h-12 shadow-2xl hover:scale-105 transition-all duration-150 uppercase tracking-widest font-black text-xs text-white rounded-full flex items-center gap-1.5"
       >
-        {isOpen ? 'Close Chat' : 'Copilot Chat'}
+        {isOpen ? 'Close Chat' : 'Chat'}
       </button>
 
       {isOpen && (
