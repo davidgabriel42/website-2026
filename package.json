@@ -30,7 +30,8 @@
     "test": "craco test",
     "eject": "react-scripts eject",
     "tailwind:init": "tailwindcss init -p",
-    "compile-docs": "node scripts/compile-docs.js"
+    "compile-docs": "node scripts/compile-docs.js",
+    "prepare": "husky"
   },
   "eslintConfig": {
     "extends": [
