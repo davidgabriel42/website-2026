@@ -189,8 +189,15 @@ const GuardrailPage = () => {
     if (!isSimulating || isPaused) return;
 
     const timer = setTimeout(() => {
-      if (currentStage < 6) {
-        const nextStep = currentStage + 1;
+      const isToolCallNeeded = prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane") || prompt.toLowerCase().includes("budget");
+      
+      let nextStep = currentStage + 1;
+      // If no tool is needed, skip the entire ReAct loop (steps 5, 6, 7) and jump directly from step 4 to step 8 (Egress Auditor)
+      if (currentStage === 4 && !isToolCallNeeded) {
+        nextStep = 8;
+      }
+
+      if (currentStage < 8) {
         setCurrentStage(nextStep);
         runPipelineStep(nextStep, false);
       } else {
@@ -204,7 +211,7 @@ const GuardrailPage = () => {
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSimulating, isPaused, currentStage]);
+  }, [isSimulating, isPaused, currentStage, prompt]);
 
   // Executes side effects, logging, and evaluations for a single step
   const runPipelineStep = (step, isNewStart = false) => {
@@ -305,24 +312,27 @@ const GuardrailPage = () => {
       }, 300);
     } 
     else if (step === 4) {
-      // Stage 4: Agent Core (SLM reasoning)
+      // Stage 4: Agent Core (SLM reasoning - Initial Thought)
       currentStatuses[3] = 'running';
       setStageStatuses(currentStatuses);
       addLog("[12:00:02] [AGENT_CORE] Initializing local reasoning weights...", "info");
       
       setTimeout(() => {
-        if (requiresJohn || requiresJane || requiresEgressLeak) {
+        const isToolCallNeeded = requiresJohn || requiresJane || requiresEgressLeak;
+        if (isToolCallNeeded) {
           addLog("[12:00:02] [AGENT_CORE] Structured request identified. Formulating DB Tool Call Request...", "info");
+          // Core remains running since it decided to invoke the tool!
         } else {
           addLog("[12:00:02] [AGENT_CORE] Harmless query. No external tools requested.", "success");
+          currentStatuses[3] = 'passed';
         }
-        currentStatuses[3] = 'passed';
         setStageStatuses([...currentStatuses]);
       }, 300);
     }
     else if (step === 5) {
       // Stage 5: Tool Gateway & AuthZ Check (And DB infrastructure check)
-      currentStatuses[4] = 'running';
+      currentStatuses[3] = 'passed'; // Agent Core first thought passes
+      currentStatuses[4] = 'running'; // Tool Gateway is active
       setStageStatuses(currentStatuses);
       addLog(`[12:00:02] [AUTHZ_GATEWAY] Evaluating scope for Role: ${selectedRole.toUpperCase()}...`, "info");
       setAuthzContext({ user: selectedRole.toUpperCase(), scope: selectedRole === 'executive' ? 'ROLE_ADMIN (PRIVILEGED:READ)' : selectedRole === 'employee' ? 'ROLE_USER (RESTRICTED:READ)' : 'GUEST (PUBLIC:READ)' });
@@ -358,10 +368,6 @@ const GuardrailPage = () => {
             currentStatuses[7] = 'passed'; // Relational DB green!
           } else {
             addLog(`[12:00:02] [AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
-            addLog("[REACT_LOOP_1] Action: Tool call request sent to TOOL GATEWAY.", "info");
-            addLog("[REACT_LOOP_1] Observation: Retrieved context from Vector DB (2,048 tokens).", "success");
-            addLog("[INTENT_GUARD] Re-scanning updated context payload... NO_INDIRECT_INJECTION_DETECTED.", "success");
-            addLog("[REACT_LOOP_2] Agent proceeding with next thought step.", "info");
             currentStatuses[8] = 'passed'; // Vector DB green!
           }
           currentStatuses[4] = 'passed';
@@ -370,8 +376,39 @@ const GuardrailPage = () => {
       }, 300);
     } 
     else if (step === 6) {
-      // Stage 6: Egress Auditor final token validations
-      currentStatuses[5] = 'running';
+      // Stage 6: Intent Guard Re-Scan Loopback
+      currentStatuses[4] = 'passed'; // Tool Gateway finishes successfully
+      currentStatuses[2] = 'running'; // Intent Guard highlights blue a second time
+      setStageStatuses(currentStatuses);
+      
+      const dbType = requiresJane || requiresJohn ? "Relational DB" : "Vector DB";
+      addLog(`[REACT_LOOP_1] Action: Tool call request sent to TOOL GATEWAY.`, "info");
+      addLog(`[REACT_LOOP_1] Observation: Retrieved context from ${dbType} (${requiresJane || requiresJohn ? "196" : "2,048"} tokens).`, "success");
+      addLog("[INTENT_GUARD] Re-scanning updated context payload...", "info");
+
+      setTimeout(() => {
+        addLog("[INTENT_GUARD] Scanned context payload: NO_INDIRECT_INJECTIONS_DETECTED.", "success");
+        currentStatuses[2] = 'passed'; // Intent Guard turns green
+        setStageStatuses([...currentStatuses]);
+      }, 300);
+    }
+    else if (step === 7) {
+      // Stage 7: Agent Core (Final Thought)
+      currentStatuses[2] = 'passed'; // Intent Guard passes
+      currentStatuses[3] = 'running'; // Agent Core highlights blue a second time
+      setStageStatuses(currentStatuses);
+      addLog("[REACT_LOOP_2] Agent proceeding with next thought step.", "info");
+
+      setTimeout(() => {
+        addLog("[AGENT_CORE] ReAct Loop Complete. Draft completion sent to Egress Auditor.", "success");
+        currentStatuses[3] = 'passed'; // Agent Core turns green
+        setStageStatuses([...currentStatuses]);
+      }, 300);
+    }
+    else if (step === 8) {
+      // Stage 8: Egress Auditor final token validations
+      currentStatuses[3] = 'passed'; // Agent Core final thought passes
+      currentStatuses[5] = 'running'; // Egress Auditor highlights blue
       setStageStatuses(currentStatuses);
       addLog("[12:00:03] [GUARDRAIL:OUT] Sanitizing response payload...", "info");
 
@@ -389,7 +426,6 @@ const GuardrailPage = () => {
         } else if (requiresEgressLeak) {
           setSlmRawResponse("The engineering budget is $1.2M. Internal trace: sk_live_99823_x7z");
           setEgressGuardrailResponse("The engineering team's quarterly budget is $1.2M across 12 headcount. [REDACTED: Output contained internal system secret signature].");
-          addLog("[12:00:04] [AGENT_CORE] ReAct Loop Complete. Draft completion sent to Egress.", "info");
           addLog("[12:00:05] [EGRESS_AUDITOR] Scanning completion payload (Entropy Analysis + Regex Rules)...", "info");
           addLog("[12:00:05] [EGRESS_AUDITOR] 🚨 BLOCK: Detected API Secret Pattern [sk_live_***] in model output.", "error");
           addLog("[12:00:05] [EGRESS_AUDITOR] Payload Sanitized. Stripped 1 secret token. Egress Status: REDACTED (200 OK)", "warning");
@@ -435,8 +471,15 @@ const GuardrailPage = () => {
       runPipelineStep(1, true);
       addLog("[PLAYBACK] Manual step-debug initialized. Traversed -> Ingress Edge Node.", "info");
     } else {
-      if (currentStage < 6) {
-        const nextStep = currentStage + 1;
+      const isToolCallNeeded = prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane") || prompt.toLowerCase().includes("budget");
+      
+      let nextStep = currentStage + 1;
+      // If no tool is needed, skip the entire ReAct loop (steps 5, 6, 7) and jump directly from step 4 to step 8 (Egress Auditor)
+      if (currentStage === 4 && !isToolCallNeeded) {
+        nextStep = 8;
+      }
+
+      if (currentStage < 8) {
         setCurrentStage(nextStep);
         runPipelineStep(nextStep, false);
         addLog(`[PLAYBACK] Debugger step -> Advanced to Stage ${nextStep}.`, "info");
@@ -648,31 +691,30 @@ const GuardrailPage = () => {
               />
               <path 
                 d="M 356 55 L 412 55" 
-                stroke={stageStatuses[0] === 'passed' ? '#10b981' : stageStatuses[0] === 'running' ? '#3b82f6' : '#2B3548'} 
-                strokeWidth={stageStatuses[0] === 'running' ? '3.5' : '2.5'} 
-                className={stageStatuses[0] === 'running' ? 'stroke-dash' : ''} 
-                marker-end={stageStatuses[0] === 'running' ? "url(#arrow-blue)" : stageStatuses[0] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
+                stroke={currentStage === 2 ? '#3b82f6' : stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : '#2B3548'} 
+                strokeWidth={currentStage === 2 ? '3.5' : '2.5'} 
+                className={currentStage === 2 ? 'stroke-dash' : ''} 
+                marker-end={currentStage === 2 ? "url(#arrow-blue)" : stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               <path 
                 d="M 552 55 L 608 55" 
-                stroke={stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? '#10b981' : stageStatuses[1] === 'running' ? '#3b82f6' : '#2B3548'} 
-                strokeWidth={stageStatuses[1] === 'running' ? '3.5' : '2.5'} 
-                className={stageStatuses[1] === 'running' ? 'stroke-dash' : ''} 
-                marker-end={stageStatuses[1] === 'running' ? "url(#arrow-blue)" : stageStatuses[1] === 'passed' || stageStatuses[1] === 'warning' ? "url(#arrow-green)" : "url(#arrow-dark)"}
+                stroke={currentStage === 3 || currentStage === 7 ? '#3b82f6' : stageStatuses[2] === 'passed' ? '#10b981' : '#2B3548'} 
+                strokeWidth={currentStage === 3 || currentStage === 7 ? '3.5' : '2.5'} 
+                className={currentStage === 3 || currentStage === 7 ? 'stroke-dash' : ''} 
+                marker-end={currentStage === 3 || currentStage === 7 ? "url(#arrow-blue)" : stageStatuses[2] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               <path 
                 d="M 748 55 L 804 55" 
-                stroke={stageStatuses[2] === 'passed' ? '#10b981' : stageStatuses[2] === 'running' ? '#3b82f6' : '#2B3548'} 
-                strokeWidth={stageStatuses[2] === 'running' ? '3.5' : '2.5'} 
-                className={stageStatuses[2] === 'running' ? 'stroke-dash' : ''} 
-                marker-end={stageStatuses[2] === 'running' ? "url(#arrow-blue)" : stageStatuses[2] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
+                stroke={currentStage === 8 ? '#3b82f6' : stageStatuses[3] === 'passed' && currentStage >= 8 ? '#10b981' : '#2B3548'} 
+                strokeWidth={currentStage === 8 ? '3.5' : '2.5'} 
+                className={currentStage === 8 ? 'stroke-dash' : ''} 
+                marker-end={currentStage === 8 ? "url(#arrow-blue)" : stageStatuses[3] === 'passed' && currentStage >= 8 ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               <path 
                 d="M 944 55 L 1000 55" 
-                stroke={stageStatuses[3] === 'passed' ? '#10b981' : stageStatuses[3] === 'running' ? '#3b82f6' : '#2B3548'} 
-                strokeWidth={stageStatuses[3] === 'running' ? '3.5' : '2.5'} 
-                className={stageStatuses[3] === 'running' ? 'stroke-dash' : ''} 
-                marker-end={stageStatuses[3] === 'running' ? "url(#arrow-blue)" : stageStatuses[3] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
+                stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#2B3548'} 
+                strokeWidth="2.5" 
+                marker-end={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               <path 
                 d="M 1140 55 L 1160 55" 
@@ -700,20 +742,20 @@ const GuardrailPage = () => {
               */}
               <path 
                 d="M 713 90 L 713 120" 
-                stroke={stageStatuses[4] === 'passed' || stageStatuses[4] === 'running' || stageStatuses[4] === 'blocked' ? '#3b82f6' : '#2B3548'} 
+                stroke={currentStage === 4 || currentStage === 5 ? '#3b82f6' : stageStatuses[4] === 'passed' ? '#10b981' : '#2B3548'} 
                 strokeWidth="3.5" 
-                className={stageStatuses[3] === 'passed' && currentStage === 5 ? 'stroke-dash' : ''}
-                marker-end={stageStatuses[3] === 'passed' && currentStage === 5 ? "url(#arrow-blue)" : "url(#arrow-dark)"}
+                className={currentStage === 4 || currentStage === 5 ? 'stroke-dash' : ''}
+                marker-end={currentStage === 4 || currentStage === 5 ? "url(#arrow-blue)" : stageStatuses[4] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               
               {/* Up Path: Tool Gateway back up via Intent Guard bottom-right (643, 130) -> (643, 110) -> (482, 110) -> (482, 95) */}
               <path 
                 d="M 643 130 L 643 110 L 482 110 L 482 95" 
-                stroke={stageStatuses[4] === 'passed' ? '#10b981' : '#2B3548'} 
+                stroke={currentStage === 6 ? '#3b82f6' : stageStatuses[2] === 'passed' && currentStage >= 6 ? '#10b981' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
-                className={stageStatuses[4] === 'passed' ? 'stroke-dash' : ''}
-                marker-end={stageStatuses[4] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
+                className={currentStage === 6 ? 'stroke-dash' : ''}
+                marker-end={currentStage === 6 ? "url(#arrow-blue)" : stageStatuses[2] === 'passed' && currentStage >= 6 ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
 
 
@@ -723,20 +765,20 @@ const GuardrailPage = () => {
               {/* Left Path: Tool Gateway bottom-center (678, 200) -> Relational DB top-center (590, 240) */}
               <path 
                 d="M 678 200 L 678 215 L 590 215 L 590 232" 
-                stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
+                stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : currentStage === 5 ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
-                className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
-                marker-end={stageStatuses[7] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : "url(#arrow-dark)"}
+                className={currentStage === 5 ? 'stroke-dash' : ''}
+                marker-end={stageStatuses[7] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : currentStage === 5 ? "url(#arrow-blue)" : "url(#arrow-dark)"}
               />
               {/* Right Path: Tool Gateway bottom-center (678, 200) -> Vector DB top-center (762, 240) */}
               <path 
                 d="M 678 200 L 678 215 L 762 215 L 762 232" 
-                stroke={stageStatuses[8] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : '#2B3548'} 
+                stroke={stageStatuses[8] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : currentStage === 5 ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
-                className={stageStatuses[4] === 'running' ? 'stroke-dash' : ''}
-                marker-end={stageStatuses[8] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : "url(#arrow-dark)"}
+                className={currentStage === 5 ? 'stroke-dash' : ''}
+                marker-end={stageStatuses[8] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : currentStage === 5 ? "url(#arrow-blue)" : "url(#arrow-dark)"}
               />
 
 
@@ -795,7 +837,7 @@ const GuardrailPage = () => {
                 <div 
                   onClick={() => setInspectedNode(3)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
-                    currentStage === 3 
+                    currentStage === 3 || currentStage === 6
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
                       : stageStatuses[2] === 'blocked'
                         ? 'border-rose-500 bg-rose-500/10 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
@@ -817,7 +859,7 @@ const GuardrailPage = () => {
                 <div 
                   onClick={() => setInspectedNode(4)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
-                    currentStage === 4 
+                    currentStage === 4 || currentStage === 7
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
                       : stageStatuses[3] === 'passed' 
                         ? 'border-emerald-500 bg-emerald-500/10' 
@@ -834,7 +876,7 @@ const GuardrailPage = () => {
                 <div 
                   onClick={() => setInspectedNode(6)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
-                    currentStage === 6 
+                    currentStage === 8
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]' 
                       : stageStatuses[5] === 'warning'
                         ? 'border-amber-500 bg-amber-500/10'
