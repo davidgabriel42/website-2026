@@ -742,10 +742,10 @@ const GuardrailPage = () => {
               */}
               <path 
                 d="M 713 90 L 713 120" 
-                stroke={currentStage === 4 || currentStage === 5 ? '#3b82f6' : stageStatuses[4] === 'passed' ? '#10b981' : '#2B3548'} 
+                stroke={currentStage === 4 ? '#3b82f6' : currentStage >= 5 ? '#10b981' : '#2B3548'} 
                 strokeWidth="3.5" 
-                className={currentStage === 4 || currentStage === 5 ? 'stroke-dash' : ''}
-                marker-end={currentStage === 4 || currentStage === 5 ? "url(#arrow-blue)" : stageStatuses[4] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
+                className={currentStage === 4 ? 'stroke-dash' : ''}
+                marker-end={currentStage === 4 ? "url(#arrow-blue)" : currentStage >= 5 ? "url(#arrow-green)" : "url(#arrow-dark)"}
               />
               
               {/* Up Path: Tool Gateway back up via Intent Guard bottom-right (643, 130) -> (643, 110) -> (482, 110) -> (482, 95) */}
@@ -765,20 +765,20 @@ const GuardrailPage = () => {
               {/* Left Path: Tool Gateway bottom-center (678, 200) -> Relational DB top-center (590, 240) */}
               <path 
                 d="M 678 200 L 678 215 L 590 215 L 590 232" 
-                stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : currentStage === 5 ? '#3b82f6' : '#2B3548'} 
+                stroke={stageStatuses[7] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : currentStage === 5 && (prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
-                className={currentStage === 5 ? 'stroke-dash' : ''}
-                marker-end={stageStatuses[7] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : currentStage === 5 ? "url(#arrow-blue)" : "url(#arrow-dark)"}
+                className={currentStage === 5 && (prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? 'stroke-dash' : ''}
+                marker-end={stageStatuses[7] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : currentStage === 5 && (prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? "url(#arrow-blue)" : "url(#arrow-dark)"}
               />
               {/* Right Path: Tool Gateway bottom-center (678, 200) -> Vector DB top-center (762, 240) */}
               <path 
                 d="M 678 200 L 678 215 L 762 215 L 762 232" 
-                stroke={stageStatuses[8] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : currentStage === 5 ? '#3b82f6' : '#2B3548'} 
+                stroke={stageStatuses[8] === 'passed' ? '#10b981' : stageStatuses[4] === 'blocked' ? '#ef4444' : currentStage === 5 && !(prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
-                className={currentStage === 5 ? 'stroke-dash' : ''}
-                marker-end={stageStatuses[8] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : currentStage === 5 ? "url(#arrow-blue)" : "url(#arrow-dark)"}
+                className={currentStage === 5 && !(prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? 'stroke-dash' : ''}
+                marker-end={stageStatuses[8] === 'passed' ? "url(#arrow-green)" : stageStatuses[4] === 'blocked' ? "url(#arrow-red)" : currentStage === 5 && !(prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? "url(#arrow-blue)" : "url(#arrow-dark)"}
               />
 
 
@@ -947,13 +947,15 @@ const GuardrailPage = () => {
                 <div 
                   onClick={() => setInspectedNode(8)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
-                    inspectedNode === 8
+                    currentStage === 5 && (prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane"))
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]'
                       : stageStatuses[7] === 'passed'
                         ? 'border-emerald-500 bg-emerald-500/10'
                         : stageStatuses[4] === 'blocked'
                           ? 'border-rose-500 bg-rose-500/10'
-                          : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
+                          : inspectedNode === 8
+                            ? 'border-[#3b82f6]/40 bg-[#3b82f6]/5'
+                            : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
                   <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Relational DB</span>
@@ -966,13 +968,15 @@ const GuardrailPage = () => {
                 <div 
                   onClick={() => setInspectedNode(9)}
                   className={`w-full h-full border-2 rounded-lg p-2 flex flex-col justify-center cursor-pointer transition-all duration-300 select-none ${
-                    inspectedNode === 9
+                    currentStage === 5 && !(prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane"))
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(59,130,246,0.4)]'
                       : stageStatuses[8] === 'passed'
                         ? 'border-emerald-500 bg-emerald-500/10'
                         : stageStatuses[4] === 'blocked'
                           ? 'border-rose-500 bg-rose-500/10'
-                          : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
+                          : inspectedNode === 9
+                            ? 'border-[#3b82f6]/40 bg-[#3b82f6]/5'
+                            : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
                   <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Vector DB</span>
