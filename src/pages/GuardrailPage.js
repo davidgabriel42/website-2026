@@ -737,6 +737,24 @@ const GuardrailPage = () => {
                 className={stageStatuses[2] === 'blocked' ? 'stroke-blink' : ''}
                 marker-end={stageStatuses[2] === 'blocked' ? "url(#arrow-red)" : "url(#arrow-dark)"}
               />
+
+              {/* Vertical line: Ingress Edge bottom-center to Inbound Stream Panel */}
+              <path 
+                d="M 90 90 L 90 110" 
+                stroke={currentStage >= 1 && isSimulating ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#2B3548'} 
+                strokeWidth="2" 
+                strokeDasharray="3,3"
+                marker-end={currentStage >= 1 && isSimulating ? "url(#arrow-blue)" : stageStatuses[0] === 'passed' ? "url(#arrow-green)" : "url(#arrow-dark)"}
+              />
+
+              {/* Vertical line: Sanitised Output bottom-center to Outbound Stream Panel */}
+              <path 
+                d="M 1080 90 L 1080 110" 
+                stroke={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? '#10b981' : '#2B3548'} 
+                strokeWidth="2" 
+                strokeDasharray="3,3"
+                marker-end={stageStatuses[5] === 'passed' || stageStatuses[5] === 'warning' ? "url(#arrow-green)" : "url(#arrow-dark)"}
+              />
               
               {/* 
                 RE-ACT BIDIRECTIONAL DUAL-PATH LOOP (Node 4 to Node 5 Y: 90 to 130) 
@@ -812,6 +830,16 @@ const GuardrailPage = () => {
                 >
                   <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Ingress Edge</span>
                   <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Rate Limit / IP</span>
+                </div>
+              </foreignObject>
+
+              {/* Real-time Inbound Prompt Stream Panel */}
+              <foreignObject x="20" y="110" width="140" height="190">
+                <div className="w-full h-full border border-base-content/20 bg-black/60 rounded-lg p-2.5 flex flex-col font-mono text-[9px] text-slate-300 leading-normal select-text">
+                  <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">INBOUND PROMPT</span>
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin">
+                    {prompt ? prompt : <span className="italic text-slate-600 select-none">[Awaiting preset selection...]</span>}
+                  </div>
                 </div>
               </foreignObject>
 
@@ -897,6 +925,30 @@ const GuardrailPage = () => {
                 <div className="w-full h-full border-2 border-slate-800 bg-[#090d16] rounded-lg p-2 flex flex-col justify-center select-none transition-all duration-300">
                   <span className="text-[12px] font-black uppercase tracking-wider text-emerald-400 leading-none">Sanitised</span>
                   <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Egress Output</span>
+                </div>
+              </foreignObject>
+
+              {/* Real-time Sanitised Output Stream Panel */}
+              <foreignObject x="1000" y="110" width="160" height="190">
+                <div className={`w-full h-full border rounded-lg p-2.5 flex flex-col font-mono text-[9px] leading-normal select-text transition-all duration-300 ${
+                  stageStatuses[5] === 'warning'
+                    ? 'border-amber-500 bg-amber-950/20 text-amber-300'
+                    : stageStatuses[5] === 'passed'
+                      ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold'
+                      : 'border-base-content/20 bg-black/60 text-slate-400'
+                }`}>
+                  <span className="text-[8px] font-black uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">EGRESS COMPLETION</span>
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin">
+                    {egressGuardrailResponse ? (
+                      egressGuardrailResponse
+                    ) : stageStatuses[6] === 'blocked' || stageStatuses[4] === 'blocked' || stageStatuses[2] === 'blocked' ? (
+                      <span className="text-rose-400 font-black tracking-wide">[TERMINATED: Violation Intercepted]</span>
+                    ) : isSimulating && currentStage < 8 ? (
+                      <span className="italic text-slate-600 animate-pulse select-none">[Buffering model completion...]</span>
+                    ) : (
+                      <span className="italic text-slate-600 select-none">[No active stream released...]</span>
+                    )}
+                  </div>
                 </div>
               </foreignObject>
 
