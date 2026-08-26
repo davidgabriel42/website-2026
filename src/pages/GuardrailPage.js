@@ -738,9 +738,9 @@ const GuardrailPage = () => {
                 marker-end={stageStatuses[2] === 'blocked' ? "url(#arrow-red)" : "url(#arrow-dark)"}
               />
 
-              {/* Vertical line: Ingress Edge bottom-center to Inbound Stream Panel */}
+              {/* Vertical line: Inbound Stream Panel up into Ingress Edge */}
               <path 
-                d="M 90 90 L 90 110" 
+                d="M 90 110 L 90 90" 
                 stroke={currentStage >= 1 && isSimulating ? '#3b82f6' : stageStatuses[0] === 'passed' ? '#10b981' : '#2B3548'} 
                 strokeWidth="2" 
                 strokeDasharray="3,3"
