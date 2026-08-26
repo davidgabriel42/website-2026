@@ -189,10 +189,11 @@ const GuardrailPage = () => {
     if (!isSimulating || isPaused) return;
 
     const timer = setTimeout(() => {
-      const isToolCallNeeded = prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane") || prompt.toLowerCase().includes("budget");
+      const isJailbreak = prompt.toLowerCase().includes("ignore") || prompt.toLowerCase().includes("unrestricted");
+      const isToolCallNeeded = !isJailbreak;
       
       let nextStep = currentStage + 1;
-      // If no tool is needed, skip the entire ReAct loop (steps 5, 6, 7) and jump directly from step 4 to step 8 (Egress Auditor)
+      // If no tool is needed (e.g. jailbreak which terminates early), skip the ReAct loop and jump to egress/sink
       if (currentStage === 4 && !isToolCallNeeded) {
         nextStep = 8;
       }
@@ -471,10 +472,11 @@ const GuardrailPage = () => {
       runPipelineStep(1, true);
       addLog("[PLAYBACK] Manual step-debug initialized. Traversed -> Ingress Edge Node.", "info");
     } else {
-      const isToolCallNeeded = prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane") || prompt.toLowerCase().includes("budget");
+      const isJailbreak = prompt.toLowerCase().includes("ignore") || prompt.toLowerCase().includes("unrestricted");
+      const isToolCallNeeded = !isJailbreak;
       
       let nextStep = currentStage + 1;
-      // If no tool is needed, skip the entire ReAct loop (steps 5, 6, 7) and jump directly from step 4 to step 8 (Egress Auditor)
+      // If no tool is needed (e.g. jailbreak which terminates early), skip the ReAct loop and jump to egress/sink
       if (currentStage === 4 && !isToolCallNeeded) {
         nextStep = 8;
       }
