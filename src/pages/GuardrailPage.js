@@ -189,73 +189,221 @@ const GuardrailPage = () => {
     if (!isSimulating || isPaused) return;
 
     const timer = setTimeout(() => {
-      const isToolCallNeeded = prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane") || prompt.toLowerCase().includes("budget");
-      
-      let nextStep = currentStage + 1;
-      if (currentStage === 4 && !isToolCallNeeded) {
-        nextStep = 8;
-      }
-      
-      if (nextStep <= 8) {
+      if (currentStage < 6) {
+        const nextStep = currentStage + 1;
         setCurrentStage(nextStep);
-        runPipelineStep(nextStep);
+        runPipelineStep(nextStep, false);
       } else {
+        // Complete!
         setIsSimulating(false);
-        addLog("Simulation Complete.");
+        addLog("[AUDIT_LEDGER] Writing finalized transaction log to Audit Ledger.", "success");
+        const txHash = "0x" + Math.random().toString(16).substring(2, 10).toUpperCase() + "..." + Math.random().toString(16).substring(2, 6).toUpperCase();
+        addLog(`[AUDIT_LEDGER] Ledger transaction hashed successfully: ${txHash}`, "success");
       }
     }, 1500);
-    
+
     return () => clearTimeout(timer);
-  }, [isSimulating, isPaused, currentStage, prompt, runPipelineStep]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSimulating, isPaused, currentStage]);
 
-  const runPipelineStep = useCallback((step) => {
-    setStageStatuses(prevStatuses => {
-      const newStatuses = [...prevStatuses];
+  // Executes side effects, logging, and evaluations for a single step
+  const runPipelineStep = (step, isNewStart = false) => {
+    let currentStatuses = [...stageStatuses];
+    if (isNewStart) {
+      currentStatuses = ['idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle', 'idle'];
+      setTerminalLogs([]);
+      setInputGuardrailRaw(prompt);
+      setInputGuardrailTokenized('');
+      setSlmRawResponse('');
+      setEgressGuardrailResponse('');
+      setAuthzContext({ user: 'N/A', scope: 'N/A' });
+      setAuthzTargetViolated(null);
+      setRiskScore(0);
+    }
+
+    const q = prompt.toLowerCase();
+    const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
+    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+    const hasSSN = ssnRegex.test(prompt);
+    const hasEmail = emailRegex.test(prompt);
+    const requiresJane = q.includes("jane") || q.includes("smith") || q.includes("user_02");
+    const requiresJohn = q.includes("john") || q.includes("doe") || q.includes("user_01");
+    const requiresEgressLeak = q.includes("budget") || q.includes("hr");
+
+    if (step === 1) {
+      currentStatuses[0] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog("[12:00:01] [INGRESS] Origin IP: Client. Rate limit check: INITIALIZED.", "info");
       
-      // This is a simplified status update logic.
-      // A more robust implementation would handle states more granularly.
-      for (let i = 0; i < 9; i++) {
-        if (i < step -1) newStatuses[i] = 'passed';
-        else if (i === step - 1) newStatuses[i] = 'running';
-        else newStatuses[i] = 'idle';
-      }
-
-      // Handle the ReAct loop visual logic explicitly
-      if (step === 6) { // Intent Guard Re-Scan
-        newStatuses[4] = 'passed'; // Tool Gateway is done
-        newStatuses[2] = 'running'; // Intent Guard is now active
-      }
-      if (step === 7) { // Agent Core Final Thought
-        newStatuses[2] = 'passed'; // Intent Guard re-scan is done
-        newStatuses[3] = 'running'; // Agent Core is active again
-      }
-      if (step === 8) { // Egress
-        newStatuses[3] = 'passed'; // Agent Core's final thought is done
-        newStatuses[5] = 'running'; // Egress is active
-      }
-
-
-      addLog(`Step ${step}: ${NODE_SPECIFICATIONS[step]?.name || 'Unknown'} - Running`);
+      setTimeout(() => {
+        currentStatuses[0] = 'passed';
+        setStageStatuses([...currentStatuses]);
+        addLog("[12:00:01] [INGRESS] Rate limit check: PASSED (1/10 req/s)", "success");
+        addLog("[12:00:01] [INGRESS] Gateway Header check: CLEARED. Ingress route secure.", "success");
+      }, 300);
+    } 
+    else if (step === 2) {
+      currentStatuses[1] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog("[12:00:01] [TOKENIZER] Ingress Scanner initialized. Checking for secrets/PII...", "info");
 
       setTimeout(() => {
-        setStageStatuses(prev => {
-          const finalStatuses = [...prev];
-          const nodeIndex = {1:0, 2:1, 3:2, 4:3, 5:4, 6:2, 7:3, 8:5}[step];
-          if(nodeIndex !== undefined) finalStatuses[nodeIndex] = 'passed';
-          
-          if(step === 4 && !(prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane") || prompt.toLowerCase().includes("budget"))) {
-             finalStatuses[3] = 'passed';
+        let tokenizedText = prompt;
+        if (hasSSN || hasEmail) {
+          addLog(`[12:00:02] [TOKENIZER] Regex match identified [PII_PATTERN]. Tokenizing...`, "warning");
+          if (hasSSN) {
+            tokenizedText = tokenizedText.replace(ssnRegex, "<REDACTED_PII_SSN>");
+            addLog(`[12:00:02] [TOKENIZER] Regex match identified [SSN_PATTERN]. Tokenized -> <TOKEN_SSN_01>`, "warning");
           }
-          if(step === 8) {
-            finalStatuses[5] = 'passed';
+          if (hasEmail) {
+            tokenizedText = tokenizedText.replace(emailRegex, "<REDACTED_PII_EMAIL>");
+            addLog(`[12:00:02] [TOKENIZER] Regex match identified [EMAIL_PATTERN]. Tokenized -> <TOKEN_EMAIL_01>`, "warning");
           }
-          return finalStatuses;
-        });
-      }, 1400);
+          setInputGuardrailTokenized(tokenizedText);
+          currentStatuses[1] = 'warning';
+        } else {
+          setInputGuardrailTokenized(prompt);
+          addLog("[12:00:01] [TOKENIZER] No PII or credentials detected inside query string.", "success");
+          currentStatuses[1] = 'passed';
+        }
+        setStageStatuses([...currentStatuses]);
+      }, 300);
+    } 
+    else if (step === 3) {
+      currentStatuses[2] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog("[12:00:01] [GUARDRAIL:IN] Scanning input for direct/indirect prompt injection...", "info");
 
-      return newStatuses;
-    });
-  }, [prompt]);
+      setTimeout(() => {
+        const jailbreakPatterns = [
+          "ignore previous instructions",
+          "ignore all previous",
+          "overwrite rules",
+          "bypass instructions",
+          "master administrator",
+          "admin api key",
+          "system prompt",
+          "jailbreak",
+          "output code instead"
+        ];
+        const isJailbreak = jailbreakPatterns.some(pat => q.includes(pat));
+
+        if (isJailbreak) {
+          addLog(`[12:00:03] [GUARDRAIL:IN] [ALERT] Prompt Injection Blocked. Threat signature matched.`, "error");
+          addLog(`[12:00:03] [GUARDRAIL:IN] Threat Vector: 'ignore/overwrite rules'`, "error");
+          addLog("[12:00:03] [SHORT-CIRCUIT] Terminating flow immediately. Bypassing Agent reasoning core.", "error");
+          currentStatuses[2] = 'blocked';
+          currentStatuses[6] = 'blocked'; // TERMINATE (Node 7) triggers!
+          setStageStatuses([...currentStatuses]);
+          setRiskScore(98);
+          setIsSimulating(false); // Stop simulation immediately
+        } else {
+          addLog("[12:00:01] [GUARDRAIL:IN] Scanning input for indirect prompt injection... NO_MATCH", "success");
+          currentStatuses[2] = 'passed';
+          setStageStatuses([...currentStatuses]);
+        }
+      }, 300);
+    } 
+    else if (step === 4) {
+      // Stage 4: Agent Core (SLM reasoning)
+      currentStatuses[3] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog("[12:00:02] [AGENT_CORE] Initializing local reasoning weights...", "info");
+      
+      setTimeout(() => {
+        if (requiresJohn || requiresJane || requiresEgressLeak) {
+          addLog("[12:00:02] [AGENT_CORE] Structured request identified. Formulating DB Tool Call Request...", "info");
+        } else {
+          addLog("[12:00:02] [AGENT_CORE] Harmless query. No external tools requested.", "success");
+        }
+        currentStatuses[3] = 'passed';
+        setStageStatuses([...currentStatuses]);
+      }, 300);
+    }
+    else if (step === 5) {
+      // Stage 5: Tool Gateway & AuthZ Check (And DB infrastructure check)
+      currentStatuses[4] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog(`[12:00:02] [AUTHZ_GATEWAY] Evaluating scope for Role: ${selectedRole.toUpperCase()}...`, "info");
+      setAuthzContext({ user: selectedRole.toUpperCase(), scope: selectedRole === 'executive' ? 'ROLE_ADMIN (PRIVILEGED:READ)' : selectedRole === 'employee' ? 'ROLE_USER (RESTRICTED:READ)' : 'GUEST (PUBLIC:READ)' });
+
+      setTimeout(() => {
+        if (requiresJane && selectedRole !== 'executive') {
+          addLog(`[12:00:03] [AUTHZ_GATEWAY] BLOCK: Guest/User role lacks permission scope [PII:READ] on USER_02.SSN.`, "error");
+          addLog(`[12:00:03] [AUTHZ_GATEWAY] RLS Blockade: Denied access to Object [USER_02] due to Least-Privilege policy.`, "error");
+          currentStatuses[4] = 'blocked';
+          currentStatuses[7] = 'blocked'; // Relational DB blocked!
+          currentStatuses[6] = 'blocked'; // TERMINATE Node triggers!
+          setAuthzTargetViolated('USER_02');
+          setRiskScore(92);
+          setStageStatuses([...currentStatuses]);
+          setIsSimulating(false); // Stop simulation immediately
+        } else if (requiresJohn && selectedRole === 'guest') {
+          addLog(`[12:00:03] [AUTHZ_GATEWAY] BLOCK: Guest role lacks permission scope [PII:READ]. Request dropped.`, "error");
+          currentStatuses[4] = 'blocked';
+          currentStatuses[7] = 'blocked'; // Relational DB blocked!
+          currentStatuses[6] = 'blocked'; // TERMINATE Node triggers!
+          setAuthzTargetViolated('USER_01');
+          setRiskScore(92);
+          setStageStatuses([...currentStatuses]);
+          setIsSimulating(false); // Stop simulation immediately
+        } else {
+          if (selectedRole === 'executive' && requiresJane) {
+            addLog(`[12:00:02] [AUTHZ_GATEWAY] Scope validated: EXECUTIVE authorized for [ROLE_ADMIN].`, "success");
+            addLog("[12:00:02] [INBOUND_SCRUBBER] Cleansing fetched DB record context... NO_INJECTIONS_FOUND", "success");
+            currentStatuses[7] = 'passed'; // Relational DB green!
+          } else if (selectedRole === 'employee' && (requiresJohn || requiresEgressLeak)) {
+            addLog(`[12:00:02] [AUTHZ_GATEWAY] Scope validated: EMPLOYEE authorized for [ROLE_USER].`, "success");
+            addLog("[12:00:02] [INBOUND_SCRUBBER] Cleansing fetched DB record context... NO_INJECTIONS_FOUND", "success");
+            currentStatuses[7] = 'passed'; // Relational DB green!
+          } else {
+            addLog(`[12:00:02] [AUTHZ_GATEWAY] Public scope cleared. No restricted objects requested.`, "success");
+            addLog("[REACT_LOOP_1] Action: Tool call request sent to TOOL GATEWAY.", "info");
+            addLog("[REACT_LOOP_1] Observation: Retrieved context from Vector DB (2,048 tokens).", "success");
+            addLog("[INTENT_GUARD] Re-scanning updated context payload... NO_INDIRECT_INJECTION_DETECTED.", "success");
+            addLog("[REACT_LOOP_2] Agent proceeding with next thought step.", "info");
+            currentStatuses[8] = 'passed'; // Vector DB green!
+          }
+          currentStatuses[4] = 'passed';
+          setStageStatuses([...currentStatuses]);
+        }
+      }, 300);
+    } 
+    else if (step === 6) {
+      // Stage 6: Egress Auditor final token validations
+      currentStatuses[5] = 'running';
+      setStageStatuses(currentStatuses);
+      addLog("[12:00:03] [GUARDRAIL:OUT] Sanitizing response payload...", "info");
+
+      setTimeout(() => {
+        if (requiresJohn) {
+          setSlmRawResponse("The SSN for USER_01 is 987-65-4321.");
+          setEgressGuardrailResponse("Policy [RESTRICT_PII] prevented the disclosure of SSN for USER_01.");
+          addLog(`[12:00:03] [GUARDRAIL:OUT] Sanitizing response payload. Egress block: SLM attempted to leak raw SSN.`, "warning");
+          currentStatuses[5] = 'warning';
+        } else if (requiresJane && selectedRole === 'executive') {
+          setSlmRawResponse("The SSN for USER_02 is 123-45-6789.");
+          setEgressGuardrailResponse("The decrypted SSN for USER_02 is [123-45-6789].");
+          addLog(`[12:00:03] [GUARDRAIL:OUT] Egress status: CLEARED (Privileged clearance confirmed).`, "success");
+          currentStatuses[5] = 'passed';
+        } else if (requiresEgressLeak) {
+          setSlmRawResponse("The engineering budget is $1.2M. Internal trace: sk_live_99823_x7z");
+          setEgressGuardrailResponse("The engineering team's quarterly budget is $1.2M across 12 headcount. [REDACTED: Output contained internal system secret signature].");
+          addLog("[12:00:04] [AGENT_CORE] ReAct Loop Complete. Draft completion sent to Egress.", "info");
+          addLog("[12:00:05] [EGRESS_AUDITOR] Scanning completion payload (Entropy Analysis + Regex Rules)...", "info");
+          addLog("[12:00:05] [EGRESS_AUDITOR] 🚨 BLOCK: Detected API Secret Pattern [sk_live_***] in model output.", "error");
+          addLog("[12:00:05] [EGRESS_AUDITOR] Payload Sanitized. Stripped 1 secret token. Egress Status: REDACTED (200 OK)", "warning");
+          currentStatuses[5] = 'warning'; // Egress Auditor lights up amber!
+        } else {
+          setSlmRawResponse("The company holidays for 2026 are New Year's Day, Memorial Day, Independence Day, Labor Day, Thanksgiving, and Christmas.");
+          setEgressGuardrailResponse("The company holidays for 2026 are New Year's Day, Memorial Day, Independence Day, Labor Day, Thanksgiving, and Christmas.");
+          addLog(`[12:00:03] [GUARDRAIL:OUT] Egress status: CLEARED (F)`, "success");
+          currentStatuses[5] = 'passed';
+        }
+        setStageStatuses([...currentStatuses]);
+      }, 300);
+    }
+  };
 
   // Play button handler (Auto advance loop)
   const handlePlay = () => {
