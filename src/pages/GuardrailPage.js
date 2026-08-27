@@ -578,15 +578,15 @@ const GuardrailPage = () => {
           {/* Header Column 3: Run Validation & Standard Playback controls */}
           <div className="flex-shrink-0 flex items-center gap-3 flex-row flex-nowrap justify-end">
             
-            {/* Standard Playback Controller Button Group (DaisyUI styled) */}
-            <div className="join border border-base-300 rounded-lg overflow-hidden bg-base-100 flex-shrink-0 select-none">
+            {/* 2-Row Grid Playback Controller (Symmetrical & Compact) */}
+            <div className="grid grid-cols-2 gap-1 flex-shrink-0 select-none">
               
               {/* Play Button: standard symbol Play with label */}
               <button
                 onClick={handlePlay}
                 disabled={!prompt.trim() || (isSimulating && !isPaused)}
-                className={`btn btn-xs join-item px-3 font-sans text-[10px] font-extrabold ${
-                  isSimulating && !isPaused ? 'btn-active btn-success text-white' : 'btn-ghost'
+                className={`btn btn-xs rounded font-sans text-[10px] font-black h-6 w-16 px-1.5 flex items-center justify-center ${
+                  isSimulating && !isPaused ? 'btn-active btn-success text-white' : 'bg-base-100 border border-base-300 text-base-content hover:bg-base-300'
                 }`}
                 title="Play (Auto-Advance)"
               >
@@ -597,8 +597,8 @@ const GuardrailPage = () => {
               <button
                 onClick={handlePause}
                 disabled={!isSimulating || isPaused}
-                className={`btn btn-xs join-item px-3 font-sans text-[10px] font-extrabold ${
-                  isSimulating && isPaused ? 'btn-active btn-warning text-slate-800' : 'btn-ghost'
+                className={`btn btn-xs rounded font-sans text-[10px] font-black h-6 w-16 px-1.5 flex items-center justify-center ${
+                  isSimulating && isPaused ? 'btn-active btn-warning text-slate-800' : 'bg-base-100 border border-base-300 text-base-content hover:bg-base-300'
                 }`}
                 title="Pause"
               >
@@ -609,7 +609,7 @@ const GuardrailPage = () => {
               <button
                 onClick={handleNextStep}
                 disabled={!prompt.trim() || (isSimulating && !isPaused)}
-                className="btn btn-xs btn-ghost join-item px-3 font-sans text-[10px] font-extrabold"
+                className="btn btn-xs rounded bg-base-100 border border-base-300 text-base-content hover:bg-base-300 font-sans text-[10px] font-black h-6 w-16 px-1.5 flex items-center justify-center"
                 title="Next Step"
               >
                 ⏭ Step
@@ -618,7 +618,7 @@ const GuardrailPage = () => {
               {/* Reset Button: standard Reset with label */}
               <button
                 onClick={handleReset}
-                className="btn btn-xs btn-ghost join-item px-3 font-sans text-[10px] font-extrabold"
+                className="btn btn-xs rounded bg-base-100 border border-base-300 text-base-content hover:bg-base-300 font-sans text-[10px] font-black h-6 w-16 px-1.5 flex items-center justify-center"
                 title="Reset to beginning"
               >
                 ↺ Reset
