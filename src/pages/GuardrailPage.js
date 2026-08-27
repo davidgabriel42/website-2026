@@ -524,10 +524,10 @@ const GuardrailPage = () => {
           Expanded horizontal flex row. Playback controls have no overflow clipping,
           ensuring they are 100% visible and accessible.
         */}
-        <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-5 py-3 rounded-xl shadow gap-4 h-[10%] flex-shrink-0 overflow-visible flex-nowrap">
+        <header className="flex flex-row flex-wrap md:flex-nowrap justify-between items-center bg-base-200 border border-base-300 px-4 md:px-5 py-2 md:py-3 rounded-xl shadow gap-x-4 gap-y-2 min-h-[75px] md:h-[10%] flex-shrink-0 overflow-visible">
           
           {/* Header Column 1: Title block (flex-shrink-0) */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 order-1">
             <h1 className="text-sm sm:text-lg font-black text-base-content uppercase tracking-widest leading-none flex items-center gap-2">
               <span className="hidden sm:inline">Agentic ReAct </span>Guardrails
               {riskScore > 0 && (
@@ -539,7 +539,7 @@ const GuardrailPage = () => {
           </div>
 
           {/* Header Column 2: Scenario preset pills with click-here visual pointer arrow */}
-          <div className="flex flex-row items-center gap-3 flex-shrink-0">
+          <div className="order-3 w-full md:w-auto flex flex-row items-center justify-center md:justify-start gap-3 flex-shrink-0 border-t border-base-content/5 md:border-none pt-2 md:pt-0">
             
             {/* Click Here Arrow Pointer Badge */}
             <div className="hidden lg:flex text-[10px] text-primary font-black uppercase tracking-widest animate-pulse items-center gap-1 select-none">
@@ -547,7 +547,7 @@ const GuardrailPage = () => {
               <span className="text-xs font-sans font-black leading-none">&rarr;</span>
             </div>
 
-            <div className="flex flex-col gap-1 items-start flex-shrink-0">
+            <div className="flex flex-col gap-1 items-center md:items-start flex-shrink-0">
               <div className="flex gap-1 flex-nowrap">
                 {PRESET_PROMPTS.slice(0, 3).map((preset) => (
                   <button
@@ -576,7 +576,7 @@ const GuardrailPage = () => {
           </div>
 
           {/* Header Column 3: Run Validation & Standard Playback controls */}
-          <div className="flex-shrink-0 flex items-center gap-3 flex-row flex-nowrap justify-end">
+          <div className="flex-shrink-0 order-2">
             
             {/* 2-Row Grid Playback Controller (Symmetrical & Compact) */}
             <div className="grid grid-cols-2 gap-1 flex-shrink-0 select-none">
