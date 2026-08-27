@@ -837,15 +837,15 @@ const GuardrailPage = () => {
               <foreignObject x="20" y="110" width="140" height="190">
                 <div className="w-full h-full border border-base-content/20 bg-black/60 rounded-lg p-2.5 flex flex-col font-mono text-[11px] text-slate-300 leading-normal select-text">
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">INBOUND PROMPT</span>
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin flex flex-col gap-2">
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin flex flex-col gap-2 text-[13px] leading-relaxed">
                     <span className="font-bold text-slate-100">{prompt}</span>
                     {/* Active Preset Threat Description Sub-text (2 sizes larger!) */}
                     {prompt && (
-                      <span className="text-[10.5px] text-slate-500 italic border-t border-slate-800 pt-1.5 leading-tight block select-none">
+                      <span className="text-[11px] text-slate-500 italic border-t border-slate-800 pt-1.5 leading-tight block select-none">
                         {PRESET_PROMPTS.find(p => p.text === prompt)?.desc}
                       </span>
                     )}
-                    {!prompt && <span className="italic text-slate-600 select-none">[Awaiting preset selection...]</span>}
+                    {!prompt && <span className="italic text-slate-600 select-none text-[11px]">[Awaiting preset selection...]</span>}
                   </div>
                 </div>
               </foreignObject>
@@ -935,7 +935,7 @@ const GuardrailPage = () => {
                 </div>
               </foreignObject>
 
-              {/* Real-time Sanitised Output Stream Panel */}
+              {/* Real-time Response Stream Panel */}
               <foreignObject x="1000" y="110" width="160" height="190">
                 <div className={`w-full h-full border rounded-lg p-2.5 flex flex-col font-mono text-[11px] leading-normal select-text transition-all duration-300 ${
                   stageStatuses[5] === 'warning'
@@ -944,16 +944,16 @@ const GuardrailPage = () => {
                       ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold'
                       : 'border-base-content/20 bg-black/60 text-slate-400'
                 }`}>
-                  <span className="text-[10px] font-black uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">EGRESS COMPLETION</span>
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin">
+                  <span className="text-[10px] font-black uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">RESPONSE</span>
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin text-[13px] leading-relaxed">
                     {egressGuardrailResponse ? (
                       egressGuardrailResponse
                     ) : stageStatuses[6] === 'blocked' || stageStatuses[4] === 'blocked' || stageStatuses[2] === 'blocked' ? (
-                      <span className="text-rose-400 font-black tracking-wide">[TERMINATED: Violation Intercepted]</span>
+                      <span className="text-rose-400 font-black tracking-wide text-[13px]">[TERMINATED: Violation Intercepted]</span>
                     ) : isSimulating && currentStage < 8 ? (
-                      <span className="italic text-slate-600 animate-pulse select-none">[Buffering model completion...]</span>
+                      <span className="italic text-slate-600 animate-pulse select-none text-[13px]">[Buffering response...]</span>
                     ) : (
-                      <span className="italic text-slate-600 select-none">[No active stream released...]</span>
+                      <span className="italic text-slate-600 select-none text-[13px]">[No response released...]</span>
                     )}
                   </div>
                 </div>
