@@ -524,12 +524,12 @@ const GuardrailPage = () => {
           Expanded horizontal flex row. Playback controls have no overflow clipping,
           ensuring they are 100% visible and accessible.
         */}
-        <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-5 py-3 rounded-xl shadow gap-4 h-[10%] flex-shrink-0 overflow-hidden flex-nowrap">
+        <header className="flex flex-row justify-between items-center bg-base-200 border border-base-300 px-5 py-3 rounded-xl shadow gap-4 h-[10%] flex-shrink-0 overflow-visible flex-nowrap">
           
           {/* Header Column 1: Title block (flex-shrink-0) */}
           <div className="flex-shrink-0">
-            <h1 className="text-lg font-black text-base-content uppercase tracking-widest leading-none flex items-center gap-2">
-              Agentic ReAct Guardrails
+            <h1 className="text-sm sm:text-lg font-black text-base-content uppercase tracking-widest leading-none flex items-center gap-2">
+              <span className="hidden sm:inline">Agentic ReAct </span>Guardrails
               {riskScore > 0 && (
                 <span className="badge badge-sm font-bold uppercase tracking-wider badge-error text-white animate-pulse">
                   Risk: {riskScore}%
@@ -542,7 +542,7 @@ const GuardrailPage = () => {
           <div className="flex flex-row items-center gap-3 flex-shrink-0">
             
             {/* Click Here Arrow Pointer Badge */}
-            <div className="text-[10px] text-primary font-black uppercase tracking-widest animate-pulse flex items-center gap-1 select-none">
+            <div className="hidden lg:flex text-[10px] text-primary font-black uppercase tracking-widest animate-pulse items-center gap-1 select-none">
               <span>Click preset here</span>
               <span className="text-xs font-sans font-black leading-none">&rarr;</span>
             </div>
@@ -554,7 +554,7 @@ const GuardrailPage = () => {
                     key={preset.id}
                     onClick={() => handleLoadPreset(preset)}
                     disabled={isSimulating}
-                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2.5 py-1 h-auto leading-none select-none flex-shrink-0"
+                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[9px] sm:text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2 py-1 sm:px-2.5 h-auto leading-none select-none flex-shrink-0"
                   >
                     {preset.preset_label || preset.label}
                   </button>
@@ -566,7 +566,7 @@ const GuardrailPage = () => {
                     key={preset.id}
                     onClick={() => handleLoadPreset(preset)}
                     disabled={isSimulating}
-                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2.5 py-1 h-auto leading-none select-none flex-shrink-0"
+                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[9px] sm:text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2 py-1 sm:px-2.5 h-auto leading-none select-none flex-shrink-0"
                   >
                     {preset.preset_label || preset.label}
                   </button>
