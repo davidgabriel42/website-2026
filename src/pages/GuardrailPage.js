@@ -670,7 +670,7 @@ const GuardrailPage = () => {
                 x="400" 
                 y="14" 
                 width="360" 
-                height="184" 
+                height="190" 
                 rx="10" 
                 fill="none" 
                 stroke="#3b82f6" 
