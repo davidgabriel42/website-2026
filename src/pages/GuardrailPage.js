@@ -528,7 +528,7 @@ const GuardrailPage = () => {
           
           {/* Header Column 1: Title block (flex-shrink-0) */}
           <div className="flex-shrink-0 order-1">
-            <h1 className="text-sm sm:text-lg font-black text-base-content uppercase tracking-widest leading-none flex items-center gap-2">
+            <h1 className="text-base sm:text-xl font-black text-base-content uppercase tracking-widest leading-none flex items-center gap-2">
               <span className="hidden sm:inline">Agentic ReAct </span>Guardrails
               {riskScore > 0 && (
                 <span className="badge badge-sm font-bold uppercase tracking-wider badge-error text-white animate-pulse">
@@ -542,9 +542,9 @@ const GuardrailPage = () => {
           <div className="order-3 w-full md:w-auto flex flex-row items-center justify-center md:justify-start gap-3 flex-shrink-0 border-t border-base-content/5 md:border-none pt-2 md:pt-0">
             
             {/* Click Here Arrow Pointer Badge */}
-            <div className="hidden lg:flex text-[10px] text-primary font-black uppercase tracking-widest animate-pulse items-center gap-1 select-none">
+            <div className="hidden lg:flex text-[12px] text-primary font-black uppercase tracking-widest animate-pulse items-center gap-1 select-none">
               <span>Click preset here</span>
-              <span className="text-xs font-sans font-black leading-none">&rarr;</span>
+              <span className="text-sm font-sans font-black leading-none">&rarr;</span>
             </div>
 
             <div className="flex flex-col gap-1 items-center md:items-start flex-shrink-0">
@@ -554,7 +554,7 @@ const GuardrailPage = () => {
                     key={preset.id}
                     onClick={() => handleLoadPreset(preset)}
                     disabled={isSimulating}
-                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[9px] sm:text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2 py-1 sm:px-2.5 h-auto leading-none select-none flex-shrink-0"
+                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[11px] sm:text-[12px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2 py-1 sm:px-2.5 h-auto leading-none select-none flex-shrink-0"
                   >
                     {preset.preset_label || preset.label}
                   </button>
@@ -566,7 +566,7 @@ const GuardrailPage = () => {
                     key={preset.id}
                     onClick={() => handleLoadPreset(preset)}
                     disabled={isSimulating}
-                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[9px] sm:text-[10px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2 py-1 sm:px-2.5 h-auto leading-none select-none flex-shrink-0"
+                    className="btn btn-outline btn-xs bg-base-100 border-base-300 text-[11px] sm:text-[12px] font-extrabold hover:bg-base-300 hover:text-base-content rounded-md px-2 py-1 sm:px-2.5 h-auto leading-none select-none flex-shrink-0"
                   >
                     {preset.preset_label || preset.label}
                   </button>
@@ -585,7 +585,7 @@ const GuardrailPage = () => {
               <button
                 onClick={handlePlay}
                 disabled={!prompt.trim() || (isSimulating && !isPaused)}
-                className={`btn btn-xs rounded font-sans text-[10px] font-black h-6 w-16 px-1.5 flex items-center justify-center ${
+                className={`btn btn-xs rounded font-sans text-[12px] font-black h-6 w-[72px] px-1.5 flex items-center justify-center ${
                   isSimulating && !isPaused ? 'btn-active btn-success text-white' : 'bg-base-100 border border-base-300 text-base-content hover:bg-base-300'
                 }`}
                 title="Play (Auto-Advance)"
@@ -597,7 +597,7 @@ const GuardrailPage = () => {
               <button
                 onClick={handlePause}
                 disabled={!isSimulating || isPaused}
-                className={`btn btn-xs rounded font-sans text-[10px] font-black h-6 w-16 px-1.5 flex items-center justify-center ${
+                className={`btn btn-xs rounded font-sans text-[12px] font-black h-6 w-[72px] px-1.5 flex items-center justify-center ${
                   isSimulating && isPaused ? 'btn-active btn-warning text-slate-800' : 'bg-base-100 border border-base-300 text-base-content hover:bg-base-300'
                 }`}
                 title="Pause"
@@ -609,7 +609,7 @@ const GuardrailPage = () => {
               <button
                 onClick={handleNextStep}
                 disabled={!prompt.trim() || (isSimulating && !isPaused)}
-                className="btn btn-xs rounded bg-base-100 border border-base-300 text-base-content hover:bg-base-300 font-sans text-[10px] font-black h-6 w-16 px-1.5 flex items-center justify-center"
+                className="btn btn-xs rounded bg-base-100 border border-base-300 text-base-content hover:bg-base-300 font-sans text-[12px] font-black h-6 w-[72px] px-1.5 flex items-center justify-center"
                 title="Next Step"
               >
                 ⏭ Step
@@ -618,7 +618,7 @@ const GuardrailPage = () => {
               {/* Reset Button: standard Reset with label */}
               <button
                 onClick={handleReset}
-                className="btn btn-xs rounded bg-base-100 border border-base-300 text-base-content hover:bg-base-300 font-sans text-[10px] font-black h-6 w-16 px-1.5 flex items-center justify-center"
+                className="btn btn-xs rounded bg-base-100 border border-base-300 text-base-content hover:bg-base-300 font-sans text-[12px] font-black h-6 w-[72px] px-1.5 flex items-center justify-center"
                 title="Reset to beginning"
               >
                 ↺ Reset
@@ -835,8 +835,8 @@ const GuardrailPage = () => {
 
               {/* Real-time Inbound Prompt Stream Panel */}
               <foreignObject x="20" y="110" width="140" height="190">
-                <div className="w-full h-full border border-base-content/20 bg-black/60 rounded-lg p-2.5 flex flex-col font-mono text-[9px] text-slate-300 leading-normal select-text">
-                  <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">INBOUND PROMPT</span>
+                <div className="w-full h-full border border-base-content/20 bg-black/60 rounded-lg p-2.5 flex flex-col font-mono text-[11px] text-slate-300 leading-normal select-text">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">INBOUND PROMPT</span>
                   <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin">
                     {prompt ? prompt : <span className="italic text-slate-600 select-none">[Awaiting preset selection...]</span>}
                   </div>
@@ -857,8 +857,8 @@ const GuardrailPage = () => {
                           : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Tokenizer</span>
-                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">PII Scrubbing</span>
+                  <span className="text-[14px] font-black uppercase tracking-wider text-base-content leading-none">Tokenizer</span>
+                  <span className="text-[11px] text-slate-400 font-bold tracking-wide mt-1 leading-none">PII Scrubbing</span>
                 </div>
               </foreignObject>
 
@@ -876,9 +876,9 @@ const GuardrailPage = () => {
                           : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Intent Guard</span>
-                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Injection Filter</span>
-                  <span className="text-[7px] text-primary font-black uppercase tracking-widest mt-1 leading-none bg-primary/10 border border-primary/20 rounded px-1 py-0.5 select-none self-center animate-pulse">
+                  <span className="text-[14px] font-black uppercase tracking-wider text-base-content leading-none">Intent Guard</span>
+                  <span className="text-[11px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Injection Filter</span>
+                  <span className="text-[9px] text-primary font-black uppercase tracking-widest mt-1 leading-none bg-primary/10 border border-primary/20 rounded px-1 py-0.5 select-none self-center animate-pulse">
                     [Evaluated Per Turn]
                   </span>
                 </div>
@@ -896,8 +896,8 @@ const GuardrailPage = () => {
                         : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Agent Core</span>
-                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">SLM Engine</span>
+                  <span className="text-[14px] font-black uppercase tracking-wider text-base-content leading-none">Agent Core</span>
+                  <span className="text-[11px] text-slate-400 font-bold tracking-wide mt-1 leading-none">SLM Engine</span>
                 </div>
               </foreignObject>
 
@@ -915,29 +915,29 @@ const GuardrailPage = () => {
                           : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Egress Auditor</span>
-                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Output Verify</span>
+                  <span className="text-[14px] font-black uppercase tracking-wider text-base-content leading-none">Egress Auditor</span>
+                  <span className="text-[11px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Output Verify</span>
                 </div>
               </foreignObject>
 
               {/* Node 6: SANITIZED OUTPUT */}
               <foreignObject x="1000" y="20" width="160" height="70" className="overflow-visible">
                 <div className="w-full h-full border-2 border-slate-800 bg-[#090d16] rounded-lg p-2 flex flex-col justify-center select-none transition-all duration-300">
-                  <span className="text-[12px] font-black uppercase tracking-wider text-emerald-400 leading-none">Sanitised</span>
-                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Egress Output</span>
+                  <span className="text-[14px] font-black uppercase tracking-wider text-emerald-400 leading-none">Sanitised</span>
+                  <span className="text-[11px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Egress Output</span>
                 </div>
               </foreignObject>
 
               {/* Real-time Sanitised Output Stream Panel */}
               <foreignObject x="1000" y="110" width="160" height="190">
-                <div className={`w-full h-full border rounded-lg p-2.5 flex flex-col font-mono text-[9px] leading-normal select-text transition-all duration-300 ${
+                <div className={`w-full h-full border rounded-lg p-2.5 flex flex-col font-mono text-[11px] leading-normal select-text transition-all duration-300 ${
                   stageStatuses[5] === 'warning'
                     ? 'border-amber-500 bg-amber-950/20 text-amber-300'
                     : stageStatuses[5] === 'passed'
                       ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold'
                       : 'border-base-content/20 bg-black/60 text-slate-400'
                 }`}>
-                  <span className="text-[8px] font-black uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">EGRESS COMPLETION</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">EGRESS COMPLETION</span>
                   <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin">
                     {egressGuardrailResponse ? (
                       egressGuardrailResponse
@@ -966,8 +966,8 @@ const GuardrailPage = () => {
                       : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
-                  <span className={`text-[12px] font-black uppercase tracking-wider leading-none ${stageStatuses[6] === 'blocked' ? 'text-rose-500' : 'text-base-content'}`}>Terminate</span>
-                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">
+                  <span className={`text-[14px] font-black uppercase tracking-wider leading-none ${stageStatuses[6] === 'blocked' ? 'text-rose-500' : 'text-base-content'}`}>Terminate</span>
+                  <span className="text-[11px] text-slate-400 font-bold tracking-wide mt-1 leading-none">
                     {stageStatuses[6] === 'blocked' ? "🚨 HTTP 403 REJECT" : "403 / Drop"}
                   </span>
                 </div>
@@ -987,8 +987,8 @@ const GuardrailPage = () => {
                           : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Tool Gateway</span>
-                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">AuthZ Check</span>
+                  <span className="text-[14px] font-black uppercase tracking-wider text-base-content leading-none">Tool Gateway</span>
+                  <span className="text-[11px] text-slate-400 font-bold tracking-wide mt-1 leading-none">AuthZ Check</span>
                 </div>
               </foreignObject>
 
@@ -1010,8 +1010,8 @@ const GuardrailPage = () => {
                           : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Relational DB</span>
-                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Concurrent DB</span>
+                  <span className="text-[14px] font-black uppercase tracking-wider text-base-content leading-none">Relational DB</span>
+                  <span className="text-[11px] text-slate-400 font-bold tracking-wide mt-1 leading-none">Concurrent DB</span>
                 </div>
               </foreignObject>
 
@@ -1029,8 +1029,8 @@ const GuardrailPage = () => {
                           : 'border-[#2B3548] bg-base-200 hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-[12px] font-black uppercase tracking-wider text-base-content leading-none">Vector DB</span>
-                  <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-1 leading-none">RAG Memory</span>
+                  <span className="text-[14px] font-black uppercase tracking-wider text-base-content leading-none">Vector DB</span>
+                  <span className="text-[11px] text-slate-400 font-bold tracking-wide mt-1 leading-none">RAG Memory</span>
                 </div>
               </foreignObject>
 
@@ -1047,54 +1047,54 @@ const GuardrailPage = () => {
             {/* Inspector Left Column: Active Observability Stage Info (Stacked 2-row layout) */}
             <div className="flex flex-col justify-center gap-1.5 w-[55%]">
               <div className="flex items-center gap-2">
-                <span className="bg-primary/20 text-primary border border-primary/30 rounded px-1.5 py-0.5 text-[9px] font-black tracking-widest uppercase flex-shrink-0">
+                <span className="bg-primary/20 text-primary border border-primary/30 rounded px-1.5 py-0.5 text-[11px] font-black tracking-widest uppercase flex-shrink-0">
                   Active Node: {NODE_SPECIFICATIONS[inspectedNode]?.name}
                 </span>
-                <span className="text-[9px] text-base-content/60 font-bold uppercase tracking-wider">
+                <span className="text-[11px] text-base-content/60 font-bold uppercase tracking-wider">
                   State: {isSimulating && currentStage === inspectedNode ? "ACTIVE SCANNING" : "MONITORING"}
                 </span>
               </div>
-              <p className="text-base-content/90 font-semibold leading-tight text-[11px] line-clamp-2">
-                <span className="text-base-content/50 uppercase font-black tracking-wider text-[9px] mr-1">Purpose:</span> 
+              <p className="text-base-content/90 font-semibold leading-tight text-[13px] line-clamp-2">
+                <span className="text-base-content/50 uppercase font-black tracking-wider text-[11px] mr-1">Purpose:</span> 
                 {NODE_SPECIFICATIONS[inspectedNode]?.purpose}
               </p>
             </div>
 
             {/* Inspector Right Column: Live Node Transformations Payload (Stacked 2-row layout with border divider) */}
-            <div className="flex flex-col justify-center gap-1.5 w-[45%] text-right font-mono text-[10px] pl-4 border-l border-base-content/10">
-              <span className="font-extrabold text-[9px] text-base-content/50 uppercase tracking-wider block text-right leading-none">Live State Transformation:</span>
+            <div className="flex flex-col justify-center gap-1.5 w-[45%] text-right font-mono text-[12px] pl-4 border-l border-base-content/10">
+              <span className="font-extrabold text-[11px] text-base-content/50 uppercase tracking-wider block text-right leading-none">Live State Transformation:</span>
               <div className="flex justify-end items-center">
                 {inspectedNode === 2 && inputGuardrailTokenized ? (
                   <div className="flex flex-row items-center gap-2 max-w-full truncate leading-none">
-                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">Raw:</span>
-                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-base-content/85 truncate max-w-[80px] font-bold mr-1">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[10px] tracking-wider">Raw:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[11px] text-base-content/85 truncate max-w-[80px] font-bold mr-1">
                       {inputGuardrailRaw}
                     </span>
-                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">Scrubbed:</span>
-                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-success truncate max-w-[80px] font-bold">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[10px] tracking-wider">Scrubbed:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[11px] text-success truncate max-w-[80px] font-bold">
                       {inputGuardrailTokenized}
                     </span>
                   </div>
                 ) : inspectedNode === 6 && egressGuardrailResponse ? (
                   <div className="flex flex-row items-center gap-2 max-w-full truncate leading-none">
-                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">SLM Draft:</span>
-                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-base-content/85 truncate max-w-[80px] font-bold mr-1">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[10px] tracking-wider">SLM Draft:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[11px] text-base-content/85 truncate max-w-[80px] font-bold mr-1">
                       {slmRawResponse}
                     </span>
-                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">Sanitised:</span>
-                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-success truncate max-w-[80px] font-bold">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[10px] tracking-wider">Sanitised:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[11px] text-success truncate max-w-[80px] font-bold">
                       {egressGuardrailResponse}
                     </span>
                   </div>
                 ) : (inspectedNode === 5 || inspectedNode === 4) && authzContext.scope !== 'N/A' ? (
                   <div className="flex flex-row items-center gap-2 max-w-full truncate leading-none">
-                    <span className="text-base-content/50 font-extrabold uppercase text-[8px] tracking-wider">Active Payload:</span>
-                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[9px] text-warning truncate max-w-[200px] font-bold">
+                    <span className="text-base-content/50 font-extrabold uppercase text-[10px] tracking-wider">Active Payload:</span>
+                    <span className="bg-base-100 border border-base-content/10 rounded px-1.5 py-0.5 text-[11px] text-warning truncate max-w-[200px] font-bold">
                       {`{"tool": "fetch_user_record", "args": {"user_id": "${prompt.toLowerCase().includes("jane") ? "USER_02" : "USER_01"}"}}`}
                     </span>
                   </div>
                 ) : (
-                  <span className="italic text-base-content/40 text-[10px] select-none block truncate">
+                  <span className="italic text-base-content/40 text-[12px] select-none block truncate">
                     No transformations active at this node. Mitigating baseline threat signatures...
                   </span>
                 )}
@@ -1114,7 +1114,7 @@ const GuardrailPage = () => {
           {/* Left Box: Protected Database & Row-Level Authorization (Secrets Vault DB) */}
           <div className="bg-base-200 border border-base-300 p-4 rounded-xl shadow flex flex-col overflow-hidden">
             <div className="flex justify-between items-center select-none border-b border-base-300 pb-1.5 mb-2 flex-shrink-0">
-              <span className="text-[10.5px] font-black text-primary uppercase tracking-widest block">
+              <span className="text-[12.5px] font-black text-primary uppercase tracking-widest block">
                 SECRETS VAULT & ACCESS CONTROL
               </span>
               <span className="badge badge-neutral badge-xs font-bold tracking-wider px-2 py-0.5">
@@ -1123,9 +1123,9 @@ const GuardrailPage = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto rounded-lg border border-base-300 bg-base-100 p-1.5">
-              <table className="table table-xs table-compact w-full text-left font-mono text-xs">
+              <table className="table table-sm table-compact w-full text-left font-mono text-sm">
                 <thead>
-                  <tr className="bg-base-200 text-slate-400 text-[9px] font-black select-none border-b border-base-300">
+                  <tr className="bg-base-200 text-slate-400 text-[11px] font-black select-none border-b border-base-300">
                     <th>USER_ID</th>
                     <th>NAME</th>
                     <th>CLEARANCE</th>
@@ -1155,7 +1155,7 @@ const GuardrailPage = () => {
                         </td>
                         <td className="font-bold text-base-content">{row.name}</td>
                         <td>
-                          <span className="badge badge-neutral badge-xs uppercase text-[8px] font-black select-none px-1.5">
+                          <span className="badge badge-neutral badge-xs uppercase text-[10px] font-black select-none px-1.5">
                             {row.role.split(' ')[0]}
                           </span>
                         </td>
@@ -1167,7 +1167,7 @@ const GuardrailPage = () => {
                           ) : (
                             <div className="flex items-center gap-1 select-none">
                               <span className="blur-[2px] text-slate-600 font-bold">987-XX</span>
-                              <span className="text-[8px] text-slate-500 font-extrabold px-1 border border-slate-700 rounded bg-slate-900 leading-none">🔒 LOCK</span>
+                              <span className="text-[10px] text-slate-500 font-extrabold px-1 border border-slate-700 rounded bg-slate-900 leading-none">🔒 LOCK</span>
                             </div>
                           )}
                         </td>
@@ -1179,7 +1179,7 @@ const GuardrailPage = () => {
                           ) : (
                             <div className="flex items-center gap-1 select-none">
                               <span className="blur-[2px] text-slate-600 font-bold">$XX,XXX</span>
-                              <span className="text-[8px] text-slate-500 font-extrabold px-1 border border-slate-700 rounded bg-slate-900 leading-none">🔒 LOCK</span>
+                              <span className="text-[10px] text-slate-500 font-extrabold px-1 border border-slate-700 rounded bg-slate-900 leading-none">🔒 LOCK</span>
                             </div>
                           )}
                         </td>
@@ -1187,15 +1187,15 @@ const GuardrailPage = () => {
                         {/* RLS Status */}
                         <td>
                           {isViolated ? (
-                            <span className="badge badge-error text-[9px] font-black tracking-widest uppercase text-white select-none px-2">
+                            <span className="badge badge-error text-[11px] font-black tracking-widest uppercase text-white select-none px-2">
                               403_DENIED
                             </span>
                           ) : hasAccess ? (
-                            <span className="badge badge-success text-[9px] font-black tracking-widest uppercase text-white select-none px-2">
+                            <span className="badge badge-success text-[11px] font-black tracking-widest uppercase text-white select-none px-2">
                               READ_ALLOW
                             </span>
                           ) : (
-                            <span className="badge badge-warning text-[9px] font-black tracking-widest uppercase text-slate-800 select-none px-2">
+                            <span className="badge badge-warning text-[11px] font-black tracking-widest uppercase text-slate-800 select-none px-2">
                               RESTRICT
                             </span>
                           )}
@@ -1204,7 +1204,7 @@ const GuardrailPage = () => {
                         {/* Row level 403 blockade overlay */}
                         {isViolated && (
                           <div className="absolute inset-0 bg-rose-950/95 flex items-center justify-center border border-rose-500 z-10 select-none">
-                            <span className="text-[10px] font-black tracking-wider uppercase animate-pulse text-rose-300">
+                            <span className="text-[12px] font-black tracking-wider uppercase animate-pulse text-rose-300">
                               🚨 [DENIED] Violation of Least Privilege Policy: Role scope missing.
                             </span>
                           </div>
@@ -1221,13 +1221,13 @@ const GuardrailPage = () => {
           {/* Right Box: Streamed Zero-Trust Syslog (Console Log) */}
           <div className="bg-black/90 border border-slate-800 p-4 rounded-xl shadow-2xl flex flex-col overflow-hidden font-mono text-xs">
             <div className="bg-slate-900 border-b border-slate-800 px-4 py-1.5 flex justify-between items-center select-none mb-2 flex-shrink-0">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <span className="text-[12px] font-black text-slate-400 uppercase tracking-widest">
                 CONSOLE LOG
               </span>
-              <span className="badge badge-neutral text-[8px] font-bold tracking-wider select-none px-2 py-0.5">SYSLOG // FEED</span>
+              <span className="badge badge-neutral text-[10px] font-bold tracking-wider select-none px-2 py-0.5">SYSLOG // FEED</span>
             </div>
 
-            <div ref={terminalContainerRef} className="flex-1 overflow-y-auto flex flex-col gap-1 leading-relaxed text-[12px] p-1 text-slate-200">
+            <div ref={terminalContainerRef} className="flex-1 overflow-y-auto flex flex-col gap-1 leading-relaxed text-[14px] p-1 text-slate-200">
               {terminalLogs.length === 0 ? (
                 <span className="text-slate-600 italic select-none">
                   Console idle. Awaiting ingress prompt validation trigger...
