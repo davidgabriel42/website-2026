@@ -782,18 +782,18 @@ const GuardrailPage = () => {
               {/* 
                 ROW 3 SPLIT DATABASE CONNECTIONS (Y: 200 to 240 - Split Tool Gateway to Dual DBs!) 
               */}
-              {/* Left Path: Tool Gateway bottom-center (678, 200) -> Relational DB top-center (590, 240) */}
+              {/* Left Path: Tool Gateway bottom-left (658, 200) -> Relational DB top-center (590, 240) */}
               <path 
-                d="M 678 200 L 678 215 L 590 215 L 590 232" 
+                d="M 658 200 L 658 215 L 590 215 L 590 232" 
                 stroke={stageStatuses[7] === 'passed' ? '#10b981' : currentStage === 5 && (prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
                 className={currentStage === 5 && (prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? 'stroke-dash' : ''}
                 marker-end={stageStatuses[7] === 'passed' ? "url(#arrow-green)" : currentStage === 5 && (prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? "url(#arrow-blue)" : "url(#arrow-dark)"}
               />
-              {/* Right Path: Tool Gateway bottom-center (678, 200) -> Vector DB top-center (762, 240) */}
+              {/* Right Path: Tool Gateway bottom-right (698, 200) -> Vector DB top-center (762, 240) */}
               <path 
-                d="M 678 200 L 678 215 L 762 215 L 762 232" 
+                d="M 698 200 L 698 215 L 762 215 L 762 232" 
                 stroke={stageStatuses[8] === 'passed' ? '#10b981' : currentStage === 5 && !(prompt.toLowerCase().includes("john") || prompt.toLowerCase().includes("jane")) ? '#3b82f6' : '#2B3548'} 
                 strokeWidth="3.5" 
                 fill="none"
