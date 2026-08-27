@@ -637,10 +637,10 @@ const GuardrailPage = () => {
         */}
         <section className="bg-base-200 border border-base-300 rounded-xl shadow h-[57%] flex flex-col justify-between flex-shrink-0 overflow-hidden relative">
           <div className="flex justify-between items-center border-b border-base-300 p-4 pb-2 mb-1 flex-shrink-0 select-none">
-            <span className="text-[10.5px] font-black text-primary uppercase tracking-widest block">
+            <span className="text-[12.5px] font-black text-primary uppercase tracking-widest block">
               AGENT CONTROL FLOW STATE MACHINE
             </span>
-            <span className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold select-none">
+            <span className="text-[11px] text-slate-500 uppercase tracking-wider font-extrabold select-none">
               Click nodes below to inspect security specifications
             </span>
           </div>
@@ -678,7 +678,7 @@ const GuardrailPage = () => {
                 strokeDasharray="4, 4" 
                 opacity="0.35"
               />
-              <text x="402" y="9" fill="#3b82f6" opacity="0.95" className="text-[7.5px] font-black select-none tracking-widest uppercase font-mono">ReAct loop</text>
+              <text x="402" y="9" fill="#3b82f6" opacity="0.95" className="text-[9.5px] font-black select-none tracking-widest uppercase font-mono">ReAct loop</text>
 
               {/* 
                 ROW 1 CONNECTION LINES (Orthogonal Happy Path Y: 55 center) 
@@ -837,8 +837,15 @@ const GuardrailPage = () => {
               <foreignObject x="20" y="110" width="140" height="190">
                 <div className="w-full h-full border border-base-content/20 bg-black/60 rounded-lg p-2.5 flex flex-col font-mono text-[11px] text-slate-300 leading-normal select-text">
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-base-content/10 pb-1 mb-1.5 select-none block">INBOUND PROMPT</span>
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin">
-                    {prompt ? prompt : <span className="italic text-slate-600 select-none">[Awaiting preset selection...]</span>}
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden whitespace-normal break-words scrollbar-thin flex flex-col gap-2">
+                    <span className="font-bold text-slate-100">{prompt}</span>
+                    {/* Active Preset Threat Description Sub-text (2 sizes larger!) */}
+                    {prompt && (
+                      <span className="text-[10.5px] text-slate-500 italic border-t border-slate-800 pt-1.5 leading-tight block select-none">
+                        {PRESET_PROMPTS.find(p => p.text === prompt)?.desc}
+                      </span>
+                    )}
+                    {!prompt && <span className="italic text-slate-600 select-none">[Awaiting preset selection...]</span>}
                   </div>
                 </div>
               </foreignObject>
