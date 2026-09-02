@@ -529,7 +529,7 @@ const GuardrailPage = () => {
           {/* Header Column 1: Title block (flex-shrink-0) */}
           <div className="flex-shrink-0 order-1">
             <h1 className="text-base sm:text-xl font-black text-base-content uppercase tracking-widest leading-none flex items-center gap-2">
-              <span className="hidden sm:inline">Agentic ReAct </span>Guardrails
+              <span className="hidden sm:inline">Agentic </span>Guardrails
               {riskScore > 0 && (
                 <span className="badge badge-sm font-bold uppercase tracking-wider badge-error text-white animate-pulse">
                   Risk: {riskScore}%
